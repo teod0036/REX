@@ -22,10 +22,9 @@ def PerformFigureEight():
     # Start Turn
     print(arlo.go_diff(127, 41, 1, 1))
 
-    sleep(3)
+    sleep(3.5)
     # Should be at start position now
     print(arlo.stop())
 
-PerformFigureEight()
 PerformFigureEight()
 PerformFigureEight()
