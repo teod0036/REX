@@ -9,16 +9,16 @@ def PerformFigureEight():
     rightSpeed = 64
     print(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
 
-    sleep(1)
+    sleep(2)
     # Start Turn
     print(arlo.stop())
     print(arlo.go_diff(0, rightSpeed, 1, 1))
 
-    sleep(10)
+    sleep(3.5)
     # Go Straight
     print(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
 
-    sleep(1)
+    sleep(2)
     # Start Turn
     print(arlo.go_diff(leftSpeed, 0, 1, 1))
 
