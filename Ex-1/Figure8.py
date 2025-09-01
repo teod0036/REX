@@ -28,6 +28,3 @@ def PerformFigureEight():
 
 PerformFigureEight()
 PerformFigureEight()
-PerformFigureEight()
-PerformFigureEight()
-PerformFigureEight()
