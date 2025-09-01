@@ -27,4 +27,3 @@ def PerformFigureEight():
     print(arlo.stop())
 
 PerformFigureEight()
-PerformFigureEight()
