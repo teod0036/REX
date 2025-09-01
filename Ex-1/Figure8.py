@@ -3,7 +3,7 @@ import robot
 
 arlo = robot.Robot()
 
-def PerformFigureEight(self):
+def PerformFigureEight():
     # Go Straight
     leftSpeed = 64
     rightSpeed = 64
@@ -26,4 +26,6 @@ def PerformFigureEight(self):
     sleep(1)
     # Should be at start position now
     print(arlo.stop())
+
+PerformFigureEight()
     
