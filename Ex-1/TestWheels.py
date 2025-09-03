@@ -4,9 +4,7 @@ import robot
 arlo = robot.Robot()
 
 def TestWheels(userightwheel: bool, sleepduration: float = 0.5):
-    
-    print("Running TestWheels. Userightwheel: " + userightwheel + " and sleepduration: " + sleepduration)
-    # Speed constants
+        # Speed constants
     speed = 41
     Rightspeedmodifier = 20
     if userightwheel:
