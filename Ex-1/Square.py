@@ -9,6 +9,7 @@ def perform_square():
     for i in range(4):
         #go straight
         go_meter()
+        print(arlo.stop())
 
         #turn right
         perform_Turn90()
