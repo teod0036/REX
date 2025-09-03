@@ -9,7 +9,7 @@ def PerformTurnLeftCircle():
     rightSpeed = 64
     Rightspeedmodifier = -2
     turntimer = 3.2
-    print(arlo.go_diff(43, 114 + Rightspeedmodifier, 1, 1))
+    print(arlo.go_diff(0, 114, 1, 1))
     sleep(turntimer)
 
 def PerformTurnRightCircle():
@@ -17,7 +17,7 @@ def PerformTurnRightCircle():
     rightSpeed = 64
     Rightspeedmodifier = -2
     turntimer = 3.2
-    print(arlo.go_diff(114, 43, 1, 1))
+    print(arlo.go_diff(114, 0, 1, 1))
     sleep(turntimer)
 
 
