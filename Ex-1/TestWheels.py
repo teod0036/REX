@@ -16,7 +16,7 @@ def TestWheels(userightwheel: bool, sleepduration: float = 0.5):
 
 
 for i in range(16):
-    TestWheels(True)
+    TestWheels(False)
 
 
 
