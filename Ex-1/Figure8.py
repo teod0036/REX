@@ -12,16 +12,16 @@ def PerformFigureEight():
 
     # Start Turn
     print(arlo.stop())
-    print(arlo.go_diff(43, rightSpeed + (rightSpeed / 2) + Rightspeedmodifier, 1, 1))
+    print(arlo.go_diff(43, rightSpeed + 50 + Rightspeedmodifier, 1, 1))
 
-    sleep(2.5)
+    sleep(4)
     # Go Straight
 
     go_meter()
     # Start Turn
-    print(arlo.go_diff(leftSpeed + (leftSpeed / 2), 43 + Rightspeedmodifier, 1, 1))
+    print(arlo.go_diff(leftSpeed + 50, 43 + Rightspeedmodifier, 1, 1))
 
-    sleep(2.5)
+    sleep(4)
     # Should be at start position now
     print(arlo.stop())
 
