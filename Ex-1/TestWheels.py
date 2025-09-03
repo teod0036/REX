@@ -18,14 +18,15 @@ def TestWheels(withclock: bool, sleepduration: float = 0.5):
 
 
 
-TestWheels(False)
-TestWheels(False)
-TestWheels(False)
-TestWheels(False)
-TestWheels(False)
-TestWheels(False)
-TestWheels(False)
-TestWheels(False)
+TestWheels(True)
+TestWheels(True)
+TestWheels(True)
+TestWheels(True)
+TestWheels(True)
+TestWheels(True)
+TestWheels(True)
+TestWheels(True)
+
 
 
 
