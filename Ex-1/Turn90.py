@@ -10,9 +10,9 @@ def perform_Turn90(withclock: bool, sleepduration: float = 0.685):
     leftSpeed = 64  
     rightSpeed = 64
     if withclock:
-        print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-    else:
         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
+    else:
+        print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
 
     sleep(sleepduration)
 
