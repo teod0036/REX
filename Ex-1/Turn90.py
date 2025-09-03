@@ -3,7 +3,7 @@ import robot
 
 arlo = robot.Robot()
 
-def perform_Turn90(withclock: bool, sleepduration: float = 0.685):
+def perform_Turn90(withclock: bool, sleepduration: float = 0.688):
     
 
     # Speed constants
@@ -23,6 +23,3 @@ perform_Turn90(False)
 perform_Turn90(False)
 perform_Turn90(False)
 perform_Turn90(False)
-
-
-
