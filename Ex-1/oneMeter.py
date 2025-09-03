@@ -5,7 +5,7 @@ arlo = robot.Robot()
 
 def go_meter():
     # Time constants
-    go_sleep = 2.4
+    go_sleep = 2.3
 
     # Speed constants
     leftSpeed = 64
