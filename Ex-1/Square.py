@@ -11,6 +11,6 @@ def perform_square():
         go_meter()
 
         #turn right
-        perform_Turn90
+        perform_Turn90()
 
 perform_square()
