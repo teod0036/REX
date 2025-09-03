@@ -1,5 +1,6 @@
 from time import sleep
 import robot
+from oneMeter import go_meter
 
 arlo = robot.Robot()
 
