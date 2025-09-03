@@ -12,6 +12,5 @@ def perform_square():
 
         #turn right
         perform_Turn90()
-        #Help
 
 perform_square()
