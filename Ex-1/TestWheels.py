@@ -6,7 +6,7 @@ arlo = robot.Robot()
 def TestWheels(userightwheel: bool, sleepduration: float = 0.5):
         # Speed constants
     speed = 63
-    Rightspeedmodifier = -3
+    Rightspeedmodifier = 0
     if userightwheel:
         print(arlo.go_diff(0, speed + Rightspeedmodifier, 1, 1))
     else:
@@ -16,7 +16,7 @@ def TestWheels(userightwheel: bool, sleepduration: float = 0.5):
 
 
 for i in range(16):
-    TestWheels(False)
+    TestWheels(True)
 
 
 
