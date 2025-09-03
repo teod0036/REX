@@ -8,7 +8,7 @@ def PerformFigureEight():
     leftSpeed = 64
     rightSpeed = 64
     Rightspeedmodifier = -2
-    turntimer = 3.1
+    turntimer = 3.2
     go_meter()
 
     # Start Turn
