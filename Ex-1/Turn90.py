@@ -10,7 +10,7 @@ def perform_Turn90():
     rightSpeed = 64
 
     print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
-    sleep(0.67)
+    sleep(0.685)
 
 
 
