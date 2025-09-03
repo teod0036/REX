@@ -20,7 +20,7 @@ def PerformFigureEight():
 
     go_meter()
     # Start Turn
-    print(arlo.go_diff(leftSpeed + 50 + 4, 41, 1, 1))
+    print(arlo.go_diff(leftSpeed + 50 + 1, 41, 1, 1))
 
     sleep(turntimer)
     # Should be at start position now
