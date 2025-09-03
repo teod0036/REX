@@ -4,13 +4,21 @@ from oneMeter import go_meter
 
 arlo = robot.Robot()
 
-def PerformTurn90():
-    # Go Straight
-    leftSpeed = 64
-    rightSpeed = 64
-    print(arlo.stop())
-    print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-    sleep(1)
-    print(arlo.stop())
+def perform_square():
+    # Time constants
+    turn_sleep = 2
 
-PerformTurn90()
+    # Speed constants
+    leftSpeed = 50
+    rightSpeed = 50
+
+    for i in range(4):
+        #go straight
+        go_meter()
+
+        #turn right
+        print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
+        sleep(turn_sleep)
+
+
+perform_square()
