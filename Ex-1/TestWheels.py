@@ -23,7 +23,8 @@ TestWheels(False)
 TestWheels(False)
 TestWheels(False)
 
-sleep(3)
+print(arlo.stop())
+sleep(10)
 
 TestWheels(True)
 TestWheels(True)
