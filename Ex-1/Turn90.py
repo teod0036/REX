@@ -20,6 +20,3 @@ def perform_Turn90(withclock: bool, sleepduration: float = 0.694):
 
 
 perform_Turn90(False)
-perform_Turn90(False)
-perform_Turn90(False)
-perform_Turn90(False)
