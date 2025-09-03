@@ -22,14 +22,10 @@ TestWheels(False)
 TestWheels(False)
 TestWheels(False)
 TestWheels(False)
-
-print(arlo.stop())
-sleep(10)
-
-TestWheels(True)
-TestWheels(True)
-TestWheels(True)
-TestWheels(True)
+TestWheels(False)
+TestWheels(False)
+TestWheels(False)
+TestWheels(False)
 
 
 
