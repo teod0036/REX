@@ -9,7 +9,7 @@ def TestWheels(withclock: bool, sleepduration: float = 0.5):
     # Speed constants
     leftSpeed = 64  
     rightSpeed = 64
-    Rightspeedmodifier = -1
+    Rightspeedmodifier = -2
     if withclock:
         print(arlo.go_diff(0, rightSpeed + Rightspeedmodifier, 1, 1))
     else:
