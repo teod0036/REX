@@ -8,11 +8,12 @@ def go_meter():
     go_sleep = 2
 
     # Speed constants
-    leftSpeed = 50
-    rightSpeed = 50
+    leftSpeed = 64
+    rightSpeed = 64
+    rightSpeedmodifier = -2
 
     #go straight
-    print(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
+    print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
     sleep(go_sleep)    
 
 go_meter()
