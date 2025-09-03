@@ -21,6 +21,7 @@ def PerformTurnLeftCircle():
     sleep(turntimer)
 
 
-PerformTurnRightCircle()
-PerformTurnRightCircle()
+PerformTurnLeftCircle()
+PerformTurnLeftCircle()
+
 
