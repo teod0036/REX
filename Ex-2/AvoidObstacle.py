@@ -13,7 +13,7 @@ def go_and_avoid(go_time=5):
         if (perf_counter() - start > go_time): # Stop after 5 seconds
             print(arlo.stop())
             isGoing = False
-        if (arlo.read_front_ping_sensor() < 150 and arlo.read_front_ping_sensor() > -1):
+        if (arlo.read_front_ping_sensor() < 500 and arlo.read_front_ping_sensor() > -1):
             print(perform_Turn90(True))
             print(arlo.go_diff(64, 64, 1, 1))
 
