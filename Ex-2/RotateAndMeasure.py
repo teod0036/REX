@@ -28,7 +28,7 @@ def main(go_time=10):
         sleep(1)
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
 
 
