@@ -1,4 +1,6 @@
-def rightSpeedmodifier_table() -> list[int]:
+
+
+def calc_rightSpeedmodifier() -> list[int]:
     def f(speed: int) -> int:
         if 42 <= speed < 52:
             return 3
@@ -31,6 +33,7 @@ def rightSpeedmodifier_table() -> list[int]:
 
     return [f(i) for i in range(0, 127 + 1)]
 
+rightSpeedmodifier = calc_rightSpeedmodifier()
+
 if __name__ == "__main__":
-    table = rightSpeedmodifier_table()
-    print(table[42], table[69], table[74])
+    print(rightSpeedmodifier[42], rightSpeedmodifier[69], rightSpeedmodifier[74])
