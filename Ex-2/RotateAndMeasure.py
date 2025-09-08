@@ -22,7 +22,7 @@ def perform_Turn(withclock: bool, angle: float):
 l = []
 
 
-def main(go_time=3):
+def main(go_time=10):
     angle = 0
     start = perf_counter()
     isGoing = True
@@ -30,9 +30,12 @@ def main(go_time=3):
         if perf_counter() - start > go_time:  # Stop after 5 seconds
             print(arlo.stop())
             isGoing = False
+        sleep(1)
         l.append((perf_counter(), angle, arlo.read_front_ping_sensor()))
         perform_Turn(False, 10)
         angle += 10
+        if (angle >= 40):
+            break
 
 
 if __name__ == "__main__":
