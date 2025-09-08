@@ -41,21 +41,25 @@ def p(x: NDArray):
     return 0.3 * x1 + 0.4 * x2 + 0.3 * x3
 
 
-def initial_weights(x: NDArray, q):
-    # importance:
-    weights = p(x) / q(x)
-    weights /= np.sum(weights)  # normalize weights
+def resample(x_old: NDArray, weights_old: NDArray):
+    k = len(weights_old)
+    x, weights = x_old[weights_old > 0], weights_old[weights_old > 0]
 
-    return weights
+    # handle edge case, when all weights are 0:
+    if len(weights) == 0:
+        return x
 
+    # normalize weights (so CDF works out):
+    weights /= np.sum(weights)
+    weights_cdf = np.cumsum(weights)
 
-def resample(x: NDArray, weights: NDArray):
-    # resampling:
-    k = weights.size
-    indices = np.random.choice(np.arange(k), size=k, p=weights, replace=True)
-    resampled_weights = x[indices]
+    # generate k samples of (0;1]
+    rs = 1 - np.random.uniform(size=k)
 
-    return resampled_weights
+    # find the indicies, such that weights_cdf[indicies] <= rs:
+    indices = np.searchsorted(weights_cdf, rs, side="left")
+
+    return x[indices]
 
 
 def main():
@@ -66,35 +70,37 @@ def main():
 
     _, axes = plt.subplots(2, 3, figsize=(15, 8))
 
+    q = uniform_pdf(min_x, max_x)
     for i, k in enumerate(ks):
         # sampling step:
         x = uniform_samples(min_x, max_x, k)
         # importance computation step:
-        weights = initial_weights(x, q=uniform_pdf(min_x, max_x))
+        weights = p(x) / q(x)
         # resampling step:
-        resampled = resample(x, weights)
+        weights_new = resample(x, weights)
         # plot the graphs:
-        show(axes[0, i], k, min_x, max_x, "with uniform(0, 15) proposal", resampled)
+        show(axes[0, i], k, min_x, max_x, "with uniform(0, 15) proposal", weights_new)
 
+    q = normal_pdf(5, 4)
     for i, k in enumerate(ks):
         # sampling step:
         x = normal_samples(5, 4, k)
         # importance computation step:
-        weights = initial_weights(x, q=normal_pdf(5, 4))
+        weights = p(x) / q(x)
         # resampling step:
-        resampled = resample(x, weights)
+        weights_new = resample(x, weights)
         # plot the graphs:
-        show(axes[1, i], k, min_x, max_x, "with normal(5, 4) proposal", resampled)
+        show(axes[1, i], k, min_x, max_x, "with normal(5, 4) proposal", weights_new)
 
     plt.tight_layout()
     plt.show()
 
 
-def show(ax, k: int, min_x: float, max_x: float, desc: str, resampled_weights: NDArray):
+def show(ax, k: int, min_x: float, max_x: float, desc: str, weights: NDArray):
     x_plot = np.linspace(min_x - 1, max_x, num=k)
     ax.plot(x_plot, p(x_plot), label="Target p(x)", color="black")
     ax.hist(
-        resampled_weights,
+        weights,
         bins=50,
         density=True,
         alpha=0.6,
