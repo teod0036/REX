@@ -31,7 +31,7 @@ def calc_rightSpeedmodifier() -> list[int]:
         else:
             return 1
 
-    return [f(i) for i in range(0, 127 + 1)]
+    return [-f(i) for i in range(0, 127 + 1)]
 
 rightSpeedmodifier = calc_rightSpeedmodifier()
 
