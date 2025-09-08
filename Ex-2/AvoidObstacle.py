@@ -4,7 +4,7 @@ from Turn90 import perform_Turn90
 
 arlo = robot.Robot()
 
-def go_and_avoid(go_time=5):
+def go_and_avoid(go_time=10):
 
     print(arlo.go_diff(64, 64, 1, 1))
     start = perf_counter()
@@ -14,6 +14,12 @@ def go_and_avoid(go_time=5):
             print(arlo.stop())
             isGoing = False
         if (arlo.read_front_ping_sensor() < 500 and arlo.read_front_ping_sensor() > -1):
+            print(perform_Turn90(True))
+            print(arlo.go_diff(64, 64, 1, 1))
+        if (arlo.read_left_ping_sensor() < 300 and arlo.read_front_ping_sensor() > -1):
+            print(perform_Turn90(True))
+            print(arlo.go_diff(64, 64, 1, 1))
+        if (arlo.read_right_ping_sensor() < 300 and arlo.read_front_ping_sensor() > -1):
             print(perform_Turn90(True))
             print(arlo.go_diff(64, 64, 1, 1))
 
