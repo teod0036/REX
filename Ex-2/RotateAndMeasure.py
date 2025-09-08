@@ -25,8 +25,8 @@ def main(go_time=10):
             print(arlo.stop())
             isGoing = False
 
-for i in range(36):
-    perform_Turn(True, 10)
+for i in range(18):
+    perform_Turn(True, 20)
 
 
 # if __name__ == "__main__":
