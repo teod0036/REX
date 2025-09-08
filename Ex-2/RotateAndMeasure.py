@@ -26,7 +26,7 @@ def main(go_time=10):
             isGoing = False
 
 perform_Turn(True, 45)
-perform_Turn(True, -45)
+perform_Turn(False, 45)
 
 
 # if __name__ == "__main__":
