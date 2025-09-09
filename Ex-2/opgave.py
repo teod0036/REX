@@ -56,7 +56,7 @@ def resample(x_old: NDArray, weights_old: NDArray):
     # generate k samples of [0;1)
     rs = np.random.uniform(size=k)
 
-    # find the indicies, such that weights_cdf[indicies] <= rs:
+    # find the (maximum) indicies, such that weights_cdf[indicies] <= rs:
     indices = np.searchsorted(weights_cdf, rs, side="left")
 
     return x[indices]
