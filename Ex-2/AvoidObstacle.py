@@ -77,3 +77,4 @@ def go_and_avoid(go_time=10, tunnelwidth=100):
             perform_Turn90(True, 0.05)
 
 go_and_avoid()
+print(arlo.stop())
