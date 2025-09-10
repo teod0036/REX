@@ -15,4 +15,3 @@ def perform_Turn90(withclock: bool, sleepduration: float = 0.694):
         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
 
     sleep(sleepduration)
-    print(arlo.stop())
