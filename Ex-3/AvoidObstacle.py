@@ -74,7 +74,8 @@ def go_and_avoid(go_time=10, tunnelwidth=100):
 
         #If the robot is surrounded it spins a bit and checks again (It could have been kidnapped)
         if (sees_all()):
-            perform_Turn90(True, 0.05)
+            perform_Turn90(True, 0.1)
+            print(arlo.stop())
 
 go_and_avoid()
 print(arlo.stop())
