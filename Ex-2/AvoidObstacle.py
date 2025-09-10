@@ -35,9 +35,10 @@ def go_and_avoid(go_time=10):
             print(arlo.go_diff(64, 64, 1, 1))
 
         #If left sensor detects something turn 45 degrees right
-        if (sees_left):
+        if (sees_left()):
             print(perform_Turn90(True, 0.347))
             print(arlo.go_diff(64, 64, 1, 1))
+
         #If right sensor detects something turn 45 degrees left
         if (sees_right()):
             print(perform_Turn90(False, 0.347))
