@@ -9,7 +9,7 @@ def uniform_pdf(min: float, max: float):
     assert min < max
 
     def f(x: NDArray):
-        return np.ones_like(x) / (max - min)
+        return np.ones_like(x) / (max - min + 1)
 
     return f
 
