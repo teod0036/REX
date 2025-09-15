@@ -4,6 +4,8 @@
 import cv2 # Import the OpenCV library
 import time
 from pprint import *
+import datetime 
+
 
 try:
     import picamera2
@@ -38,9 +40,8 @@ time.sleep(1)  # wait for camera to setup
 #cv2.namedWindow(WIN_RF)
 #cv2.moveWindow(WIN_RF, 100, 100)
 
-
-
-image = cam.capture_file("image.jpeg")
+dt = datetime.datetime.now()
+image = cam.capture_file(f"{dt.strftime("%S")}.jpeg")
     
 # Show frames
 #cv2.imshow(WIN_RF, image)
