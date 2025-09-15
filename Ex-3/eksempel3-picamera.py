@@ -1,7 +1,7 @@
 # Example showing how to grab frames using the PiCamera module instead of OpenCV
 # import the necessary packages
-from picamera.array import PiRGBArray
-from picamera import PiCamera
+from picamera2.array import PiRGBArray
+from picamera2 import PiCamera
 from fractions import *
 import time
 import cv2
