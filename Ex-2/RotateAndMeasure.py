@@ -1,7 +1,6 @@
 from time import perf_counter, sleep
 
 import robot
-from rightSpeedModifier import rightSpeedmodifier
 
 arlo = robot.Robot()
 
