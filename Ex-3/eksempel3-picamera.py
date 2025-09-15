@@ -1,6 +1,6 @@
 # Example showing how to grab frames using the PiCamera module instead of OpenCV
 # import the necessary packages
-from picamera2 import PiCamera
+from picamera2 import PiCamera2
 from fractions import *
 import time
 import cv2
@@ -9,7 +9,7 @@ import cv2
 print("OpenCV version = " + cv2.__version__)
  
 # initialize the camera and grab a reference to the raw camera capture
-camera = PiCamera()
+camera = PiCamera2()
 time.sleep(1) # Wait for camera
 
 camera.resolution = (640, 480)
