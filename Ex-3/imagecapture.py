@@ -41,8 +41,8 @@ time.sleep(1)  # wait for camera to setup
 #cv2.moveWindow(WIN_RF, 100, 100)
 
 dt = datetime.datetime.now()
-image = cam.capture_file(f"{dt.strftime("%S")}.jpeg")
-    
+image = cam.capture_file(f"{dt.strftime("%M%S")}.jpeg")
+
 # Show frames
 #cv2.imshow(WIN_RF, image)
     
