@@ -19,9 +19,9 @@ def perform_Findlandmark():
     dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
     print("FindLandmark.py: Attempting to detect Markers")
 
-    vals = cv2.aruco.detectMarkers(image,dict)
+    corners,ids,rejectedimgpoints = cv2.aruco.detectMarkers(image,dict)
 
-    if (vals != None):
+    if (len(ids) != 0):
         print("FindLandmark.py: Found atleast 1 landmark")
 
 perform_Findlandmark()
