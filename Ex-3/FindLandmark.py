@@ -67,6 +67,7 @@ def perform_Findlandmark():
             print(y)
         print("FindLandmark.py: printing translation vectors")
         for z in translationvectors:
+            print(z)
             horizontalskew,verticalskew,forwarddistance = z[0]
             if (horizontalskew >= 0):
                 print("Right Skew:" + str(horizontalskew))
