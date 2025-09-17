@@ -11,6 +11,23 @@ from Turn90 import perform_Turn90
 arlo = robot.Robot()
 
 
+def CreateCameraMatrix(image):
+    focallength = 1257
+    imageheight = image.shape[1]
+    imagewidth = image.shape[0]
+    print(
+        "FindLandmark.py: Image Height: "
+        + str(imageheight)
+        + " Image Width: "
+        + str(imagewidth)
+    )
+
+    cameramatrix = np.array(
+        [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
+    )
+    return cameramatrix
+
+
 def perform_Findlandmark():
     print("FindLandmark.py: Taking a picture")
 
@@ -24,16 +41,15 @@ def perform_Findlandmark():
 
     corners, ids, rejectedimgpoints = cv2.aruco.detectMarkers(image, dict)
 
-    CreateDetectionImage(corners,rejectedimgpoints,image)
+    CreateDetectionImage(corners, rejectedimgpoints, image)
 
-
-    if (ids is None):
+    if ids is None:
         print("FindLandmark.py: No landmarks found, ending FindLandmark")
         return None
     else:
         for i in ids.flatten():
             print("FindLandmark.py: Found landmark ID" + str(i))
-    
+
     cameramatrix = CreateCameraMatrix(image)
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
@@ -51,8 +67,8 @@ def perform_Findlandmark():
         print("FindLandmark.py: printing translation vectors")
         for z in translationvectors:
             print(z)
-            horizontalskew,verticalskew,forwarddistance = z[0]
-            if (horizontalskew >= 0):
+            horizontalskew, verticalskew, forwarddistance = z[0]
+            if horizontalskew >= 0:
                 print("Right Skew:" + str(horizontalskew))
             else:
                 horizontalskew = horizontalskew * -1
@@ -73,15 +89,17 @@ def perform_Findlandmark():
 
     return translationvectors
 
-def CreateLandMarkDict(id,rotationvectors,translationvectors,objpoints):
+
+def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
     print("FindLandmark.py: Creating landmarkdict ID" + str(id))
     landmarkdict = {
-  "landmarkid": id,
-  "rotationvectors": rotationvectors,
-  "translationvectors": translationvectors,
-  "objpoints": objpoints
+        "landmarkid": id,
+        "rotationvectors": rotationvectors,
+        "translationvectors": translationvectors,
+        "objpoints": objpoints,
     }
     return landmarkdict
+
 
 def CreateDetectionImage(corners, rejectedimgpoints, image):
     print("FindLandmark.py: Attempting to save picture with detection boxes on")
@@ -95,17 +113,5 @@ def CreateDetectionImage(corners, rejectedimgpoints, image):
         x, y, w, h = cv2.boundingRect(cnt)
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-perform_Findlandmark()
-
-def CreateCameraMatrix(image):
-    focallength = 1257
-    imageheight = image.shape[1]
-    imagewidth = image.shape[0]
-    print("FindLandmark.py: Image Height: " + str(imageheight) + " Image Width: " + str(imagewidth))
-
-    cameramatrix = np.array(
-    [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
-    )
-    return cameramatrix
 
 perform_Findlandmark()
