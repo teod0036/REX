@@ -33,6 +33,10 @@ def perform_Findlandmark():
         cv2.putText(
             image, f"{w} x {h}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2
         )
+    for cnt in rejectedimgpoints:
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
     dt = datetime.datetime.now()
     cv2.imwrite(f"{dt.strftime('%M%S')}.jpeg", image)
 
