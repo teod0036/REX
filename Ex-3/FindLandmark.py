@@ -28,13 +28,13 @@ def perform_Findlandmark():
 
 
     if (ids is None):
-        print("FindLandmark.py: No landmarks found, ending FindLandMark")
+        print("FindLandmark.py: No landmarks found, ending FindLandmark")
         return None
     else:
         for i in ids:
             print("FindLandmark.py: Found landmark ID" + str(i))
     
-    cameramatrix = CreateCameraMatrix()
+    cameramatrix = CreateCameraMatrix(image)
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
     distcoefficients = np.zeros((5, 1))
@@ -95,7 +95,7 @@ def CreateDetectionImage(corners, rejectedimgpoints, image):
     dt = datetime.datetime.now()
     cv2.imwrite(f"Detection{dt.strftime('%M%S')}.jpeg", image)
 
-def CreateCameraMatrix(focallength, image):
+def CreateCameraMatrix(image):
     focallength = 1257
     imageheight = image.shape[1]
     imagewidth = image.shape[0]
