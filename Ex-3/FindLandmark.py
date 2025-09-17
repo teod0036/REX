@@ -62,8 +62,7 @@ def perform_Findlandmark():
         )
     )
     alllandmarksdict = {}
-    y = 0
-    while y < len(ids):
+    for y in range(len(ids)):
         alllandmarksdict.update(
             {
                 int(ids[y]): CreateLandMarkArray(
@@ -71,7 +70,6 @@ def perform_Findlandmark():
                 )
             }
         )
-        y += 1
 
     CreateDetectionImage(
         corners,
@@ -85,6 +83,7 @@ def perform_Findlandmark():
 
     for k, v in alllandmarksdict:
         print(f"key: {k}, value: {v}")
+
     return alllandmarksdict
 
 
