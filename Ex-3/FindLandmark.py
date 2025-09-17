@@ -11,6 +11,23 @@ from Turn90 import perform_Turn90
 arlo = robot.Robot()
 
 
+def CreateCameraMatrix(image):
+    focallength = 1257
+    imageheight = image.shape[1]
+    imagewidth = image.shape[0]
+    print(
+        "FindLandmark.py: Image Height: "
+        + str(imageheight)
+        + " Image Width: "
+        + str(imagewidth)
+    )
+
+    cameramatrix = np.array(
+        [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
+    )
+    return cameramatrix
+
+
 def perform_Findlandmark():
     print("FindLandmark.py: Taking a picture")
 
@@ -24,41 +41,21 @@ def perform_Findlandmark():
 
     corners, ids, rejectedimgpoints = cv2.aruco.detectMarkers(image, dict)
 
-    if ids is not None:
-        for i in ids:
-            print("FindLandmark.py: Found a landmark")
+    CreateDetectionImage(corners, rejectedimgpoints, image)
 
-    for cnt in corners:
-        x, y, w, h = cv2.boundingRect(cnt)
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cv2.putText(
-            image, f"{w} x {h}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2
-        )
-    for cnt in rejectedimgpoints:
-        x, y, w, h = cv2.boundingRect(cnt)
-        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
-
-    print("FindLandmark.py: Attempting to save picture with detection boxes on")
-
-    dt = datetime.datetime.now()
-    cv2.imwrite(f"Detection{dt.strftime('%M%S')}.jpeg", image)
-
-    if (ids is None):
-        print("FindLandmark.py: No landmarks found, ending FindLandMark")
+    if ids is None:
+        print("FindLandmark.py: No landmarks found, ending FindLandmark")
         return None
+    else:
+        landmarksfound = 1
+        for i in ids.flatten():
+            print("FindLandmark.py: Found landmark ID" + str(landmarksfound))
+            landmarksfound = landmarksfound + 1
     
-    focallength = 1257
-    imageheight = image.shape[1]
-
-    imagewidth = image.shape[0]
-    print("FindLandmark.py: Image Height: " + str(imageheight) + " Image Width: " + str(imagewidth))
-
-    distcoefficients = np.zeros((5, 1))
-    cameramatrix = np.array(
-        [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
-    )
+    cameramatrix = CreateCameraMatrix(image)
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
+    distcoefficients = np.zeros((5, 1))
     rotationvectors, translationvectors, objpoints = (
         cv2.aruco.estimatePoseSingleMarkers(
             corners, 0.145, cameramatrix, distcoefficients
@@ -72,8 +69,8 @@ def perform_Findlandmark():
         print("FindLandmark.py: printing translation vectors")
         for z in translationvectors:
             print(z)
-            horizontalskew,verticalskew,forwarddistance = z[0]
-            if (horizontalskew >= 0):
+            horizontalskew, verticalskew, forwarddistance = z[0]
+            if horizontalskew >= 0:
                 print("Right Skew:" + str(horizontalskew))
             else:
                 horizontalskew = horizontalskew * -1
@@ -87,10 +84,33 @@ def perform_Findlandmark():
 
     dt = datetime.datetime.now()
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
+    print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
     return translationvectors
 
 
+def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
+    print("FindLandmark.py: Creating landmarkdict ID" + str(id))
+    landmarkdict = {
+        "landmarkid": id,
+        "rotationvectors": rotationvectors,
+        "translationvectors": translationvectors,
+        "objpoints": objpoints,
+    }
+    return landmarkdict
+
+
+def CreateDetectionImage(corners, rejectedimgpoints, image):
+    print("FindLandmark.py: Attempting to save picture with detection boxes on")
+    for cnt in corners:
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(
+            image, f"{w} x {h}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2
+        )
+    for cnt in rejectedimgpoints:
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
 
 perform_Findlandmark()
