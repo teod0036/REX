@@ -62,10 +62,12 @@ def perform_Findlandmark():
             corners, 0.145, cameramatrix, distcoefficients
         )
     )
+    alllandmarksdict = {}
     y=0
     while y < len(ids):
-        CreateLandMarkDict(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])
+        alllandmarksdict.update({ids[y]:CreateLandMarkArray(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])})
         y+=1
+    
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
@@ -77,23 +79,16 @@ def perform_Findlandmark():
     return translationvectors
 
 
-def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
+def CreateLandMarkArray(id, rotationvectors, translationvectors, objpoints):
     print("----------------------------------------------------------------")
-    print("FindLandmark.py: Creating landmarkdict with the following data")
-    print("ID: " + str(id))
-
+    print("FindLandmark.py: Creating landmarkarray with the following data")
     print("Rotationvectors: " + str(rotationvectors))
     print("Translationvectors (Horizontal,Vertical,Distance): " + str(translationvectors))
     print("Objpoints:" + str(objpoints))
     print("-------------------------------------------------------------")
 
-    landmarkdict = {
-        "id": id,
-        "rotationvectors": rotationvectors,
-        "translationvectors": translationvectors,
-        "objpoints": objpoints,
-    }
-    return landmarkdict
+    landmark = [rotationvectors,translationvectors,objpoints]
+    return landmark
 
 
 def CreateDetectionImage(corners, rejectedimgpoints, image):
