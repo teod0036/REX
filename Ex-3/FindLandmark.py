@@ -105,3 +105,5 @@ def CreateCameraMatrix(focallength, image):
     [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
     )
     return cameramatrix
+
+perform_Findlandmark()
