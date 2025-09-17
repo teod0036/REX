@@ -9,3 +9,5 @@ arlo = robot.Robot()
 def perform_Findlandmark():
     cv2.aruco.DICT_6x6_250
     cv2.aruco.ArucoDetector.detectMarkers
+
+perform_Findlandmark
