@@ -31,7 +31,7 @@ def perform_Findlandmark():
         print("FindLandmark.py: No landmarks found, ending FindLandmark")
         return None
     else:
-        for i in ids:
+        for i in ids.flatten():
             print("FindLandmark.py: Found landmark ID" + str(i))
     
     cameramatrix = CreateCameraMatrix(image)
