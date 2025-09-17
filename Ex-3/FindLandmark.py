@@ -43,7 +43,9 @@ def perform_Findlandmark():
     dt = datetime.datetime.now()
     cv2.imwrite(f"Detection{dt.strftime('%M%S')}.jpeg", image)
 
-
+    if (ids is None):
+        print("FindLandmark.py: No landmarks found, ending FindLandMark")
+        return None
     focallength = 1257
     imageheight = 1080
     imagewidth = 1920
