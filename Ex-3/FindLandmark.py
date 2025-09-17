@@ -47,6 +47,7 @@ def perform_Findlandmark():
         print("FindLandmark.py: No landmarks found, ending FindLandMark")
         return None
     
+    print(image.shape)
     imagedimensions = image.shape[:2]
     focallength = 1257
     imageheight = image.shape[1]
