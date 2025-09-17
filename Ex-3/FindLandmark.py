@@ -45,7 +45,7 @@ def perform_Findlandmark():
     focallength = 1284
     imageheight = 1080
     imagewidth = 1920
-    distcoefficients = np.zeroes((5,1))
+    distcoefficients = np.zeros((5,1))
     cameramatrix = [focallength,    0,              imagewidth/2,
                     0,              focallength,    imageheight/2,
                     0,              0,              1]
