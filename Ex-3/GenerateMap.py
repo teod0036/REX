@@ -1,6 +1,6 @@
+import datetime
 import time
 from pprint import pprint
-import datetime
 
 import cv2  # Import the OpenCV library
 import numpy as np
@@ -79,7 +79,7 @@ def perform_Findlandmark():
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
     distcoefficients = np.zeros((5, 1))
-    translationvectors, rotationvectors, objpoints = (
+    rotationvectors, translationvectors, objpoints = (
         cv2.aruco.estimatePoseSingleMarkers(
             corners, 0.145, cameramatrix, distcoefficients
         )
@@ -96,6 +96,7 @@ def perform_Findlandmark():
     )
 
     return objpoints
+
 
 def CreateDetectionImage(
     corners,
@@ -123,5 +124,6 @@ def CreateDetectionImage(
     dt = datetime.datetime.now()
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
     print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
+
 
 print(perform_Findlandmark())
