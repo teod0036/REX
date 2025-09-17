@@ -63,8 +63,9 @@ def perform_Findlandmark():
         )
     )
 
-    for y in ids:
-        CreateLandMarkDict(y,rotationvectors[y],translationvectors[y],objpoints[y])
+    while y < len(ids):
+        CreateLandMarkDict(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])
+        y+=1
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
