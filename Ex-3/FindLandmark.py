@@ -53,5 +53,14 @@ def perform_Findlandmark():
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
     rotationvectors,translationvectors,objpoints = cv2.aruco.estimatePoseSingleMarkers(corners,0.145,cameramatrix,distcoefficients)
 
+    if ids is not None:
+        print("FindLandmark.py: printing rotation vectors")
+        for y in rotationvectors:
+            print(y)
+        print("FindLandmark.py: printing translation vectors")
+        for z in translationvectors:
+            print(z)
+
+
 
 perform_Findlandmark()
