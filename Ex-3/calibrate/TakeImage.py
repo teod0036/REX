@@ -5,7 +5,7 @@ from pprint import pprint
 import datetime 
 
 
-def captureImage():
+def takePicture():
     try:
         import picamera2
         print("Camera.py: Using picamera2 module")
@@ -29,13 +29,8 @@ def captureImage():
 
     time.sleep(1)  # wait for camera to setup
 
-
-    # Open a window
-    #WIN_RF = "Example 1"
-    #cv2.namedWindow(WIN_RF)
-    #cv2.moveWindow(WIN_RF, 100, 100)
-
     dt = datetime.datetime.now()
     image = cam.capture_file(f"Raw{dt.strftime('%M%S')}.jpeg")
+    array = cam.capture_array("main")
 
-    return image
+    return array
