@@ -76,8 +76,8 @@ def perform_Findlandmark():
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
     print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
-    for x in alllandmarksdict:
-        print(str(x))
+    for k, v in alllandmarksdict:
+        print(f"key: {k}, value: {v}")
     return alllandmarksdict
 
 
