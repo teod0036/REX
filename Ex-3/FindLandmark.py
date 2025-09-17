@@ -14,7 +14,9 @@ def perform_Findlandmark():
 
     print("FindLandmark.py: Attempting to detect Markers")
 
-    vals = cv2.aruco.ArucoDetector.detectMarkers(image,cv2.aruco.DICT_6X6_250)
+    ##vals = cv2.aruco.ArucoDetector.detectMarkers(image,cv2.aruco.DICT_6X6_250)
+
+    vals = cv2.aruco.detectMarkers(image,cv2.aruco.DICT_6X6_250)
 
     print("FindLandmark.py: Result of markerdetection:" + vals[0])
 
