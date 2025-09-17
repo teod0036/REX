@@ -40,6 +40,10 @@ def perform_Findlandmark():
 
     print("FindLandmark.py: Attempting to save picture with detection boxes on")
 
+    dt = datetime.datetime.now()
+    cv2.imwrite(f"Detection{dt.strftime('%M%S')}.jpeg", image)
+
+
     focallength = 1257
     imageheight = 1080
     imagewidth = 1920
