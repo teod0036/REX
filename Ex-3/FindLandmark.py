@@ -29,11 +29,10 @@ def CreateCameraMatrix(image):
 
 
 def perform_Findlandmark():
-    print("FindLandmark.py: Taking a picture")
+    print("FindLandmark.py: Taking a picture using imagecapture")
 
     image = takePicture()
-    print("FindLandmark.py: Saved the picture, ")
-
+    
     print("FindLandmark.py: Fetching the dictionary")
 
     dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
@@ -64,23 +63,10 @@ def perform_Findlandmark():
             corners, 0.145, cameramatrix, distcoefficients
         )
     )
-
-    if ids is not None:
-        print("FindLandmark.py: printing rotation vectors")
-        for y in rotationvectors:
-            print(y)
-        print("FindLandmark.py: printing translation vectors")
-        for z in translationvectors:
-            print(z)
-            horizontalskew, verticalskew, forwarddistance = z[0]
-            if horizontalskew >= 0:
-                print("Right Skew:" + str(horizontalskew))
-            else:
-                horizontalskew = horizontalskew * -1
-                print("Left Skew:" + str(horizontalskew))
-
-            print("Vertical Skew:" + str(verticalskew))
-            print("Forward Distance:" + str(forwarddistance))
+    landmarksdictmade = 0
+    for y in rotationvectors:
+        CreateLandMarkDict(rotationvectors[landmarksdictmade],translationvectors[landmarksdictmade],objpoints[landmarksdictmade])
+        landmarksdictmade = landmarksdictmade + 1
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
@@ -92,10 +78,15 @@ def perform_Findlandmark():
     return translationvectors
 
 
-def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
-    print("FindLandmark.py: Creating landmarkdict ID" + str(id))
+def CreateLandMarkDict(rotationvectors, translationvectors, objpoints):
+    print("----------------------------------------------------------------")
+    print("FindLandmark.py: Creating landmarkdict with the following data")
+    print("Rotationvectors: " + str(rotationvectors))
+    print("Translationvectors (Horizontal,Vertical,Distance): " + str(translationvectors))
+    print("Objpoints:" + str(objpoints))
+    print("-------------------------------------------------------------")
+
     landmarkdict = {
-        "landmarkid": id,
         "rotationvectors": rotationvectors,
         "translationvectors": translationvectors,
         "objpoints": objpoints,
