@@ -47,11 +47,12 @@ def perform_Findlandmark():
         print("FindLandmark.py: No landmarks found, ending FindLandMark")
         return None
     
-    print(image.shape)
-    imagedimensions = image.shape[:2]
     focallength = 1257
     imageheight = image.shape[1]
+
     imagewidth = image.shape[0]
+    print("FindLandmark.py: Image Height: " + str(imageheight) + " Image Width: " + str(imagewidth))
+
     distcoefficients = np.zeros((5, 1))
     cameramatrix = np.array(
         [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
