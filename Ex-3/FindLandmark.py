@@ -29,28 +29,29 @@ def CreateCameraMatrix(image):
 
 
 def perform_Findlandmark():
-    print("FindLandmark.py: Taking a picture")
+    print("FindLandmark.py: Taking a picture using imagecapture")
 
     image = takePicture()
-    print("FindLandmark.py: Saved the picture, ")
-
+    
     print("FindLandmark.py: Fetching the dictionary")
 
     dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
     print("FindLandmark.py: Attempting to detect Markers")
 
     corners, ids, rejectedimgpoints = cv2.aruco.detectMarkers(image, dict)
-
+    for cnt in corners:
+        print("printing corner" + str(cnt))
     CreateDetectionImage(corners, rejectedimgpoints, image)
 
     if ids is None:
         print("FindLandmark.py: No landmarks found, ending FindLandmark")
+        dt = datetime.datetime.now()
+        cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
+        print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
         return None
     else:
-        landmarksfound = 1
-        for i in ids.flatten():
-            print("FindLandmark.py: Found landmark ID" + str(landmarksfound))
-            landmarksfound = landmarksfound + 1
+        for i in ids:
+            print("FindLandmark.py: Found landmark ID" + str(id))
     
     cameramatrix = CreateCameraMatrix(image)
 
@@ -61,23 +62,12 @@ def perform_Findlandmark():
             corners, 0.145, cameramatrix, distcoefficients
         )
     )
-
-    if ids is not None:
-        print("FindLandmark.py: printing rotation vectors")
-        for y in rotationvectors:
-            print(y)
-        print("FindLandmark.py: printing translation vectors")
-        for z in translationvectors:
-            print(z)
-            horizontalskew, verticalskew, forwarddistance = z[0]
-            if horizontalskew >= 0:
-                print("Right Skew:" + str(horizontalskew))
-            else:
-                horizontalskew = horizontalskew * -1
-                print("Left Skew:" + str(horizontalskew))
-
-            print("Vertical Skew:" + str(verticalskew))
-            print("Forward Distance:" + str(forwarddistance))
+    alllandmarksdict = {}
+    y=0
+    while y < len(ids):
+        alllandmarksdict.update({int(ids[y]):CreateLandMarkArray(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])})
+        y+=1
+    
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
@@ -86,18 +76,21 @@ def perform_Findlandmark():
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
     print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
-    return translationvectors
+    for x in alllandmarksdict:
+        print(str(x))
+    return alllandmarksdict
 
 
-def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
-    print("FindLandmark.py: Creating landmarkdict ID" + str(id))
-    landmarkdict = {
-        "landmarkid": id,
-        "rotationvectors": rotationvectors,
-        "translationvectors": translationvectors,
-        "objpoints": objpoints,
-    }
-    return landmarkdict
+def CreateLandMarkArray(id, rotationvectors, translationvectors, objpoints):
+    print("----------------------------------------------------------------")
+    print("FindLandmark.py: Creating landmarkarray with the following data")
+    print("Rotationvectors: " + str(rotationvectors))
+    print("Translationvectors (Horizontal,Vertical,Distance): " + str(translationvectors))
+    print("Objpoints:" + str(objpoints))
+    print("-------------------------------------------------------------")
+
+    landmark = [rotationvectors,translationvectors,objpoints]
+    return landmark
 
 
 def CreateDetectionImage(corners, rejectedimgpoints, image):
