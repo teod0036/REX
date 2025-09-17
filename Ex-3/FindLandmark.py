@@ -39,7 +39,8 @@ def perform_Findlandmark():
     print("FindLandmark.py: Attempting to detect Markers")
 
     corners, ids, rejectedimgpoints = cv2.aruco.detectMarkers(image, dict)
-
+    for cnt in corners:
+        print("printing corner" + str(cnt))
     CreateDetectionImage(corners, rejectedimgpoints, image)
 
     if ids is None:
