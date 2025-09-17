@@ -1,6 +1,6 @@
 import datetime
 from time import sleep
-
+import numpy as np
 import cv2
 
 import robot
@@ -45,12 +45,13 @@ def perform_Findlandmark():
     focallength = 1284
     imageheight = 1080
     imagewidth = 1920
+    distcoefficients = np.zeroes((5,1))
     cameramatrix = [focallength,    0,              imagewidth/2,
                     0,              focallength,    imageheight/2,
                     0,              0,              1]
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
-    rotationvectors,translationvectors = cv2.aruco.estimatePoseSingleMarkers(corners,0.145,cameramatrix)
+    rotationvectors,translationvectors = cv2.aruco.estimatePoseSingleMarkers(corners,0.145,cameramatrix,distcoefficients)
 
 
 perform_Findlandmark()
