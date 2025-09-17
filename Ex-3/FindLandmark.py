@@ -32,7 +32,7 @@ def perform_Findlandmark():
     print("FindLandmark.py: Taking a picture using imagecapture")
 
     image = takePicture()
-    
+
     print("FindLandmark.py: Fetching the dictionary")
 
     dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
@@ -41,7 +41,6 @@ def perform_Findlandmark():
     corners, ids, rejectedimgpoints = cv2.aruco.detectMarkers(image, dict)
     for cnt in corners:
         print("printing corner" + str(cnt))
-    CreateDetectionImage(corners, rejectedimgpoints, image)
 
     if ids is None:
         print("FindLandmark.py: No landmarks found, ending FindLandmark")
@@ -52,7 +51,7 @@ def perform_Findlandmark():
     else:
         for i in ids:
             print("FindLandmark.py: Found landmark ID" + str(id))
-    
+
     cameramatrix = CreateCameraMatrix(image)
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
@@ -63,18 +62,26 @@ def perform_Findlandmark():
         )
     )
     alllandmarksdict = {}
-    y=0
+    y = 0
     while y < len(ids):
-        alllandmarksdict.update({int(ids[y]):CreateLandMarkArray(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])})
-        y+=1
-    
+        alllandmarksdict.update(
+            {
+                int(ids[y]): CreateLandMarkArray(
+                    ids[y], rotationvectors[y], translationvectors[y], objpoints[y]
+                )
+            }
+        )
+        y += 1
 
-    for tvec, rvec in zip(translationvectors, rotationvectors):
-        cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
-
-    dt = datetime.datetime.now()
-    cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
-    print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
+    CreateDetectionImage(
+        corners,
+        rejectedimgpoints,
+        image,
+        translationvectors,
+        rotationvectors,
+        cameramatrix,
+        distcoefficients,
+    )
 
     for x in alllandmarksdict:
         print(str(x))
@@ -85,15 +92,25 @@ def CreateLandMarkArray(id, rotationvectors, translationvectors, objpoints):
     print("----------------------------------------------------------------")
     print("FindLandmark.py: Creating landmarkarray with the following data")
     print("Rotationvectors: " + str(rotationvectors))
-    print("Translationvectors (Horizontal,Vertical,Distance): " + str(translationvectors))
+    print(
+        "Translationvectors (Horizontal,Vertical,Distance): " + str(translationvectors)
+    )
     print("Objpoints:" + str(objpoints))
     print("-------------------------------------------------------------")
 
-    landmark = [rotationvectors,translationvectors,objpoints]
+    landmark = [rotationvectors, translationvectors, objpoints]
     return landmark
 
 
-def CreateDetectionImage(corners, rejectedimgpoints, image):
+def CreateDetectionImage(
+    corners,
+    rejectedimgpoints,
+    image,
+    translationvectors,
+    rotationvectors,
+    cameramatrix,
+    distcoefficients,
+):
     print("FindLandmark.py: Attempting to save picture with detection boxes on")
     for cnt in corners:
         x, y, w, h = cv2.boundingRect(cnt)
@@ -104,6 +121,13 @@ def CreateDetectionImage(corners, rejectedimgpoints, image):
     for cnt in rejectedimgpoints:
         x, y, w, h = cv2.boundingRect(cnt)
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+    for tvec, rvec in zip(translationvectors, rotationvectors):
+        cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
+
+    dt = datetime.datetime.now()
+    cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
+    print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
 
 perform_Findlandmark()
