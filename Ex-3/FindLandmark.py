@@ -29,11 +29,10 @@ def CreateCameraMatrix(image):
 
 
 def perform_Findlandmark():
-    print("FindLandmark.py: Taking a picture")
+    print("FindLandmark.py: Taking a picture using imagecapture")
 
     image = takePicture()
-    print("FindLandmark.py: Saved the picture, ")
-
+    
     print("FindLandmark.py: Fetching the dictionary")
 
     dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
@@ -62,22 +61,21 @@ def perform_Findlandmark():
         )
     )
 
-    if ids is not None:
-        print("FindLandmark.py: printing rotation vectors")
-        for y in rotationvectors:
-            print(y)
-        print("FindLandmark.py: printing translation vectors")
-        for z in translationvectors:
-            print(z)
-            horizontalskew, verticalskew, forwarddistance = z[0]
-            if horizontalskew >= 0:
-                print("Right Skew:" + str(horizontalskew))
-            else:
-                horizontalskew = horizontalskew * -1
-                print("Left Skew:" + str(horizontalskew))
+    print("FindLandmark.py: printing rotation vectors")
+    for y in rotationvectors:
+        print(y)
+    print("FindLandmark.py: printing translation vectors")
+    for z in translationvectors:
+        print(z)
+        horizontalskew, verticalskew, forwarddistance = z[0]
+        if horizontalskew >= 0:
+            print("Right Skew:" + str(horizontalskew))
+        else:
+            horizontalskew = horizontalskew * -1
+            print("Left Skew:" + str(horizontalskew))
 
-            print("Vertical Skew:" + str(verticalskew))
-            print("Forward Distance:" + str(forwarddistance))
+        print("Vertical Skew:" + str(verticalskew))
+        print("Forward Distance:" + str(forwarddistance))
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
