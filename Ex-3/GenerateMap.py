@@ -78,12 +78,49 @@ def perform_Findlandmark():
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
     distcoefficients = np.zeros((5, 1))
-    _, _, objpoints = (
+    translationvectors, rotationvectors, objpoints = (
         cv2.aruco.estimatePoseSingleMarkers(
             corners, 0.145, cameramatrix, distcoefficients
         )
     )
 
+    CreateDetectionImage(
+        corners,
+        rejectedimgpoints,
+        image,
+        translationvectors,
+        rotationvectors,
+        cameramatrix,
+        distcoefficients,
+    )
+
     return objpoints
+
+def CreateDetectionImage(
+    corners,
+    rejectedimgpoints,
+    image,
+    translationvectors,
+    rotationvectors,
+    cameramatrix,
+    distcoefficients,
+):
+    print("FindLandmark.py: Attempting to save picture with detection boxes on")
+    for cnt in corners:
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(
+            image, f"{w} x {h}", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2
+        )
+    for cnt in rejectedimgpoints:
+        x, y, w, h = cv2.boundingRect(cnt)
+        cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+
+    for tvec, rvec in zip(translationvectors, rotationvectors):
+        cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
+
+    dt = datetime.datetime.now()
+    cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
+    print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
 print(perform_Findlandmark())
