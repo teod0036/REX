@@ -21,7 +21,10 @@ def perform_Findlandmark():
 
     corners,ids,rejectedimgpoints = cv2.aruco.detectMarkers(image,dict)
 
-    if (len(ids) != 0):
-        print("FindLandmark.py: Found atleast 1 landmark")
+    if (ids != None):
+        i = 0
+        while (len(ids) > i):
+            print("FindLandmark.py: Found a landmark number:" + i)
+            i = i + 1
 
 perform_Findlandmark()
