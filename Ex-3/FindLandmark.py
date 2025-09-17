@@ -62,7 +62,7 @@ def perform_Findlandmark():
             corners, 0.145, cameramatrix, distcoefficients
         )
     )
-
+    y=0
     while y < len(ids):
         CreateLandMarkDict(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])
         y+=1
