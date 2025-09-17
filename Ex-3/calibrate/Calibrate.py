@@ -2,7 +2,7 @@
 import cv2 as cv
 import numpy as np
 
-from TakeImage import captureImage
+from TakeImage import takePicture
 
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -17,7 +17,7 @@ imgpoints = []  # 2d points in image plane.
 
 chessboardSize = 5, 4
 
-img = captureImage()
+img = takePicture()
 gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
 # Find the chess board corners
