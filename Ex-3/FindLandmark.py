@@ -83,8 +83,8 @@ def perform_Findlandmark():
         distcoefficients,
     )
 
-    for x in alllandmarksdict:
-        print(str(x))
+    for k, v in alllandmarksdict:
+        print(f"key: {k}, value: {v}")
     return alllandmarksdict
 
 
