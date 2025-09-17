@@ -40,7 +40,7 @@ def perform_Findlandmark():
     print("FindLandmark.py: Attempting to save picture with detection boxes on")
 
     dt = datetime.datetime.now()
-    cv2.imwrite(f"{dt.strftime('%M%S')}.jpeg", image)
+    cv2.imwrite(f"DetectedBoxes{dt.strftime('%M%S')}.jpeg", image)
 
     focallength = 1257
     imageheight = 1080
@@ -68,6 +68,7 @@ def perform_Findlandmark():
 
             print("Vertical Skew:" + str(verticalskew))
             print("Forward Distance:" + str(forwarddistance))
+    return translationvectors
 
 
 
