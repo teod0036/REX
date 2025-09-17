@@ -74,14 +74,16 @@ def perform_Findlandmark():
 
             print("Vertical Skew:" + str(verticalskew))
             print("Forward Distance:" + str(forwarddistance))
-    return translationvectors
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
 
-
     dt = datetime.datetime.now()
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
+
+    return translationvectors
+
+
 
 
 perform_Findlandmark()
