@@ -47,7 +47,7 @@ def perform_Findlandmark():
         print("FindLandmark.py: No landmarks found, ending FindLandMark")
         return None
     focallength = 1257
-    imageheight = 1080
+    imageheight = image
     imagewidth = 1920
     distcoefficients = np.zeros((5, 1))
     cameramatrix = np.array(
