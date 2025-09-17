@@ -64,23 +64,9 @@ def perform_Findlandmark():
         )
     )
     landmarksdictmade = 0
-    print("FindLandmark.py: printing rotation vectors")
     for y in rotationvectors:
-        print(y)
         CreateLandMarkDict(rotationvectors[landmarksdictmade],translationvectors[landmarksdictmade],objpoints[landmarksdictmade])
         landmarksdictmade = landmarksdictmade + 1
-    print("FindLandmark.py: printing translation vectors")
-    for z in translationvectors:
-        print(z)
-        horizontalskew, verticalskew, forwarddistance = z[0]
-        if horizontalskew >= 0:
-            print("Right Skew:" + str(horizontalskew))
-        else:
-            horizontalskew = horizontalskew * -1
-            print("Left Skew:" + str(horizontalskew))
-
-        print("Vertical Skew:" + str(verticalskew))
-        print("Forward Distance:" + str(forwarddistance))
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
