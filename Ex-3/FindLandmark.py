@@ -63,10 +63,12 @@ def perform_Findlandmark():
             corners, 0.145, cameramatrix, distcoefficients
         )
     )
-
+    landmarksdictmade = 0
     print("FindLandmark.py: printing rotation vectors")
     for y in rotationvectors:
         print(y)
+        CreateLandMarkDict(rotationvectors[landmarksdictmade],translationvectors[landmarksdictmade],objpoints[landmarksdictmade])
+        landmarksdictmade = landmarksdictmade + 1
     print("FindLandmark.py: printing translation vectors")
     for z in translationvectors:
         print(z)
@@ -90,10 +92,9 @@ def perform_Findlandmark():
     return translationvectors
 
 
-def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
+def CreateLandMarkDict(rotationvectors, translationvectors, objpoints):
     print("FindLandmark.py: Creating landmarkdict ID" + str(id))
     landmarkdict = {
-        "landmarkid": id,
         "rotationvectors": rotationvectors,
         "translationvectors": translationvectors,
         "objpoints": objpoints,
