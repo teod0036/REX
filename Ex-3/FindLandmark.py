@@ -44,6 +44,9 @@ def perform_Findlandmark():
 
     if ids is None:
         print("FindLandmark.py: No landmarks found, ending FindLandmark")
+        dt = datetime.datetime.now()
+        cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
+        print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
         return None
     else:
         landmarksfound = 1
