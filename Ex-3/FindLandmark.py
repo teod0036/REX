@@ -69,6 +69,7 @@ def perform_Findlandmark():
 
     dt = datetime.datetime.now()
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
+    print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
     return translationvectors
 
@@ -94,12 +95,7 @@ def CreateDetectionImage(corners, rejectedimgpoints, image):
         x, y, w, h = cv2.boundingRect(cnt)
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
-<<<<<<< HEAD
 perform_Findlandmark()
-=======
-
-    dt = datetime.datetime.now()
-    cv2.imwrite(f"Detection{dt.strftime('%M%S')}.jpeg", image)
 
 def CreateCameraMatrix(focallength, image):
     focallength = 1257
@@ -111,4 +107,5 @@ def CreateCameraMatrix(focallength, image):
     [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
     )
     return cameramatrix
->>>>>>> 7c0e23a5a0de2954303ad00388c3a19b636ba589
+
+perform_Findlandmark()
