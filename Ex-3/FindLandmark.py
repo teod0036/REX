@@ -46,12 +46,12 @@ def perform_Findlandmark():
     imageheight = 1080
     imagewidth = 1920
     distcoefficients = np.zeros((5,1))
-    cameramatrix = [focallength,    0,              imagewidth/2,
+    cameramatrix = np.array([[focallength,    0,              imagewidth/2,
                     0,              focallength,    imageheight/2,
-                    0,              0,              1]
+                    0,              0,              1]])
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
-    rotationvectors,translationvectors = cv2.aruco.estimatePoseSingleMarkers(corners,0.145,cameramatrix,distcoefficients)
+    rotationvectors,translationvectors,objpoints = cv2.aruco.estimatePoseSingleMarkers(corners,0.145,cameramatrix,distcoefficients)
 
 
 perform_Findlandmark()
