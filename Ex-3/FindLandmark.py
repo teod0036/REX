@@ -42,7 +42,7 @@ def perform_Findlandmark():
     dt = datetime.datetime.now()
     cv2.imwrite(f"{dt.strftime('%M%S')}.jpeg", image)
 
-    focallength = 1284
+    focallength = 1257
     imageheight = 1080
     imagewidth = 1920
     distcoefficients = np.zeros((5,1))
