@@ -37,8 +37,20 @@ def perform_Findlandmark():
         x, y, w, h = cv2.boundingRect(cnt)
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 255), 2)
 
+    print("FindLandmark.py: Attempting to save picture with detection boxes on")
+
     dt = datetime.datetime.now()
     cv2.imwrite(f"{dt.strftime('%M%S')}.jpeg", image)
+
+    focallength = 1284
+    imageheight = 1080
+    imagewidth = 1920
+    cameramatrix = [focallength,    0,              imagewidth/2,
+                    0,              focallength,    imageheight/2,
+                    0,              0,              1]
+
+    print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
+    rotationvectors,translationvectors = cv2.aruco.estimatePoseSingleMarkers(corners,0.145,cameramatrix)
 
 
 perform_Findlandmark()
