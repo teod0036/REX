@@ -1,7 +1,8 @@
 import datetime
 from time import sleep
-import numpy as np
+
 import cv2
+import numpy as np
 
 import robot
 from imagecapture import takePicture
@@ -39,19 +40,20 @@ def perform_Findlandmark():
 
     print("FindLandmark.py: Attempting to save picture with detection boxes on")
 
-    dt = datetime.datetime.now()
-    cv2.imwrite(f"{dt.strftime('%M%S')}.jpeg", image)
-
     focallength = 1257
     imageheight = 1080
     imagewidth = 1920
-    distcoefficients = np.zeros((5,1))
-    cameramatrix = np.array([[focallength,    0,              imagewidth/2],
-                    [0,              focallength,    imageheight/2],
-                    [0,              0,              1]])
+    distcoefficients = np.zeros((5, 1))
+    cameramatrix = np.array(
+        [[focallength, 0, imagewidth / 2], [0, focallength, imageheight / 2], [0, 0, 1]]
+    )
 
     print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
-    rotationvectors,translationvectors,objpoints = cv2.aruco.estimatePoseSingleMarkers(corners,0.145,cameramatrix,distcoefficients)
+    rotationvectors, translationvectors, objpoints = (
+        cv2.aruco.estimatePoseSingleMarkers(
+            corners, 0.145, cameramatrix, distcoefficients
+        )
+    )
 
     if ids is not None:
         print("FindLandmark.py: printing rotation vectors")
@@ -59,12 +61,17 @@ def perform_Findlandmark():
             print(y)
         print("FindLandmark.py: printing translation vectors")
         for z in translationvectors:
-            horizontalskew,verticalskew,forwarddistance = z[0]
+            horizontalskew, verticalskew, forwarddistance = z[0]
             print("Right/Left Skew:" + str(horizontalskew))
             print("Vertical Skew:" + str(verticalskew))
             print("Forward Distance:" + str(forwarddistance))
 
+    for tvec, rvec in zip(translationvectors, rotationvectors):
+        cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
 
+
+    dt = datetime.datetime.now()
+    cv2.imwrite(f"{dt.strftime('%M%S')}.jpeg", image)
 
 
 perform_Findlandmark()
