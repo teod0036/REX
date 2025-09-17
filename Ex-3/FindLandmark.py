@@ -26,5 +26,7 @@ def perform_Findlandmark():
         while (len(ids) > i):
             print("FindLandmark.py: Found a landmark")
             i = i + 1
+    else:
+        print ("Did not find any landmarks")
 
 perform_Findlandmark()
