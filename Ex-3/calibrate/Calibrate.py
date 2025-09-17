@@ -37,9 +37,10 @@ if ret == True:
 
     # Draw and display the corners
     cv.drawChessboardCorners(img, chessboardSize, corners2, ret)
-    dt = datetime.datetime.now()
-    cv.imwrite(f"Raw{dt.strftime('%M%S')}.jpeg", img)
 
-    print(f"saving to {dt.strftime('%M%S')}.jpeg")
+dt = datetime.datetime.now()
+cv.imwrite(f"Raw{dt.strftime('%M%S')}.jpeg", img)
+print(f"saving to {dt.strftime('%M%S')}.jpeg")
+
 
 cv.destroyAllWindows()
