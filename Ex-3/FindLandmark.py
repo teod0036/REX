@@ -7,7 +7,15 @@ import cv2
 arlo = robot.Robot()
 
 def perform_Findlandmark():
-    cv2.aruco.DICT_6x6_250
-    cv2.aruco.ArucoDetector.detectMarkers
+    print("FindLandmark.py: Taking a picture")
 
-perform_Findlandmark
+    image = takePicture()
+    print("FindLandmark.py: Saved the picture, " + image)
+
+    print("FindLandmark.py: Attempting to detect Markers")
+
+    vals = cv2.aruco.ArucoDetector.detectMarkers(image,cv2.aruco.DICT_6X6_250)
+
+    print("FindLandmark.py: Result of markerdetection:" + vals)
+
+perform_Findlandmark()

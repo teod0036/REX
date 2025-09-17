@@ -42,6 +42,7 @@ def takePicture():
 
     dt = datetime.datetime.now()
     image = cam.capture_file(f"{dt.strftime('%M%S')}.jpeg")
+    return image
 
     # Show frames
     #cv2.imshow(WIN_RF, image)
