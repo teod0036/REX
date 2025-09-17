@@ -61,8 +61,8 @@ def perform_Findlandmark():
             print(y)
         print("FindLandmark.py: printing translation vectors")
         for z in translationvectors:
-            horizontalskew,verticalskew,forwarddistance = z[0]
-            if (horizontalskew >= 0):
+            horizontalskew, verticalskew, forwarddistance = z[0]
+            if horizontalskew >= 0:
                 print("Right Skew:" + str(horizontalskew))
             else:
                 horizontalskew = horizontalskew * -1
@@ -71,6 +71,9 @@ def perform_Findlandmark():
             print("Vertical Skew:" + str(verticalskew))
             print("Forward Distance:" + str(forwarddistance))
 
+    for tvec in translationvectors:
+        print(f"screen coord of object: {tvec[0] / tvec[3]}, {tvec[1] / tvec[3]}")
+
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
 
@@ -78,8 +81,6 @@ def perform_Findlandmark():
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
 
     return translationvectors
-
-
 
 
 perform_Findlandmark()
