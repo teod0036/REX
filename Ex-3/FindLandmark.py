@@ -77,9 +77,6 @@ def perform_Findlandmark():
             print("Vertical Skew:" + str(verticalskew))
             print("Forward Distance:" + str(forwarddistance))
 
-    for tvec in translationvectors:
-        print(f"screen coord of object: {tvec[0] / tvec[2]}, {tvec[1] / tvec[2]}")
-
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
 
