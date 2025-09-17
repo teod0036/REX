@@ -80,6 +80,8 @@ def perform_Findlandmark():
 def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
     print("----------------------------------------------------------------")
     print("FindLandmark.py: Creating landmarkdict with the following data")
+    print("ID: " + str(id))
+
     print("Rotationvectors: " + str(rotationvectors))
     print("Translationvectors (Horizontal,Vertical,Distance): " + str(translationvectors))
     print("Objpoints:" + str(objpoints))
