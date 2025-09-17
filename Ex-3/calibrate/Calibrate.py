@@ -1,6 +1,7 @@
 
 import cv2 as cv
 import numpy as np
+import datetime
 
 from TakeImage import takePicture
 
@@ -32,7 +33,7 @@ if ret == True:
 
     # Draw and display the corners
     cv.drawChessboardCorners(img, chessboardSize, corners2, ret)
-    cv.imshow("img", img)
-    cv.waitKey(500)
+    dt = datetime.datetime.now()
+    cv.imwrite(f"Raw{dt.strftime('%M%S')}.jpeg", img)
 
 cv.destroyAllWindows()
