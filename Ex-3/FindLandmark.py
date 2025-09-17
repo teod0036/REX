@@ -65,7 +65,7 @@ def perform_Findlandmark():
     alllandmarksdict = {}
     y=0
     while y < len(ids):
-        alllandmarksdict.update({ids[y]:CreateLandMarkArray(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])})
+        alllandmarksdict.update({int(ids[y]):CreateLandMarkArray(ids[y],rotationvectors[y],translationvectors[y],objpoints[y])})
         y+=1
     
 
