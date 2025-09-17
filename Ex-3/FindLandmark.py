@@ -14,11 +14,14 @@ def perform_Findlandmark():
     image = takePicture()
     print("FindLandmark.py: Saved the picture, ")
 
+    print("FindLandmark.py: Fetching the dictionary")
+
+    dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
     print("FindLandmark.py: Attempting to detect Markers")
 
     ##vals = cv2.aruco.ArucoDetector.detectMarkers(image,cv2.aruco.DICT_6X6_250)
 
-    vals = cv2.aruco.detectMarkers(image,cv2.aruco.DICT_6X6_250)
+    vals = cv2.aruco.detectMarkers(image,dict)
 
     print("FindLandmark.py: Result of markerdetection:" + vals[0])
 
