@@ -50,10 +50,8 @@ def perform_Findlandmark():
         print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
         return None
     else:
-        landmarksfound = 1
-        for i in ids.flatten():
-            print("FindLandmark.py: Found landmark ID" + str(landmarksfound))
-            landmarksfound = landmarksfound + 1
+        for i in ids:
+            print("FindLandmark.py: Found landmark ID" + str(id))
     
     cameramatrix = CreateCameraMatrix(image)
 
@@ -64,10 +62,9 @@ def perform_Findlandmark():
             corners, 0.145, cameramatrix, distcoefficients
         )
     )
-    landmarksdictmade = 0
-    for y in rotationvectors:
-        CreateLandMarkDict(rotationvectors[landmarksdictmade],translationvectors[landmarksdictmade],objpoints[landmarksdictmade])
-        landmarksdictmade = landmarksdictmade + 1
+
+    for y in ids:
+        CreateLandMarkDict(y,rotationvectors[y],translationvectors[y],objpoints[y])
 
     for tvec, rvec in zip(translationvectors, rotationvectors):
         cv2.drawFrameAxes(image, cameramatrix, distcoefficients, rvec, tvec, 0.1)
@@ -79,7 +76,7 @@ def perform_Findlandmark():
     return translationvectors
 
 
-def CreateLandMarkDict(rotationvectors, translationvectors, objpoints):
+def CreateLandMarkDict(id, rotationvectors, translationvectors, objpoints):
     print("----------------------------------------------------------------")
     print("FindLandmark.py: Creating landmarkdict with the following data")
     print("Rotationvectors: " + str(rotationvectors))
@@ -88,6 +85,7 @@ def CreateLandMarkDict(rotationvectors, translationvectors, objpoints):
     print("-------------------------------------------------------------")
 
     landmarkdict = {
+        "id": id,
         "rotationvectors": rotationvectors,
         "translationvectors": translationvectors,
         "objpoints": objpoints,
