@@ -19,6 +19,7 @@ def go_to_landmark(target_landmark):
             tvecs = maybe_landmark
         else:
             perform_Turn90(True, 0.1735)
+            print(arlo.stop())
 
         eprint(f"left/right offset: {tvecs[target_landmark][1][0][0]}")
         eprint(f"Distance to landmark in meters: {tvecs[target_landmark][1][0][2]}")
