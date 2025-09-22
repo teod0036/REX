@@ -18,16 +18,16 @@ def go_to_landmark(target_landmark):
         if maybe_landmark is not None:
             tvecs = maybe_landmark
         else:
-            perform_Turn90(True, 0.1735)
+            perform_Turn90(True, 0.1)
             print(arlo.stop())
 
         eprint(f"left/right offset: {tvecs[target_landmark][1][0][0]}")
         eprint(f"Distance to landmark in meters: {tvecs[target_landmark][1][0][2]}")
 
         if tvecs[target_landmark][1][0][0] < -0.01:
-            perform_Turn90(True, 0)
-        elif tvecs[target_landmark][1][0][0] > 0.01:
             perform_Turn90(False, 0)
+        elif tvecs[target_landmark][1][0][0] > 0.01:
+            perform_Turn90(True, 0)
         else:
             if tvecs[target_landmark][1][0][2] < 0.1:
                 print(arlo.stop())
