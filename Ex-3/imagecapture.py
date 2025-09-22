@@ -6,7 +6,7 @@ import time
 from pprint import *
 import datetime 
 
-def takePicture():
+def initCamera():
     try:
         import picamera2
         print("Camera.py: Using picamera2 module")
@@ -34,7 +34,9 @@ def takePicture():
 
     time.sleep(1)  # wait for camera to setup
 
+    return cam
 
+def takePicture(cam):
     # Open a window
     #WIN_RF = "Example 1"
     #cv2.namedWindow(WIN_RF)

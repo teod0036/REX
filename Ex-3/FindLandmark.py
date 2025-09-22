@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 import robot
-from imagecapture import takePicture
+from imagecapture import takePicture, initCamera
 from Turn90 import perform_Turn90
 
 arlo = robot.Robot()
@@ -31,10 +31,10 @@ def CreateCameraMatrix(image):
     return cameramatrix
 
 
-def perform_Findlandmark():
+def perform_Findlandmark(cam):
     eprint("FindLandmark.py: Taking a picture using imagecapture")
 
-    image = takePicture()
+    image = takePicture(cam)
 
     eprint("FindLandmark.py: Fetching the dictionary")
 
@@ -131,5 +131,4 @@ def CreateDetectionImage(
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
     eprint(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
-
-perform_Findlandmark()
+perform_Findlandmark(initCamera())
