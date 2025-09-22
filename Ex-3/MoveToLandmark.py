@@ -12,8 +12,7 @@ def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 def go_to_landmark(target_landmark):
-    eprint("Init camera")
-    cam = 3 #initCamera()
+    cam = initCamera()
     while (True):
         maybe_landmark = perform_Findlandmark(cam)
         if maybe_landmark is not None:
@@ -28,6 +27,7 @@ def go_to_landmark(target_landmark):
         else:
             if tvecs[target_landmark][1][2] < 0.1:
                 print(arlo.stop())
+                cam.close()
                 return
             print(arlo.go_diff(64, 64 + rightSpeedModifier[64], 1, 1))
 

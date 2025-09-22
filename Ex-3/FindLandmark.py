@@ -131,4 +131,6 @@ def CreateDetectionImage(
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
     eprint(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
-perform_Findlandmark(initCamera())
+cam = initCamera()
+perform_Findlandmark(cam)
+cam.close()
