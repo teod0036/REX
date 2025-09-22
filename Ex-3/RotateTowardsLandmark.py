@@ -28,18 +28,18 @@ def go_to_landmark(target_landmark: int):
         eprint(table)
 
         if target_landmark in table:
-            if (np.abs(table[target_landmark].rvecs[2]) > 0.01):
-                withclock = table[target_landmark].rvecs[2] > 0
-                if withclock:
-                    eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
-                else:
-                    eprint(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-                sleep(0.2)
-                eprint(arlo.stop())
+            # if (np.abs(table[target_landmark].rvecs[2]) > 0.01):
+            withclock = table[target_landmark].rvecs[2] > 0
+            if withclock:
+                eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
             else:
-                eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
-                sleep(0.2)
-                eprint(arlo.stop())
+                eprint(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
+            sleep(0.2)
+            eprint(arlo.stop())
+            # else:
+            #     eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
+            #     sleep(0.2)
+            #     eprint(arlo.stop())
         else:
             arlo.go_diff(leftSpeed, rightSpeed, 1, 0)
             sleep(0.2)
