@@ -7,9 +7,9 @@ from rightSpeedModifier import rightSpeedModifier
 
 arlo = robot.Robot()
 
-def go_to_landmark(target_landmark):
+def go_to_landmark(target_landmark, cam):
     while (True):
-        maybe_landmark = perform_Findlandmark(initCamera())
+        maybe_landmark = perform_Findlandmark(cam)
         if maybe_landmark is not None:
             tvecs = maybe_landmark
         else:
@@ -25,7 +25,7 @@ def go_to_landmark(target_landmark):
                 return
             print(arlo.go_diff(64, 64 + rightSpeedModifier[64], 1, 1))
 
-go_to_landmark(2)
+go_to_landmark(2, initCamera())
 
         
             
