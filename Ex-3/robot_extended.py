@@ -2,18 +2,23 @@
 
 import sys
 import time
-from typing import List, Optional, Tuple, NamedTuple
+from typing import List, NamedTuple, Optional, Tuple
 
 import cv2  # Import the OpenCV library
 import numpy as np
 
 from robot import Robot
 
-class PoseMarkers(NamedTuple):
-    rvecs : np.ndarray
-    tvecs :  np.ndarray
-    objPoints :  np.ndarray
 
+class Pose(NamedTuple):
+    rvecs: np.ndarray
+    tvecs: np.ndarray
+    objPoints: np.ndarray
+
+
+class Marker(NamedTuple):
+    id: int
+    pose: Pose
 
 
 def eprint(*args, **kwargs):
@@ -45,6 +50,7 @@ def estimatePoseSingleMarkers(
     return cv2.aruco.estimatePoseSingleMarkers(
         corners, markerLength, cameraMatrix, distCoeffs
     )
+
 
 class RobotExtended:
     FOCAL_LENGTH = 1257
@@ -80,18 +86,21 @@ class RobotExtended:
         self.camera.start(show_preview=False)
         time.sleep(1)  # wait a little for camera setup
 
+    def __del__(self):
+        self.camera.close()
+
     def take_picture(self) -> np.ndarray:
         eprint("Taking picture...")
         return self.camera.capture_array("main")
 
-    def perform_image_analysis(self):
+    def perform_image_analysis(self) -> List[Marker]:
         d = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
         corners_list, ids, rejectedimgpoints = detectMarkers(self.take_picture(), d)
         corners: np.ndarray = np.array(corners_list, dtype=np.float32)
 
         if ids is None:
             eprint("No landmarks found")
-            return None
+            return []
         else:
             eprint("Found landmarks: ", *ids)
 
@@ -101,7 +110,11 @@ class RobotExtended:
             self.CAMERA_MATRIX,
             self.DISTORTION_COEFFICENTS,
         )
-        return PoseMarkers(rvecs, tvecs, objPoints)
+        return [
+            Marker(int(ids[i]), Pose(rvecs[i], tvecs[i], objPoints[i]))
+            for i in range(len(ids))
+        ]
 
 
-eprint(RobotExtended().perform_image_analysis())
+if __name__ == "__main__":
+    eprint(RobotExtended().perform_image_analysis())
