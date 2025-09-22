@@ -42,8 +42,8 @@ def takePicture(cam):
     #cv2.namedWindow(WIN_RF)
     #cv2.moveWindow(WIN_RF, 100, 100)
 
-    dt = datetime.datetime.now()
-    image = cam.capture_file(f"Raw{dt.strftime('%M%S')}.jpeg")
+    #dt = datetime.datetime.now()
+    #image = cam.capture_file(f"Raw{dt.strftime('%M%S')}.jpeg")
     array = cam.capture_array("main")
 
     return array
