@@ -13,7 +13,7 @@ def eprint(*args, **kwargs):
 
 def go_to_landmark(target_landmark):
     eprint("Init camera")
-    cam = initCamera()
+    cam = 3 #initCamera()
     while (True):
         maybe_landmark = perform_Findlandmark(cam)
         if maybe_landmark is not None:
