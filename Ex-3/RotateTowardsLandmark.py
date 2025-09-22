@@ -34,7 +34,7 @@ def go_to_landmark(target_landmark: int):
                 eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
             else:
                 eprint(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-            sleep(0.2)
+            sleep(0.1)
             eprint(arlo.stop())
             # else:
             #     eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
@@ -42,7 +42,7 @@ def go_to_landmark(target_landmark: int):
             #     eprint(arlo.stop())
         else:
             arlo.go_diff(leftSpeed, rightSpeed, 1, 0)
-            sleep(0.2)
+            sleep(0.1)
             arlo.stop()
 
 
