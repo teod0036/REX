@@ -1,21 +1,24 @@
 import datetime
 from time import sleep
+import sys
 
 import cv2
 import numpy as np
 
 import robot
-from imagecapture import takePicture
+from imagecapture import takePicture, initCamera
 from Turn90 import perform_Turn90
 
 arlo = robot.Robot()
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
 
 def CreateCameraMatrix(image):
     focallength = 1257
     imageheight = image.shape[1]
     imagewidth = image.shape[0]
-    print(
+    eprint(
         "FindLandmark.py: Image Height: "
         + str(imageheight)
         + " Image Width: "
@@ -28,33 +31,33 @@ def CreateCameraMatrix(image):
     return cameramatrix
 
 
-def perform_Findlandmark():
-    print("FindLandmark.py: Taking a picture using imagecapture")
+def perform_Findlandmark(cam):
+    eprint("FindLandmark.py: Taking a picture using imagecapture")
 
-    image = takePicture()
+    image = takePicture(cam)
 
-    print("FindLandmark.py: Fetching the dictionary")
+    eprint("FindLandmark.py: Fetching the dictionary")
 
     dict = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-    print("FindLandmark.py: Attempting to detect Markers")
+    eprint("FindLandmark.py: Attempting to detect Markers")
 
     corners, ids, rejectedimgpoints = cv2.aruco.detectMarkers(image, dict)
     for cnt in corners:
-        print("printing corner" + str(cnt))
+        eprint("eprinting corner" + str(cnt))
 
     if ids is None:
-        print("FindLandmark.py: No landmarks found, ending FindLandmark")
+        eprint("FindLandmark.py: No landmarks found, ending FindLandmark")
         dt = datetime.datetime.now()
         cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
-        print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
+        eprint(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
         return None
     else:
         for i in ids:
-            print("FindLandmark.py: Found landmark ID" + str(id))
+            eprint("FindLandmark.py: Found landmark ID" + str(id))
 
     cameramatrix = CreateCameraMatrix(image)
 
-    print("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
+    eprint("FindLandmark.py: Attempting to estimatePoseSingleMarkers")
     distcoefficients = np.zeros((5, 1))
     rotationvectors, translationvectors, objpoints = (
         cv2.aruco.estimatePoseSingleMarkers(
@@ -82,20 +85,20 @@ def perform_Findlandmark():
     )
 
     for k, v in alllandmarksdict.items():
-        print(f"key: {k}, value: {v}")
+        eprint(f"key: {k}, value: {v}")
 
     return alllandmarksdict
 
 
 def CreateLandMarkArray(id, rotationvectors, translationvectors, objpoints):
-    print("----------------------------------------------------------------")
-    print("FindLandmark.py: Creating landmarkarray with the following data")
-    print("Rotationvectors: " + str(rotationvectors))
-    print(
+    eprint("----------------------------------------------------------------")
+    eprint("FindLandmark.py: Creating landmarkarray with the following data")
+    eprint("Rotationvectors: " + str(rotationvectors))
+    eprint(
         "Translationvectors (Horizontal,Vertical,Distance): " + str(translationvectors)
     )
-    print("Objpoints:" + str(objpoints))
-    print("-------------------------------------------------------------")
+    eprint("Objpoints:" + str(objpoints))
+    eprint("-------------------------------------------------------------")
 
     landmark = [rotationvectors, translationvectors, objpoints]
     return landmark
@@ -110,7 +113,7 @@ def CreateDetectionImage(
     cameramatrix,
     distcoefficients,
 ):
-    print("FindLandmark.py: Attempting to save picture with detection boxes on")
+    eprint("FindLandmark.py: Attempting to save picture with detection boxes on")
     for cnt in corners:
         x, y, w, h = cv2.boundingRect(cnt)
         cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -126,7 +129,6 @@ def CreateDetectionImage(
 
     dt = datetime.datetime.now()
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
-    print(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
+    eprint(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
-
-perform_Findlandmark()
+perform_Findlandmark(initCamera())

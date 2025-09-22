@@ -5,8 +5,13 @@ import cv2 # Import the OpenCV library
 import time
 from pprint import *
 import datetime 
+import inspect
 
-def takePicture():
+
+def initCamera():
+    print(f"this function is being called from the function {inspect.stack()[1][3]} on line {inspect.stack()[1][2]}")
+    print()
+    print()
     try:
         import picamera2
         print("Camera.py: Using picamera2 module")
@@ -34,14 +39,16 @@ def takePicture():
 
     time.sleep(1)  # wait for camera to setup
 
+    return cam
 
+def takePicture(cam):
     # Open a window
     #WIN_RF = "Example 1"
     #cv2.namedWindow(WIN_RF)
     #cv2.moveWindow(WIN_RF, 100, 100)
 
-    dt = datetime.datetime.now()
-    image = cam.capture_file(f"Raw{dt.strftime('%M%S')}.jpeg")
+    #dt = datetime.datetime.now()
+    #image = cam.capture_file(f"Raw{dt.strftime('%M%S')}.jpeg")
     array = cam.capture_array("main")
 
     return array

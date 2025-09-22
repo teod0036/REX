@@ -1,14 +1,21 @@
-from time import perf_counter
+from time import perf_counter, sleep
 import robot
 from Turn90 import perform_Turn90
+from imagecapture import initCamera
 from FindLandmark import perform_Findlandmark
 from rightSpeedModifier import rightSpeedModifier
+import sys
 
 arlo = robot.Robot()
 
+def eprint(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+
 def go_to_landmark(target_landmark):
+    eprint("Init camera")
+    cam = 3 #initCamera()
     while (True):
-        maybe_landmark = perform_Findlandmark()
+        maybe_landmark = perform_Findlandmark(cam)
         if maybe_landmark is not None:
             tvecs = maybe_landmark
         else:
