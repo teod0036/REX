@@ -29,7 +29,7 @@ def go_to_landmark(target_landmark: int):
 
         if target_landmark in table:
             # if (np.abs(table[target_landmark].rvecs[2]) > 0.01):
-            withclock = table[target_landmark].rvecs[2] > 0
+            withclock = table[target_landmark].rvecs[2] < 0
             if withclock:
                 eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
             else:
