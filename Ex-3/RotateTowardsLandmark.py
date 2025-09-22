@@ -34,7 +34,7 @@ def go_to_landmark(target_landmark: int):
                 eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
             else:
                 eprint(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-            sleep(0.1)
+            sleep(np.max(0.05, np.abs(table[target_landmark].rvecs[2])))
             eprint(arlo.stop())
             # else:
             #     eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
