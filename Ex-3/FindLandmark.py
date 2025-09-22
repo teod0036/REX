@@ -53,7 +53,7 @@ def perform_Findlandmark(cam):
         return None
     else:
         for i in ids:
-            eprint("FindLandmark.py: Found landmark ID" + str(id))
+            eprint("FindLandmark.py: Found landmark ID" + str(i))
 
     cameramatrix = CreateCameraMatrix(image)
 
@@ -131,4 +131,6 @@ def CreateDetectionImage(
     cv2.imwrite(f"Test123{dt.strftime('%M%S')}.jpeg", image)
     eprint(f"outputted to Test123{dt.strftime('%M%S')}.jpeg")
 
-perform_Findlandmark(initCamera())
+cam = initCamera()
+perform_Findlandmark(cam)
+cam.close()

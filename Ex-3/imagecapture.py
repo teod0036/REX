@@ -5,13 +5,9 @@ import cv2 # Import the OpenCV library
 import time
 from pprint import *
 import datetime 
-import inspect
 
 
 def initCamera():
-    print(f"this function is being called from the function {inspect.stack()[1][3]} on line {inspect.stack()[1][2]}")
-    print()
-    print()
     try:
         import picamera2
         print("Camera.py: Using picamera2 module")
