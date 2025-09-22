@@ -11,9 +11,9 @@ from robot import Robot
 
 
 class Pose(NamedTuple):
-    rvecs: np.ndarray
-    tvecs: np.ndarray
-    objPoints: np.ndarray
+    rvec: np.ndarray
+    tvec: np.ndarray
+    objPoint: np.ndarray
 
 
 class Marker(NamedTuple):
