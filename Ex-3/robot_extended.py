@@ -98,7 +98,7 @@ class RobotExtended:
         corners_list, ids, rejectedimgpoints = detectMarkers(self.take_picture(), d)
         corners: np.ndarray = np.array(corners_list, dtype=np.float32)
 
-        if ids is None:
+        if not ids:
             eprint("No landmarks found")
             return []
         else:
