@@ -53,7 +53,7 @@ def perform_Findlandmark(cam):
         return None
     else:
         for i in ids:
-            eprint("FindLandmark.py: Found landmark ID" + str(id))
+            eprint("FindLandmark.py: Found landmark ID" + str(i))
 
     cameramatrix = CreateCameraMatrix(image)
 
