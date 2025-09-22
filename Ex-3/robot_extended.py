@@ -98,7 +98,7 @@ class RobotExtended:
         corners_list, ids, rejectedimgpoints = detectMarkers(self.take_picture(), d)
         corners: np.ndarray = np.array(corners_list, dtype=np.float32)
 
-        if not ids:
+        if ids is None or len(ids) == 0:
             eprint("No landmarks found")
             return []
         else:
@@ -114,6 +114,8 @@ class RobotExtended:
             Marker(int(ids[i]), Pose(rvecs[i], tvecs[i], objPoints[i]))
             for i in range(len(ids))
         ]
+
+
 
 
 if __name__ == "__main__":
