@@ -111,7 +111,7 @@ class RobotExtended:
             self.DISTORTION_COEFFICENTS,
         )
         return [
-            Marker(int(ids[i]), Pose(rvecs[i], tvecs[i], objPoints[i]))
+            Marker(int(ids[i]), Pose(rvecs[i].reshape(3,), tvecs[i].reshape(3,), objPoints[i].reshape(3,)))
             for i in range(len(ids))
         ]
 
