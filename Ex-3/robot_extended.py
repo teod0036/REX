@@ -2,7 +2,7 @@
 
 import sys
 import time
-from typing import List, NamedTuple, Optional, Tuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import cv2  # Import the OpenCV library
 import numpy as np
@@ -111,11 +111,19 @@ class RobotExtended:
             self.DISTORTION_COEFFICENTS,
         )
         return [
-            Marker(int(ids[i]), Pose(rvecs[i].reshape(3,), tvecs[i].reshape(3,), objPoints[i].reshape(3,)))
+            Marker(
+                int(ids[i]),
+                Pose(
+                    rvecs[i].reshape(3),
+                    tvecs[i].reshape(3),
+                    objPoints[i].reshape(3),
+                ),
+            )
             for i in range(len(ids))
         ]
 
-
+    def perform_image_analysis_table(self) -> Dict[int, Pose]:
+        return {i: pose for i, pose in self.perform_image_analysis()}
 
 
 if __name__ == "__main__":
