@@ -31,9 +31,11 @@ def go_to_landmark(target_landmark: int, total_time=10):
             else:
                 print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
             sleep(0.1)
+            print(arlo.stop())
         else:
             print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
             sleep(0.1)
+            print(arlo.stop())
 
 
 go_to_landmark(2)
