@@ -45,10 +45,10 @@ def go_to_landmark(target_landmark: int):
                 print(arlo.stop())
             else:
                 print(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
-                sleep(1.5)
+                sleep(2.5)
                 print(arlo.stop())
         else:
-            arlo.go_diff(leftSpeed, rightSpeed, 0, 1)
+            arlo.go_diff(leftSpeed, rightSpeed, 1, 0)
             sleep(0.5)
             arlo.stop()
 
