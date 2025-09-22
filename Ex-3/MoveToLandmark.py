@@ -20,6 +20,9 @@ def go_to_landmark(target_landmark):
         else:
             perform_Turn90(True, 0.1735)
 
+        eprint(f"left/right offset: {tvecs[target_landmark][1][0]}")
+        eprint(f"Distance to landmark in meters: {tvecs[target_landmark][1][2]}")
+
         if tvecs[target_landmark][1][0] < -0.0001:
             perform_Turn90(True, 0)
         elif tvecs[target_landmark][1][0] > 0.0001:
