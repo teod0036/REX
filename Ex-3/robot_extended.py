@@ -6,14 +6,13 @@ from typing import List, Optional, Tuple, NamedTuple
 
 import cv2  # Import the OpenCV library
 import numpy as np
-import numpy.typing as npt
 
 from robot import Robot
 
 class PoseMarkers(NamedTuple):
-    rvecs : npt.NDArray[np.float64]
-    tvecs :  npt.NDArray[np.float64]
-    objPoints :  npt.NDArray[np.float64]
+    rvecs : np.ndarray
+    tvecs :  np.ndarray
+    objPoints :  np.ndarray
 
 
 
@@ -22,26 +21,26 @@ def eprint(*args, **kwargs):
 
 
 def detectMarkers(
-    image: npt.NDArray[np.uint8],
+    image: np.ndarray,
     dictionary: cv2.aruco.Dictionary,
     parameters: Optional[cv2.aruco.DetectorParameters] = None,
 ) -> Tuple[
-    List[npt.NDArray[np.float32]],  # corners
-    Optional[npt.NDArray[np.int32]],  # ids
-    Optional[List[npt.NDArray[np.float32]]],  # rejectedImgPoints
+    List[np.ndarray],  # corners
+    Optional[np.ndarray],  # ids
+    Optional[List[np.ndarray]],  # rejectedImgPoints
 ]:
     return cv2.aruco.detectMarkers(image, dictionary, parameters)
 
 
 def estimatePoseSingleMarkers(
-    corners: npt.NDArray[np.float32],  # shape: (N, 1, 4, 2)
+    corners: np.ndarray,  # shape: (N, 1, 4, 2)
     markerLength: float,
-    cameraMatrix: npt.NDArray[np.float64],  # shape: (3, 3)
-    distCoeffs: npt.NDArray[np.float64],  # shape: (4,) or similar
+    cameraMatrix: np.ndarray,  # shape: (3, 3)
+    distCoeffs: np.ndarray,  # shape: (4,) or similar
 ) -> Tuple[
-    npt.NDArray[np.float64],  # rvecs, shape: (N, 1, 3)
-    npt.NDArray[np.float64],  # tvecs, shape: (N, 1, 3)
-    npt.NDArray[np.float64],  # objPoints, shape: (N, 4, 3)
+    np.ndarray,  # rvecs, shape: (N, 1, 3)
+    np.ndarray,  # tvecs, shape: (N, 1, 3)
+    np.ndarray,  # objPoints, shape: (N, 4, 3)
 ]:
     return cv2.aruco.estimatePoseSingleMarkers(
         corners, markerLength, cameraMatrix, distCoeffs
@@ -81,7 +80,7 @@ class RobotExtended:
         self.camera.start(show_preview=False)
         time.sleep(1)  # wait a little for camera setup
 
-    def take_picture(self) -> npt.NDArray[np.uint8]:
+    def take_picture(self) -> np.ndarray:
         eprint("Taking picture...")
         return self.camera.capture_array("main")
 
