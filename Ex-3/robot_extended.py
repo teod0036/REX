@@ -116,4 +116,5 @@ class RobotExtended:
         ]
 
 
-eprint(RobotExtended().perform_image_analysis())
+if __name__ == "__main__":
+    eprint(RobotExtended().perform_image_analysis())
