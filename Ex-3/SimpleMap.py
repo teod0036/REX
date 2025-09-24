@@ -20,7 +20,7 @@ def get_map():
 def gridize_map(landmark_coordinates):
     map_size = 13
     grid_map = np.zeros((map_size, map_size), dtype=int)
-    grid_map[0][int((map_size-1)/2)] = 99
+    grid_map[int((map_size-1)/2)][int((map_size-1)/2)] = 99
 
     for mark in landmark_coordinates:
         x = int(np.round(mark[1]*100/20)) + int((map_size-1)/2)
