@@ -67,13 +67,14 @@ def save_picture(image: np.ndarray, prefix: str = "Test", suffix: Optional[str] 
 class RobotExtended:
     FOCAL_LENGTH = 1257
     IMAGE_SIZE = (1640, 1232)
-    DISTORTION_COEFFICENTS = np.array([0, 0, 0, 0, 0])
+    DISTORTION_COEFFICENTS = np.array([0, 0, 0, 0, 0], dtype=np.float32)
     CAMERA_MATRIX = np.array(
         [
             [FOCAL_LENGTH, 0, IMAGE_SIZE[0] / 2],
             [0, FOCAL_LENGTH, IMAGE_SIZE[1] / 2],
             [0, 0, 1],
-        ]
+        ],
+        dtype=np.float32,
     )
     MARKER_LENGTH_METER = 0.145
 
