@@ -15,21 +15,23 @@ def create_map(markers: List[Marker]):
     xz_tvec = -1 * np.array(
         [(pose.tvec[0], pose.tvec[2]) for _, pose in markers], dtype=np.float32
     )
-    size = np.array(
-        [
-            cv2.boundingRect(pose.corners)[2] * cv2.boundingRect(pose.corners)[3]
-            for _, pose in markers
-        ],
-        dtype=np.float32,
+    max_size = np.max(
+        np.array(
+            [
+                cv2.boundingRect(pose.corners)[2] * cv2.boundingRect(pose.corners)[3]
+                for _, pose in markers
+            ],
+            dtype=np.float32,
+        )
     )
-    LOD = np.ceil(0.5 * np.log2(max(1, size)))
+    LOD = int(np.ceil(0.5 * np.log2(max(1, max_size))))
     resolution = base_resolution * (2**LOD)  # meter / cell
 
     eprint(f"{base_resolution = } m")
     eprint(f"{LOD = }")
     eprint(f"base_resolution * (2**LOD) = {resolution = } m")
 
-    map_size = max(1, int(np.ceil((size / resolution))))
+    map_size = max(1, int(np.ceil((max_size / resolution))))
     map_array = np.full((map_size, map_size), 0, dtype=np.int32)
     center_i = map_size // 2
     center_j = map_size // 2
@@ -73,20 +75,20 @@ def save_map(map_array: np.ndarray, center_i: int, center_j: int):
 
 
 if __name__ == "__main__":
-    # markers = [
-    #     Marker(
-    #         id=1,
-    #         pose=Pose(
-    #             rvec=np.array([3.07823555, 0.00605985, 0.42181049], dtype=np.float32),
-    #             tvec=np.array([-0.09892818, 0.08039518, 0.79364262], dtype=np.float32),
-    #             objPoint=np.array([-0.0725, 0.0725, 0.0], dtype=np.float32),
-    #             corners=np.array(
-    #                 [[[547.0, 628.0], [775.0, 629.0], [775.0, 854.0], [545.0, 864.0]]],
-    #                 dtype=np.float32,
-    #             ),
-    #         ),
-    #     )
-    # ]
-    # map = create_map(markers)
-    # save_map(map, map.size // 2, map.size // 2)
-    print(create_map(RobotExtended().perform_image_analysis()))
+    markers = [
+        Marker(
+            id=1,
+            pose=Pose(
+                rvec=np.array([3.07823555, 0.00605985, 0.42181049], dtype=np.float32),
+                tvec=np.array([-0.09892818, 0.08039518, 0.79364262], dtype=np.float32),
+                objPoint=np.array([-0.0725, 0.0725, 0.0], dtype=np.float32),
+                corners=np.array(
+                    [[[547.0, 628.0], [775.0, 629.0], [775.0, 854.0], [545.0, 864.0]]],
+                    dtype=np.float32,
+                ),
+            ),
+        )
+    ]
+    map = create_map(markers)
+    save_map(map, map.size // 2, map.size // 2)
+    # print(create_map(RobotExtended().perform_image_analysis()))
