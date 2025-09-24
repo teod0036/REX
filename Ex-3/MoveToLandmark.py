@@ -16,12 +16,8 @@ def go_to_landmark(target_landmark):
     last_turn_direction = True
     while (True):
         landmarks = arlo_master.perform_image_analysis_table()
-        
-        if arlo.read_front_ping_sensor() < 200:
-            print(arlo.go_diff(64, 64 + rightSpeedModifier[64], 0, 0))
-
         if target_landmark not in landmarks: 
-            perform_Turn90(last_turn_direction, 0.15)
+            perform_Turn90(last_turn_direction, 0.10)
             print(arlo.stop())
             continue
 
