@@ -2,7 +2,7 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import numpy as np
 
-from robot_extended import Marker, Pose, RobotExtended, eprint, save_array
+from robot_extended import Marker, Pose, RobotExtended, eprint, save_array, load_array
 
 base_resolution = 0.005  # meters per cell at LOD 0
 robot_length_m = 1.45
@@ -29,21 +29,21 @@ def create_map(markers: List[Marker]):
     center_i = map_size // 2
     center_j = map_size // 2
 
-    map_array[center_i, center_j] = -1
+    # map_array[center_i, center_j] = -1
 
     for id, (x, z) in zip([id for id, _ in markers], xz_tvec):
         i = int(center_i + (z / resolution))
         j = int(center_j - (x / resolution))
 
         if 0 <= i < map_size and 0 <= j < map_size:
-            map_array[i, j] = id
+            map_array[i, j] = 1
         else:
             eprint(f"couldn't plot: {xz_tvec = }, {i = }, {j = }, {map_size = }")
 
     return map_array
 
 
-def save_map(map_array: np.ndarray, center_i: int, center_j: int):
+def save_map_plotted(map_array: np.ndarray):
     import matplotlib.pyplot as plt
 
     plt.figure(figsize=(8, 8))
@@ -51,6 +51,9 @@ def save_map(map_array: np.ndarray, center_i: int, center_j: int):
     plt.title("Camera-centered map")
     plt.xlabel("Z (Forward)")
     plt.ylabel("X (Right)")
+
+    center_i = map_array.size // 2
+    center_j = map_array.size // 2
 
     plt.scatter([center_j], [center_i], color="red", label="Camera Center", s=50)
 
@@ -84,4 +87,5 @@ if __name__ == "__main__":
     # ]
     # map = create_map(markers)
     # save_map(map, map.size // 2, map.size // 2)
-    save_array(create_map(RobotExtended().perform_image_analysis()), "robot_map_file")
+    # save_array(create_map(RobotExtended().perform_image_analysis()), "robot_map_file")
+    save_map_plotted(load_array("robot_map_file"))
