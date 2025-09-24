@@ -16,7 +16,7 @@ def create_map(markers: List[Marker]):
 
     LOD = np.ceil(0.5 * np.log2(2 * max_extent_m / base_resolution))
     resolution = base_resolution * (2**LOD)  # meter / cell
-    print("f{resolution = }")
+    print(f"{resolution = } m")
 
     map_size = max(1, int(np.ceil((2 * max_extent_m) / resolution)))
     map_array = np.full((map_size, map_size), 0, dtype=np.int32)
