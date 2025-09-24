@@ -168,4 +168,6 @@ class RobotExtended:
 
 
 if __name__ == "__main__":
-    save_picture(RobotExtended().take_detection_picture())
+    r = RobotExtended()
+    eprint(r.perform_image_analysis())
+    save_picture(r.take_detection_picture())
