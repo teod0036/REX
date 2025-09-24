@@ -120,7 +120,7 @@ class RobotExtended:
                 (0, 0, 255),
                 2,
             )
-            for tvec, rvec in zip(pose.tvec, pose.rvec):
+            for tvec, rvec in zip(pose.tvec.reshape(1, 3), pose.rvec.reshape(1, 3)):
                 cv2.drawFrameAxes(
                     image,
                     self.CAMERA_MATRIX,
