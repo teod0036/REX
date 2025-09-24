@@ -36,6 +36,8 @@ def gridize_map(landmark_coordinates):
             if mark_id > 0:
                 mark_id *= -1 
         
+        eprint(f"landmark {mark_id} is at ({mark[1]},{mark[2]}) in world")
+        eprint(f"landmark {mark_id} is at ({x},{y}) in map")
         grid_map[y][x] = mark_id
 
     eprint(grid_map)
