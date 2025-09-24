@@ -2,7 +2,7 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import numpy as np
 
-from robot_extended import Marker, Pose, RobotExtended, eprint
+from robot_extended import Marker, Pose, RobotExtended, cv2, eprint
 
 base_resolution = 0.01  # meters per cell at LOD 0
 robot_length_m = 1.45
@@ -16,7 +16,11 @@ def create_map(markers: List[Marker]):
         [(pose.tvec[0], pose.tvec[2]) for _, pose in markers], dtype=np.float32
     )
     size = np.array(
-        [(pose.corners[2] * pose.corners[3]) for _, pose in markers], dtype=np.float32
+        [
+            cv2.boundingRect(pose.corners)[2] * cv2.boundingRect(pose.corners)[3]
+            for _, pose in markers
+        ],
+        dtype=np.float32,
     )
     LOD = np.ceil(0.5 * np.log2(max(1, size)))
     resolution = base_resolution * (2**LOD)  # meter / cell
