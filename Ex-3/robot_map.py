@@ -9,10 +9,13 @@ robot_length_m = 1.45
 
 
 def create_map(markers: List[Marker]):
+    if len(markers) == 0:
+        return np.array([-1], dtype=np.float32)
+
     xz_tvec = -1 * np.array(
         [(pose.tvec[0], pose.tvec[2]) for _, pose in markers], dtype=np.float32
     )
-    max_extent_m = np.max(np.abs(xz_tvec), initial=0)  # scalar: max |x| or |z|
+    max_extent_m = np.max(np.abs(xz_tvec))  # scalar: max |x| or |z|
 
     LOD = np.ceil(0.5 * np.log2(np.max(1, 2 * max_extent_m / base_resolution)))
     resolution = base_resolution * (2**LOD)  # meter / cell
