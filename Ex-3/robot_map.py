@@ -4,7 +4,7 @@ import numpy as np
 
 from robot_extended import Marker, Pose, RobotExtended, eprint
 
-base_resolution = 0.01  # meters per cell at LOD 0
+base_resolution = 0.005  # meters per cell at LOD 0
 robot_length_m = 1.45
 
 
@@ -17,7 +17,7 @@ def create_map(markers: List[Marker]):
     )
     max_extent_m = np.max(np.abs(xz_tvec))  # scalar: max |x| or |z|
 
-    LOD = np.ceil(0.5 * np.log2(max(1, 2 * max_extent_m / base_resolution)))
+    LOD = np.floor(0.5 * np.log2(max(1, 2 * max_extent_m / base_resolution)))
     resolution = base_resolution * (2**LOD)  # meter / cell
 
     eprint(f"{base_resolution = } m")
