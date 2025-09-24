@@ -11,7 +11,7 @@ arlo = arlo_master.robot
 def get_map():
     landmarks = arlo_master.perform_image_analysis()
     
-    landmark_coordinates = [[]]
+    landmark_coordinates = []
     for marker in landmarks:
         landmark_coordinates.append([marker.id, marker.pose.tvec[0], marker.pose.tvec[2]])
     
