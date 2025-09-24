@@ -23,5 +23,6 @@ def visualize_map(landmark_coordinates):
     map_size = 13
     visual_map = np.zeros((map_size, map_size), dtype=int)
     visual_map[int((map_size-1)/2)][int((map_size-1)/2)] = 1
+    eprint(visual_map)
 
 visualize_map(get_map())
