@@ -3,6 +3,8 @@ from rightSpeedModifier import rightSpeedModifier
 import sys
 
 import numpy as np
+import numpy.linalg as linalg
+
 
 from robot_extended import RobotExtended
 
@@ -28,21 +30,26 @@ def go_to_landmark(target_landmark: int):
         eprint(table)
 
         if target_landmark in table:
-            # if (np.abs(table[target_landmark].rvecs[2]) > 0.01):
-            withclock = table[target_landmark].rvecs[2] < 0
-            if withclock:
-                eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
-            else:
-                eprint(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-            sleep(np.max(0.05, np.abs(table[target_landmark].rvecs[2])))
-            eprint(arlo.stop())
+            # if (np.abs(table[target_landmark].rvec[2]) > 0.1):
+            #     withclock = table[target_landmark].rvec[2] < 0
+            #     if withclock:
+            #         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
+            #     else:
+            #         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
+            #     sleep(0.1)
+            #     print(arlo.stop())
             # else:
-            #     eprint(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
-            #     sleep(0.2)
-            #     eprint(arlo.stop())
+            if (linalg.norm(table[target_landmark].tvec)) >= 1:
+                print(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
+                sleep(0.5)
+                print(arlo.stop())
+            else:
+                print(arlo.go_diff(leftSpeed, rightSpeed, 1, 1))
+                sleep(2.5)
+                print(arlo.stop())
         else:
             arlo.go_diff(leftSpeed, rightSpeed, 1, 0)
-            sleep(0.1)
+            sleep(0.5)
             arlo.stop()
 
 
