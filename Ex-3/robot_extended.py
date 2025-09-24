@@ -120,15 +120,14 @@ class RobotExtended:
                 (0, 0, 255),
                 2,
             )
-            for tvec, rvec in zip(pose.tvec.reshape(1, 3), pose.rvec.reshape(1, 3)):
-                cv2.drawFrameAxes(
-                    image,
-                    self.CAMERA_MATRIX,
-                    self.DISTORTION_COEFFICENTS,
-                    rvec,
-                    tvec,
-                    0.1,
-                )
+            cv2.drawFrameAxes(
+                image,
+                self.CAMERA_MATRIX,
+                self.DISTORTION_COEFFICENTS,
+                pose.rvec,
+                pose.tvec,
+                0.1,
+            )
         return image
 
     def perform_image_analysis_with(self, image: np.ndarray) -> List[Marker]:
