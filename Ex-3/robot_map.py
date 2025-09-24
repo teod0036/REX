@@ -14,7 +14,7 @@ def create_map(markers: List[Marker]):
     )
     max_extent_m = np.max(np.abs(xz_tvec))  # scalar: max |x| or |z|
 
-    LOD = np.ceil(0.5 * np.log2(2 * max_extent_m / base_resolution))
+    LOD = np.ceil(0.5 * np.log2(2 * max_extent_m / (base_resolution * base_resolution)))
     resolution = base_resolution * (2**LOD)  # meter / cell
 
     map_size = max(1, int(np.ceil((2 * max_extent_m) / resolution)))
