@@ -1,6 +1,5 @@
 from typing import Dict, List, NamedTuple, Optional, Tuple
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from robot_extended import Marker, Pose, RobotExtended, eprint
