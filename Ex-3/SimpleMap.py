@@ -12,10 +12,8 @@ def get_map():
     landmarks = arlo_master.perform_image_analysis()
     
     landmark_coordinates = [[]]
-    i = 0
     for marker in landmarks:
-        landmark_coordinates[i] = [marker.id, marker.pose.tvec[0], marker.pose.tvec[2]]
-        i += 1
+        landmark_coordinates.append([marker.id, marker.pose.tvec[0], marker.pose.tvec[2]])
     
     return landmark_coordinates
 
