@@ -1,35 +1,37 @@
 from time import perf_counter, sleep
-import robot
+
+import robot_extended
+
 from Turn90 import perform_Turn90
-from imagecapture import initCamera
-from FindLandmark import perform_Findlandmark
 from rightSpeedModifier import rightSpeedModifier
 import sys
 
-arlo = robot.Robot()
+arlo_master = robot_extended.RobotExtended()
+arlo = arlo_master.robot
 
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 def go_to_landmark(target_landmark):
-    cam = initCamera()
     while (True):
-        maybe_landmark = perform_Findlandmark(cam)
-        if maybe_landmark is not None:
-            tvecs = maybe_landmark
-        else:
+        landmarks = arlo_master.perform_image_analysis_table()
+        
+        if target_landmark not in landmarks: 
             perform_Turn90(True, 0.1)
             print(arlo.stop())
             continue
 
-        if tvecs[target_landmark][1][0][0] < -0.05:
-            perform_Turn90(False, 0)
-        elif tvecs[target_landmark][1][0][0] > 0.05:
-            perform_Turn90(True, 0)
+        if landmarks[target_landmark].tvecs[0] < -0.05:
+            perform_Turn90(False, 0.1)
+            print(arlo.go_diff(64, 64 + rightSpeedModifier[64], 1, 1))
+            print(arlo.stop())
+        elif landmarks[target_landmark].tvecs[0] > 0.05:
+            perform_Turn90(True, 0.1)
+            print(arlo.go_diff(64, 64 + rightSpeedModifier[64], 1, 1))
+            print(arlo.stop())
         else:
-            if tvecs[target_landmark][1][0][2] < 0.1:
+            if landmarks[target_landmark].tvecs[2] < 0.1:
                 print(arlo.stop())
-                cam.close()
                 return
             print(arlo.go_diff(64, 64 + rightSpeedModifier[64], 1, 1))
 
