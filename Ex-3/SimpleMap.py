@@ -19,12 +19,13 @@ def get_map():
 
 def gridize_map(landmark_coordinates):
     map_size = 25
+    cell_size = 40
     grid_map = np.zeros((map_size, map_size), dtype=int)
     grid_map[int((map_size-1)/2)][int((map_size-1)/2)] = 99
 
     for mark in landmark_coordinates:
-        x = int(np.round(mark[1]*100/20)) + int((map_size-1)/2)
-        y = int(np.round(mark[2]*100/20)) + int((map_size-1)/2)
+        x = int(np.round(mark[1]*100/cell_size)) + int((map_size-1)/2)
+        y = int(np.round(mark[2]*100/cell_size)) + int((map_size-1)/2)
         mark_id = mark[0]
         if x > 12:
             x = 12
