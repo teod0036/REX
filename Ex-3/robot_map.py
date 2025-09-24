@@ -15,16 +15,17 @@ def create_map(markers: List[Marker]):
     xz_tvec = -1 * np.array(
         [(pose.tvec[0], pose.tvec[2]) for _, pose in markers], dtype=np.float32
     )
-    max_extent_m = np.max(np.abs(xz_tvec))  # scalar: max |x| or |z|
-
-    LOD = np.ceil(0.5 * np.log2(max(1, 2 * max_extent_m / base_resolution)))
+    size = np.array(
+        [(pose.corners[2] * pose.tvec[3]) for _, pose in markers], dtype=np.float32
+    )
+    LOD = np.ceil(0.5 * np.log2(max(1, size)))
     resolution = base_resolution * (2**LOD)  # meter / cell
 
     eprint(f"{base_resolution = } m")
     eprint(f"{LOD = }")
     eprint(f"base_resolution * (2**LOD) = {resolution = } m")
 
-    map_size = max(1, int(np.ceil((2 * max_extent_m) / resolution)))
+    map_size = max(1, int(np.ceil((size / resolution))))
     map_array = np.full((map_size, map_size), 0, dtype=np.int32)
     center_i = map_size // 2
     center_j = map_size // 2
