@@ -56,12 +56,28 @@ def estimatePoseSingleMarkers(
     )
 
 
-def save_picture(image: np.ndarray, prefix: str = "Test", suffix: Optional[str] = None):
+def save_picture(image: np.ndarray, name: Optional[str] = None):
     dt = datetime.datetime.now()
-    image_name = f"{prefix}{dt.strftime('%M%S') if not suffix else suffix}.jpeg"
+    image_name = f"{dt.strftime('%M%S') if not name else name}.jpeg"
 
     cv2.imwrite(image_name, image)
-    eprint(f"outputted to {image_name}")
+    eprint(f"outputted image to {image_name}")
+
+
+def save_array(arr: np.ndarray, name: Optional[str] = None):
+    dt = datetime.datetime.now()
+    datafile_name = f"{dt.strftime('%M%S') if not name else name}.npy"
+
+    with open(datafile_name, "wb") as f:
+        np.savetxt(f, np.array(arr), fmt='%f')
+        eprint(f"outputted array to {datafile_name}")
+
+
+def load_array(name: str) -> np.ndarray:
+    datafile_name = f"{name}.npy"
+
+    with open(datafile_name, "rb") as f:
+        return np.loadtxt(f)
 
 
 class RobotExtended:
