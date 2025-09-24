@@ -1,5 +1,6 @@
 # Arlo Robot Controller
 
+import datetime
 import sys
 import time
 from typing import Dict, List, NamedTuple, Optional, Tuple
@@ -14,6 +15,7 @@ class Pose(NamedTuple):
     rvec: np.ndarray
     tvec: np.ndarray
     objPoint: np.ndarray
+    corners: np.ndarray
 
 
 class Marker(NamedTuple):
@@ -22,12 +24,14 @@ class Marker(NamedTuple):
 
 
 def eprint(*args, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
+    print("robot_extended.py: ", *args, file=sys.stderr, **kwargs)
 
 
 def detectMarkers(
     image: np.ndarray,
-    dictionary: cv2.aruco.Dictionary,
+    dictionary: cv2.aruco.Dictionary = cv2.aruco.getPredefinedDictionary(
+        cv2.aruco.DICT_6X6_250
+    ),
     parameters: Optional[cv2.aruco.DetectorParameters] = None,
 ) -> Tuple[
     List[np.ndarray],  # corners
@@ -52,10 +56,18 @@ def estimatePoseSingleMarkers(
     )
 
 
+def save_picture(image: np.ndarray, prefix: str = "Test", suffix: str | None = None):
+    dt = datetime.datetime.now()
+    image_name = f"{prefix}{dt.strftime('%M%S') if not suffix else suffix}.jpeg"
+
+    cv2.imwrite(image_name, image)
+    eprint(f"outputted to {image_name}")
+
+
 class RobotExtended:
     FOCAL_LENGTH = 1257
     IMAGE_SIZE = (1640, 1232)
-    DISTORTION_COEFFICENTS = np.zeros((5, 1))
+    DISTORTION_COEFFICENTS = np.array([0, 0, 0, 0, 0])
     CAMERA_MATRIX = np.array(
         [
             [FOCAL_LENGTH, 0, IMAGE_SIZE[0] / 2],
@@ -63,16 +75,16 @@ class RobotExtended:
             [0, 0, 1],
         ]
     )
-    MARKER_LENGTH_M = 0.145
+    MARKER_LENGTH_METER = 0.145
 
     def __init__(self, port="/dev/ttyACM0"):
         self.robot = Robot(port)
         try:
             import picamera2
 
-            eprint("Camera.py: Using picamera2 module")
+            eprint("Using picamera2 module")
         except ImportError:
-            eprint("Camera.py: picamera2 module not available")
+            eprint("picamera2 module not available")
             exit(-1)
 
         self.camera = picamera2.Picamera2()
@@ -93,10 +105,36 @@ class RobotExtended:
         eprint("Taking picture...")
         return self.camera.capture_array("main")
 
-    def perform_image_analysis(self) -> List[Marker]:
-        d = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_250)
-        corners_list, ids, rejectedimgpoints = detectMarkers(self.take_picture(), d)
-        corners: np.ndarray = np.array(corners_list, dtype=np.float32)
+    def take_detection_picture(self):
+        image: np.ndarray = self.take_picture()
+        markers: List[Marker] = self.perform_image_analysis(image)
+        for id, pose in markers:
+            x, y, w, h = cv2.boundingRect(pose.corners)
+            cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(
+                image,
+                f"{id}: {w} x {h}",
+                (x, y),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                1,
+                (0, 0, 255),
+                2,
+            )
+            for tvec, rvec in zip(pose.tvec, pose.rvec):
+                cv2.drawFrameAxes(
+                    image,
+                    self.CAMERA_MATRIX,
+                    self.DISTORTION_COEFFICENTS,
+                    rvec,
+                    tvec,
+                    0.1,
+                )
+
+    def perform_image_analysis(self, image: np.ndarray | None = None) -> List[Marker]:
+        corners_list, ids, _ = detectMarkers(
+            self.take_picture() if not image else image
+        )
+        corners = np.array(corners_list, dtype=np.float32)
 
         if ids is None or len(ids) == 0:
             eprint("No landmarks found")
@@ -106,7 +144,7 @@ class RobotExtended:
 
         rvecs, tvecs, objPoints = estimatePoseSingleMarkers(
             corners,
-            self.MARKER_LENGTH_M,
+            self.MARKER_LENGTH_METER,
             self.CAMERA_MATRIX,
             self.DISTORTION_COEFFICENTS,
         )
@@ -117,6 +155,7 @@ class RobotExtended:
                     rvecs[i].reshape(3),
                     tvecs[i].reshape(3),
                     objPoints[i].reshape(3),
+                    corners[i].reshape(3),
                 ),
             )
             for i in range(len(ids))
