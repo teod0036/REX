@@ -24,7 +24,7 @@ class Marker(NamedTuple):
 
 
 def eprint(*args, **kwargs):
-    print("robot_extended.py: ", *args, file=sys.stderr, **kwargs)
+    print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
 
 
 def detectMarkers(
