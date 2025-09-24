@@ -21,7 +21,7 @@ def create_map(markers: List[Marker]):
     print(f"{resolution = } m")
 
     map_size = max(1, int(np.ceil((2 * max_extent_m) / resolution)))
-    map_array = np.full((map_size, map_size // 2), 0, dtype=np.int32)
+    map_array = np.full((map_size, map_size // 2 + 1), 0, dtype=np.int32)
     center_i = map_size // 2
     center_j = map_size // 2
 
