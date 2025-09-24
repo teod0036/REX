@@ -36,7 +36,7 @@ def go_to_landmark(target_landmark):
                 return
             print(arlo.go_diff(64, 64 + rightSpeedModifier[64], 1, 1))
 
-go_to_landmark(2)
+#go_to_landmark(2)
 
         
             
