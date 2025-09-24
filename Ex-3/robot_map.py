@@ -2,7 +2,7 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import numpy as np
 
-from robot_extended import Marker, Pose, RobotExtended, eprint
+from robot_extended import Marker, Pose, RobotExtended, eprint, save_array
 
 base_resolution = 0.005  # meters per cell at LOD 0
 robot_length_m = 1.45
@@ -84,4 +84,4 @@ if __name__ == "__main__":
     # ]
     # map = create_map(markers)
     # save_map(map, map.size // 2, map.size // 2)
-    print(create_map(RobotExtended().perform_image_analysis()))
+    save_array(create_map(RobotExtended().perform_image_analysis()), "robot_map_file")
