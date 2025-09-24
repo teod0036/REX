@@ -18,7 +18,8 @@ def go_to_landmark(target_landmark):
         landmarks = arlo_master.perform_image_analysis_table()
         
         if target_landmark not in landmarks: 
-            perform_Turn90(last_turn_direction, 0.05)
+            perform_Turn90(last_turn_direction, 0.15)
+            print(arlo.stop())
             continue
 
         if landmarks[target_landmark].tvec[0] < -0.05:
