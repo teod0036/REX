@@ -105,7 +105,7 @@ class RobotExtended:
         eprint("Taking picture...")
         return self.camera.capture_array("main")
 
-    def take_detection_picture(self):
+    def take_detection_picture(self) -> np.ndarray:
         image: np.ndarray = self.take_picture()
         markers: List[Marker] = self.perform_image_analysis(image)
         for id, pose in markers:
@@ -129,6 +129,7 @@ class RobotExtended:
                     tvec,
                     0.1,
                 )
+        return image
 
     def perform_image_analysis(self, image : Optional[np.ndarray] = None) -> List[Marker]:
         corners_list, ids, _ = detectMarkers(
@@ -155,7 +156,7 @@ class RobotExtended:
                     rvecs[i].reshape(3),
                     tvecs[i].reshape(3),
                     objPoints[i].reshape(3),
-                    corners[i].reshape(3),
+                    corners[i],
                 ),
             )
             for i in range(len(ids))
@@ -166,4 +167,4 @@ class RobotExtended:
 
 
 if __name__ == "__main__":
-    eprint(RobotExtended().perform_image_analysis())
+    save_picture(RobotExtended().take_detection_picture())
