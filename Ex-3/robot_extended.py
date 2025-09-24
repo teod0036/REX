@@ -107,7 +107,7 @@ class RobotExtended:
 
     def take_detection_picture(self) -> np.ndarray:
         image: np.ndarray = self.take_picture()
-        markers: List[Marker] = self.perform_image_analysis(image)
+        markers: List[Marker] = self.perform_image_analysis_with(image)
         for id, pose in markers:
             x, y, w, h = cv2.boundingRect(pose.corners)
             cv2.rectangle(image, (x, y), (x + w, y + h), (0, 255, 0), 2)
@@ -131,10 +131,8 @@ class RobotExtended:
                 )
         return image
 
-    def perform_image_analysis(self, image : Optional[np.ndarray] = None) -> List[Marker]:
-        corners_list, ids, _ = detectMarkers(
-            self.take_picture() if not image else image
-        )
+    def perform_image_analysis_with(self, image: np.ndarray) -> List[Marker]:
+        corners_list, ids, _ = detectMarkers(image)
         corners = np.array(corners_list, dtype=np.float32)
 
         if ids is None or len(ids) == 0:
@@ -161,6 +159,9 @@ class RobotExtended:
             )
             for i in range(len(ids))
         ]
+
+    def perform_image_analysis(self) -> List[Marker]:
+        return self.perform_image_analysis_with(self.take_picture())
 
     def perform_image_analysis_table(self) -> Dict[int, Pose]:
         return {i: pose for i, pose in self.perform_image_analysis()}
