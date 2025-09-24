@@ -56,7 +56,7 @@ def estimatePoseSingleMarkers(
     )
 
 
-def save_picture(image: np.ndarray, prefix: str = "Test", suffix: str | None = None):
+def save_picture(image: np.ndarray, prefix: str = "Test", suffix: Optional[str] = None):
     dt = datetime.datetime.now()
     image_name = f"{prefix}{dt.strftime('%M%S') if not suffix else suffix}.jpeg"
 
@@ -130,7 +130,7 @@ class RobotExtended:
                     0.1,
                 )
 
-    def perform_image_analysis(self, image: np.ndarray | None = None) -> List[Marker]:
+    def perform_image_analysis(self, image : Optional[np.ndarray] = None) -> List[Marker]:
         corners_list, ids, _ = detectMarkers(
             self.take_picture() if not image else image
         )
