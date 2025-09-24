@@ -16,7 +16,7 @@ def create_map(markers: List[Marker]):
         [(pose.tvec[0], pose.tvec[2]) for _, pose in markers], dtype=np.float32
     )
     size = np.array(
-        [(pose.corners[2] * pose.tvec[3]) for _, pose in markers], dtype=np.float32
+        [(pose.corners[2] * pose.corners[3]) for _, pose in markers], dtype=np.float32
     )
     LOD = np.ceil(0.5 * np.log2(max(1, size)))
     resolution = base_resolution * (2**LOD)  # meter / cell
