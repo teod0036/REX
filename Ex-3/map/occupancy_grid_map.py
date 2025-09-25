@@ -107,7 +107,7 @@ class OccupancyGridMap:
         if np.any((indices < np.array([0, 0])) | (self.grid_size <= indices)):
             return 1
         else:
-            return self.grid[*indices]
+            return self.grid[indices[0], indices[1]]
 
 
 import numpy as np
