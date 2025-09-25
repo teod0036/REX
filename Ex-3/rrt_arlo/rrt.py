@@ -184,7 +184,7 @@ class RRT:
         return True
 
 
-import grid_occ, robot_models, rdp
+import grid_occ, robot_models, rdp, arlo_path
 
 def main():
 
@@ -218,6 +218,7 @@ def main():
 
             #Smooth out path using RDP algorithm
             smooth_path = rdp.rdp(path, path_res*2)
+            print(arlo_path.path_to_arlo_instructions(smooth_path, [1, 0]))
 
             # Draw final path and smooth path
             if show_animation:
