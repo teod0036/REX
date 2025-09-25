@@ -95,7 +95,7 @@ class OccupancyGridMap:
             ]  # shape (_, _, N)
         mask = np.any(
             dist_squared <= radius_sq_reshaped, axis=-1
-        )  # shape (grid_x, grid_y)
+        ).reshape((self.grid_x, self.grid_y))  # shape (grid_x, grid_y)
 
         self.grid[mask] = 1
 

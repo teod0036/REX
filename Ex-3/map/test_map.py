@@ -1,9 +1,9 @@
 from typing import List
 
 import numpy as np
-from robot_extended import Marker, RobotExtended, load_array, save_array
+from robot_extended import Marker, Pose, RobotExtended, load_array, save_array
 
-from occupancy_grid_map import OccupancyGridMap
+from occupancy_grid_map import OccupancyGridMap,draw_map
 
 marker_half_depth = 0.70  # meter
 marker_radius = 1.4
@@ -32,4 +32,20 @@ def create_local_map(markers: List[Marker]):
 
 
 if __name__ == "__main__":
-    create_local_map(RobotExtended().perform_image_analysis())
+    markers = [
+        Marker(
+            id=1,
+            pose=Pose(
+                rvec=np.array([3.07823555, 0.00605985, 0.42181049], dtype=np.float32),
+                tvec=np.array([-0.09892818, 0.08039518, 0.79364262], dtype=np.float32),
+                objPoint=np.array([-0.0725, 0.0725, 0.0], dtype=np.float32),
+                corners=np.array(
+                    [[[547.0, 628.0], [775.0, 629.0], [775.0, 854.0], [545.0, 864.0]]],
+                    dtype=np.float32,
+                ),
+            ),
+        )
+    ]
+
+    create_local_map(markers)
+
