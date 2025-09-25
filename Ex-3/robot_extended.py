@@ -7,7 +7,6 @@ from typing import Dict, List, NamedTuple, Optional, Tuple
 
 import cv2  # Import the OpenCV library
 import numpy as np
-
 from robot import Robot
 
 
@@ -69,7 +68,7 @@ def save_array(arr: np.ndarray, name: Optional[str] = None):
     datafile_name = f"{dt.strftime('%M%S') if not name else name}.npy"
 
     with open(datafile_name, "wb") as f:
-        np.savetxt(f, np.array(arr), fmt='%f')
+        np.save(f, np.array(arr))
         eprint(f"outputted array to {datafile_name}")
 
 
@@ -77,7 +76,7 @@ def load_array(name: str) -> np.ndarray:
     datafile_name = f"{name}.npy"
 
     with open(datafile_name, "rb") as f:
-        return np.loadtxt(f)
+        return np.load(f)
 
 
 class RobotExtended:
