@@ -25,8 +25,8 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     rvecs = np.array(
         [pose.rvec for _, pose in markers], dtype=np.float32
     )  # shape (N, 3)
-    xz_tvec = -tvecs[:, [0, 2]]  # shape (N, 2)
-    xz_rvec = +rvecs[:, [0, 2]]  # shape (N, 2)
+    xz_tvec = np.array((-tvecs[0], -tvecs[2]))  # shape (N, 2)
+    xz_rvec = rvecs[:, [0, 2]]  # shape (N, 2)
 
     def normalize(v):
         norm = np.linalg.norm(v)
