@@ -80,18 +80,18 @@ def load_array(name: str) -> np.ndarray:
 
 
 class RobotExtended:
-    FOCAL_LENGTH = 1257
+    FOCAL_LENGTH_MM = 1257
     IMAGE_SIZE = (1640, 1232)
     DISTORTION_COEFFICENTS = np.array([0, 0, 0, 0, 0], dtype=np.float32)
     CAMERA_MATRIX = np.array(
         [
-            [FOCAL_LENGTH, 0, IMAGE_SIZE[0] / 2],
-            [0, FOCAL_LENGTH, IMAGE_SIZE[1] / 2],
+            [FOCAL_LENGTH_MM, 0, IMAGE_SIZE[0] / 2],
+            [0, FOCAL_LENGTH_MM, IMAGE_SIZE[1] / 2],
             [0, 0, 1],
         ],
         dtype=np.float32,
     )
-    MARKER_LENGTH_METER = 0.145
+    MARKER_LENGTH_MM = 1450
 
     def __init__(self, port="/dev/ttyACM0"):
         self.robot = Robot(port)
@@ -158,7 +158,7 @@ class RobotExtended:
 
         rvecs, tvecs, objPoints = estimatePoseSingleMarkers(
             corners,
-            self.MARKER_LENGTH_METER,
+            self.MARKER_LENGTH_MM,
             self.CAMERA_MATRIX,
             self.DISTORTION_COEFFICENTS,
         )

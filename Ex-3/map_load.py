@@ -11,4 +11,6 @@ def load_array(name: str) -> np.ndarray:
 
 plt.clf()
 draw_map(load_array("map_test_data"), OccupancyGridMap().extent)
+plt.xlabel("x")
+plt.ylabel("y")
 plt.show()
