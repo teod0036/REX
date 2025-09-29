@@ -14,6 +14,10 @@ def plan_and_drive(map, robot):
         )
 
     path = rdp(rrt.planning(animation=False), rrt.path_resolution*2)
+
+    with open('path.txt', 'w') as f:
+        f.write(str(path))
+
     instructions = path_to_arlo_instructions(path)
     exec_instructions(instructions)
 
