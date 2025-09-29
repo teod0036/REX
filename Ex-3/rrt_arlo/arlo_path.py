@@ -1,6 +1,6 @@
 import math
 
-def path_to_arlo_instructions(path, current_dir):
+def path_to_arlo_instructions(path, current_dir=[0, 1]):
     instructions = []
     current_point = path[0] 
     for point in path[1:]:
