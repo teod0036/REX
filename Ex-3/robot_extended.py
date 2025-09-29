@@ -91,7 +91,7 @@ class RobotExtended:
         ],
         dtype=np.float32,
     )
-    MARKER_LENGTH_MM = 1450
+    MARKER_LENGTH_MM = 145
 
     def __init__(self, port="/dev/ttyACM0"):
         self.robot = Robot(port)
