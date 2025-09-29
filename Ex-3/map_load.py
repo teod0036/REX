@@ -12,7 +12,7 @@ def load_array(name: str) -> np.ndarray:
 
 
 gridmap = OccupancyGridMap(
-    low=np.array((0, 0)), high=np.array((2000, 2000)), resolution=50
+    low=np.array((0, 0)), high=np.array((2, 2)), resolution=0.05
 )
 
 plt.clf()
@@ -23,6 +23,6 @@ draw_map(
 plt.xlabel("x (mm)")
 plt.ylabel("y (mm)")
 plt.xlim(
-    left=-gridmap.aabb.center[0], right=gridmap.extent[1][0] - gridmap.aabb.center[0]
+    left=-gridmap.aabb.center[0], right=gridmap.aabb.right - gridmap.aabb.center[0]
 )
 plt.show()
