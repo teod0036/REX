@@ -13,9 +13,10 @@ def plan_path(map, robot, start=[0, 0], goal=[0, 1.9], expand_dis=0.2, debug=Fal
         )
 
     path = rdp(rrt.planning(animation=False), rrt.path_resolution*2)
-
-    with open('path.txt', 'w') as f:
-        f.write(str(path))
+    path.reverse()
+    if debug:
+        with open('path.txt', 'w') as f:
+            f.write(str(path))
 
     return path_to_arlo_instructions(path)
 
