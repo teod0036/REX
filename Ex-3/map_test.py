@@ -35,7 +35,7 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
         norm = np.linalg.norm(v)
         return v / norm
 
-    marker_center_m = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_m
+    marker_center_m = xz_tvec - normalize(xz_rvec) * np.array((0, marker_half_depth_m))
 
     centroid_pos = marker_center_m + np.array((0, distance_to_camera_m))
     centroid_radius = marker_radius_m ** 2
