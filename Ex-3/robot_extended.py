@@ -80,13 +80,13 @@ def load_array(name: str) -> np.ndarray:
 
 
 class RobotExtended:
-    FOCAL_LENGTH_MM = 1257
+    FOCAL_LENGTH_PIXELS = 1257
     IMAGE_SIZE = (1640, 1232)
     DISTORTION_COEFFICENTS = np.array([0, 0, 0, 0, 0], dtype=np.float32)
     CAMERA_MATRIX = np.array(
         [
-            [FOCAL_LENGTH_MM, 0, IMAGE_SIZE[0] / 2],
-            [0, FOCAL_LENGTH_MM, IMAGE_SIZE[1] / 2],
+            [FOCAL_LENGTH_PIXELS, 0, IMAGE_SIZE[0] / 2],
+            [0, FOCAL_LENGTH_PIXELS, IMAGE_SIZE[1] / 2],
             [0, 0, 1],
         ],
         dtype=np.float32,
