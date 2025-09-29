@@ -1,5 +1,6 @@
 from typing import List, NamedTuple
 
+import sys
 import numpy as np
 
 from map.occupancy_grid_map import OccupancyGridMap, draw_map
@@ -13,8 +14,12 @@ cell_size_cm = 200
 marker_half_depth_m = marker_half_depth_cm / 100.0
 
 
+def eprint(*args, **kwargs):
+    print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
+
+
 def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
-    map = OccupancyGridMap()
+    map = OccupancyGridMap(resolution=0.01)
 
     if len(markers) == 0:
         return map
@@ -25,8 +30,10 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     rvecs = np.array(
         [pose.rvec for _, pose in markers], dtype=np.float32
     )  # shape (N, 3)
-    xz_tvec = np.array((-tvecs[0], -tvecs[2]))  # shape (N, 2)
+    xz_tvec = tvecs[:, [0, 2]]  # shape (N, 2)
     xz_rvec = rvecs[:, [0, 2]]  # shape (N, 2)
+
+    xz_tvec[:, 0] *= -1  # flip X-axis in-place
 
     def normalize(v):
         norm = np.linalg.norm(v)
@@ -38,7 +45,8 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     centroid_pos = marker_center_cm / cell_size_cm
     centroid_radius = marker_radius_cm / cell_size_cm
 
-    print(centroid_pos)
+    eprint(f"{centroid_pos = }")
+    eprint(f"{centroid_radius = }")
 
     map.plot_centroid(centroid_pos + map.aabb.center, np.array(centroid_radius))
 
