@@ -7,8 +7,6 @@ https://github.com/AtsushiSakai/PythonRobotics/blob/master/PathPlanning/RRT/rrt.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.animation import FFMpegWriter
 
 class RRT:
     """
@@ -147,6 +145,12 @@ class RRT:
         # plt.gcf().canvas.mpl_connect(
         #     'key_release_event',
         #     lambda event: [exit(0) if event.key == 'escape' else None])
+
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            pass
+
         plt.clf()
         if rnd is not None:
             plt.plot(rnd.pos[0], rnd.pos[1], "^k")
@@ -187,7 +191,9 @@ class RRT:
 import grid_occ, robot_models, rdp, arlo_path
 
 def main():
-
+    from matplotlib.animation import FFMpegWriter
+    import matplotlib.pyplot as plt
+    
     path_res = 0.05
     map = grid_occ.GridOccupancyMap(low=(-1, 0), high=(1, 2), res=path_res)
     map.populate()
