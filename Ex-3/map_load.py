@@ -11,13 +11,18 @@ def load_array(name: str) -> np.ndarray:
         return np.load(f)
 
 
+gridmap = OccupancyGridMap(
+    low=np.array((0, 0)), high=np.array((2000, 2000)), resolution=50
+)
+
 plt.clf()
 draw_map(
     load_array("map_test_data"),
-    OccupancyGridMap(
-        low=np.array((0, 0)), high=np.array((10, 10)), resolution=0.25
-    ).extent,
+    gridmap.extent,
 )
-plt.xlabel("x")
-plt.ylabel("y")
+plt.xlabel("x (mm)")
+plt.ylabel("y (mm)")
+plt.xlim(
+    left=-gridmap.aabb.center[0], right=gridmap.extent[1][0] - gridmap.aabb.center[0]
+)
 plt.show()
