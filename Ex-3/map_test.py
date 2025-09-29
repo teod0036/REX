@@ -8,7 +8,7 @@ from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_cm = 11
 marker_radius_cm = 18
-cell_size_cm = 5
+cell_size_cm = 15
 
 marker_half_depth_m = marker_half_depth_cm / 100.0
 
@@ -32,11 +32,11 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
         norm = np.linalg.norm(v)
         return v / norm
 
-    marker_center_m = xz_tvec # - normalize(xz_rvec)[:, 1:] * marker_half_depth_m
+    marker_center_m = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_m
 
     marker_center_cm = marker_center_m * 100
     centroid_pos = marker_center_cm / cell_size_cm
-    centroid_radius = 1 / cell_size_cm
+    centroid_radius = marker_radius_cm / cell_size_cm
 
     map.plot_centroid(centroid_pos + map.aabb.center, np.array(centroid_radius))
 
