@@ -16,7 +16,7 @@ def eprint(*args, **kwargs):
 
 
 def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
-    map = OccupancyGridMap(low=np.array((0, 0)), high=np.array((2, 2)), resolution=0.05)
+    map = OccupancyGridMap(low=np.array((-1, 0)), high=np.array((1, 2)), resolution=0.05)
 
     if len(markers) == 0:
         return map

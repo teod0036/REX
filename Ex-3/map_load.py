@@ -11,14 +11,12 @@ def load_array(name: str) -> np.ndarray:
         return np.load(f)
 
 
-gridmap = OccupancyGridMap(
-    low=np.array((0, 0)), high=np.array((2, 2)), resolution=0.05
-)
+map = OccupancyGridMap(low=np.array((-1, 0)), high=np.array((1, 2)), resolution=0.05)
 
 plt.clf()
 draw_map(
     load_array("map_test_data"),
-    gridmap.extent,
+    map.extent,
 )
 plt.xlabel("x (m)")
 plt.ylabel("y (m)")
