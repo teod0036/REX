@@ -30,8 +30,6 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     xz_tvec = tvecs[:, [0, 2]]  # shape (N, 2)
     xz_rvec = rvecs[:, [0, 2]]  # shape (N, 2)
 
-    xz_tvec[:, 0] *= -1  # flip X-axis in-place
-
     def normalize(v):
         norm = np.linalg.norm(v)
         return v / norm
