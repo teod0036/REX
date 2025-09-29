@@ -17,7 +17,7 @@ def eprint(*args, **kwargs):
 
 def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     map = OccupancyGridMap(
-        low=np.array((0, 0)), high=np.array((2, 2)), resolution=0.05
+        low=np.array((0, 0)), high=np.array((4, 4)), resolution=0.025
     )
 
     if len(markers) == 0:
@@ -40,8 +40,8 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
 
     marker_center_mm = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_mm
 
-    centroid_pos = marker_center_mm / 1000
-    centroid_radius = marker_radius_mm / 1000
+    centroid_pos = marker_center_mm / 2000
+    centroid_radius = marker_radius_mm / 2000
 
     eprint(f"{centroid_pos + map.aabb.center = }")
     eprint(f"{centroid_radius = }")
