@@ -4,29 +4,20 @@ import numpy as np
 
 from map.occupancy_grid_map import OccupancyGridMap, draw_map
 from map.transform import AABB
-from robot_extended import RobotExtended, save_array
-
-
-class Pose(NamedTuple):
-    rvec: np.ndarray
-    tvec: np.ndarray
-    objPoint: np.ndarray
-    corners: np.ndarray
-
-
-class Marker(NamedTuple):
-    id: int
-    pose: Pose
-
+from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_m = 11 / 100  # meter
 marker_radius_cm = 18
 cell_size_cm = 10
-# low_ma
-# AABB = AABB(
 
 
-def create_local_map(markers: List[Marker]):
+def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
+    map = OccupancyGridMap()
+    scale = cell_size_cm * (min(map.grid_x, map.grid_y))
+
+    if len(markers) == 0:
+        return map
+
     tvecs = np.array(
         [pose.tvec for _, pose in markers], dtype=np.float32
     )  # shape (N, 3)
@@ -40,24 +31,14 @@ def create_local_map(markers: List[Marker]):
         norm = np.linalg.norm(v)
         return v / norm
 
-    if len(xz_tvec) > 0:
-        map = OccupancyGridMap()
-        scale = cell_size_cm * (min(map.grid_x, map.grid_y))
+    marker_center = xz_tvec - normalize(xz_rvec[:, 1]) * marker_half_depth_m
 
-        marker_center = xz_tvec - normalize(xz_rvec[:, 1]) * marker_half_depth_m
+    centroid_pos = marker_center * 100 / scale
+    centroid_radius = np.ones_like(marker_center) * marker_radius_cm / scale
 
-        centroid_pos = marker_center * 100 / scale
-        centroid_radius = np.ones_like(marker_center) * marker_radius_cm / scale
+    map.plot_centroid(centroid_pos + map.aabb.center, centroid_radius)
 
-        map.plot_centroid(centroid_pos + map.aabb.center, centroid_radius)
-        # # print(marker_center * 100 * map.resolution + map.grid_size // 2)
-        #
-        # import matplotlib.pyplot as plt
-
-        # plt.clf()
-        # map.draw_map()
-        # plt.show()
-        save_array(map.grid, "map_test_data")
+    return map
 
 
 if __name__ == "__main__":
@@ -85,4 +66,10 @@ if __name__ == "__main__":
 
     markers = RobotExtended().perform_image_analysis()
     print(markers)
-    create_local_map(markers)
+    save_array(create_local_map(markers).grid, "map_test_data")
+
+    # print(marker_center * 100 * map.resolution + map.grid_size // 2)
+    # import matplotlib.pyplot as plt
+    # plt.clf()
+    # map.draw_map()
+    # plt.show()
