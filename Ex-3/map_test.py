@@ -7,8 +7,8 @@ from map.occupancy_grid_map import OccupancyGridMap, draw_map
 from map.transform import AABB
 from robot_extended import Marker, RobotExtended, save_array
 
-marker_half_depth_mm = 110
-marker_radius_mm = 180
+marker_half_depth_m = 110 / 1000
+marker_radius_m = 180 / 1000
 
 
 def eprint(*args, **kwargs):
@@ -36,10 +36,10 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
         norm = np.linalg.norm(v)
         return v / norm
 
-    marker_center_mm = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_mm
+    marker_center_m = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_m
 
-    centroid_pos = marker_center_mm / 1000 + np.array((map.aabb.center[0], 0))
-    centroid_radius = (marker_radius_mm / 1000) ** 2
+    centroid_pos = marker_center_m + np.array((map.aabb.center[0], 0))
+    centroid_radius = marker_radius_m ** 2
 
     eprint(f"{centroid_pos = }")
     eprint(f"{centroid_radius = }")

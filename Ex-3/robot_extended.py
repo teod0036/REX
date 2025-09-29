@@ -91,7 +91,7 @@ class RobotExtended:
         ],
         dtype=np.float32,
     )
-    MARKER_LENGTH_MM = 145
+    MARKER_LENGTH_M = 0.145
 
     def __init__(self, port="/dev/ttyACM0"):
         self.robot = Robot(port)
@@ -158,7 +158,7 @@ class RobotExtended:
 
         rvecs, tvecs, objPoints = estimatePoseSingleMarkers(
             corners,
-            self.MARKER_LENGTH_MM,
+            self.MARKER_LENGTH_M,
             self.CAMERA_MATRIX,
             self.DISTORTION_COEFFICENTS,
         )
