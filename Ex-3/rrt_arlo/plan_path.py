@@ -1,24 +1,28 @@
 from arlo_path import path_to_arlo_instructions
 from rrt import RRT
 from rdp import rdp
-from exec_arlo_instructions import exec_instructions
 
-def plan_and_drive(map, robot):
+def plan_path(map, robot, start=[0, 0], goal=[0, 1.9], expand_dis=0.2, debug=False):
     rrt = RRT(
-        start=[0, 0],
-        goal=[0, 1.9],
+        start=start,
+        goal=goal,
         robot_model=robot,
         map=map,
-        expand_dis=0.2,
+        expand_dis=expand_dis,
         path_resolution=map.resolution,
         )
 
     path = rdp(rrt.planning(animation=False), rrt.path_resolution*2)
-    instructions = path_to_arlo_instructions(path)
-    exec_instructions(instructions)
+
+    with open('path.txt', 'w') as f:
+        f.write(str(path))
+
+    return path_to_arlo_instructions(path)
 
 if __name__ == "__main__":
     import grid_occ, robot_models
+    from exec_arlo_instructions import exec_instructions
+
 
     path_res = 0.05
     map = grid_occ.GridOccupancyMap(low=(-1, 0), high=(1, 2), res=path_res)
@@ -26,4 +30,5 @@ if __name__ == "__main__":
 
     robot = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
-    plan_and_drive(map, robot)
+    instructions = plan_path(map=map, robot=robot, debug=True)
+    exec_instructions(instructions)
