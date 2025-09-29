@@ -1,7 +1,8 @@
-
-from map.occupancy_grid_map import OccupancyGridMap,draw_map
 import matplotlib.pyplot as plt
 import numpy as np
+
+from map.occupancy_grid_map import OccupancyGridMap, draw_map
+
 
 def load_array(name: str) -> np.ndarray:
     datafile_name = f"{name}.npy"
@@ -9,8 +10,14 @@ def load_array(name: str) -> np.ndarray:
     with open(datafile_name, "rb") as f:
         return np.load(f)
 
+
 plt.clf()
-draw_map(load_array("map_test_data"), OccupancyGridMap().extent)
+draw_map(
+    load_array("map_test_data"),
+    OccupancyGridMap(
+        low=np.array((0, 0)), high=np.array((2000, 30000)), resolution=5
+    ).extent,
+)
 plt.xlabel("x")
 plt.ylabel("y")
 plt.show()
