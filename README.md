@@ -13,7 +13,3 @@ Content:
 
 ## Reporting Bugs
 If you encounter a bug or issue in the code, please create an issue on the github page.
-
-
-# Discord
-Teodor: teod0036
