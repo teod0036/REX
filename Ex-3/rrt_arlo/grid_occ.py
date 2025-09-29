@@ -3,7 +3,6 @@ Module for interfacing a 2D Map in the form of Grid Occupancy
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 class GridOccupancyMap(object):
     """
@@ -52,10 +51,15 @@ class GridOccupancyMap(object):
 
     
     def draw_map(self):
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            pass
         #note the x-y axes difference between imshow and plot
         plt.imshow(self.grid.T, cmap="Greys", origin='lower', vmin=0, vmax=1, extent=self.extent, interpolation='none')
 
 if __name__ == '__main__':
+    import matplotlib.pyplot as plt
     map = GridOccupancyMap()
     map.populate()
 
