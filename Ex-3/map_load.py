@@ -12,7 +12,7 @@ def load_array(name: str) -> np.ndarray:
 
 
 gridmap = OccupancyGridMap(
-    low=np.array((0, 0)), high=np.array((2000, 2000)), resolution=40
+    low=np.array((0, 0)), high=np.array((2, 2)), resolution=0.05
 )
 
 plt.clf()
