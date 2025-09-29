@@ -10,5 +10,5 @@ def load_array(name: str) -> np.ndarray:
         return np.load(f)
 
 plt.clf()
-draw_map(load_array("map_grid"), OccupancyGridMap().extent)
+draw_map(load_array("map_test_data"), OccupancyGridMap().extent)
 plt.show()
