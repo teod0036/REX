@@ -19,8 +19,8 @@ class Marker(NamedTuple):
     pose: Pose
 
 
-marker_half_depth_m = 0.70  # meter
-marker_radius_m = 1.4
+marker_half_depth_m = 11 / 100  # meter
+marker_radius_m = 18 / 100
 cell_size_cm = 40
 # low_ma
 # AABB = AABB(
@@ -43,10 +43,10 @@ def create_local_map(markers: List[Marker]):
     if len(xz_tvec) > 0:
         map = OccupancyGridMap()
 
-        marker_center = xz_tvec - normalize(xz_rvec[:, 1]) * marker_half_depth_m
-        scale = 100 / cell_size_cm
+        marker_center = xz_tvec # - normalize(xz_rvec[:, 1]) * marker_half_depth_m
+        scale = 100 / (cell_size_cm * min(map.grid_x, map.grid_y))
 
-        map.plot_centroid(marker_center * scale + map.resolution * map.grid_size // 2,
+        map.plot_centroid(marker_center * scale + map.aabb.center,
             np.ones_like(marker_center) * marker_radius_m * scale,
         )
         # # print(marker_center * 100 * map.resolution + map.grid_size // 2)
