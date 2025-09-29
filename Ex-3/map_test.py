@@ -7,14 +7,19 @@ from map.transform import AABB
 from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_cm = 11
-marker_radius_cm = 1
+marker_radius_cm = 18
 cell_size_cm = 200
 
 marker_half_depth_m = marker_half_depth_cm / 100.0
 
 
+def eprint(*args, **kwargs):
+    import sys
+    print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
+
+
 def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
-    map = OccupancyGridMap()
+    map = OccupancyGridMap(resolution=0.01)
 
     if len(markers) == 0:
         return map
@@ -40,7 +45,8 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     centroid_pos = marker_center_cm / cell_size_cm
     centroid_radius = marker_radius_cm / cell_size_cm
 
-    print(centroid_pos)
+    eprint(f"{centroid_pos = }")
+    eprint(f"{centroid_radius = }")
 
     map.plot_centroid(centroid_pos + map.aabb.center, np.array(centroid_radius))
 
