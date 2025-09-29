@@ -1,5 +1,6 @@
 from typing import List, NamedTuple
 
+import sys
 import numpy as np
 
 from map.occupancy_grid_map import OccupancyGridMap, draw_map
@@ -8,19 +9,17 @@ from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_cm = 11
 marker_radius_cm = 18
-cell_size_cm = 10
+cell_size_cm = 200
 
 marker_half_depth_m = marker_half_depth_cm / 100.0
 
 
 def eprint(*args, **kwargs):
-    import sys
     print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
 
 
 def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     map = OccupancyGridMap(resolution=0.01)
-    scale = cell_size_cm * min(map.grid_x, map.grid_y)
 
     if len(markers) == 0:
         return map
@@ -43,8 +42,8 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     marker_center_m = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_m
     marker_center_cm = marker_center_m * 100
 
-    centroid_pos = marker_center_cm / scale
-    centroid_radius = marker_radius_cm / scale
+    centroid_pos = marker_center_cm / cell_size_cm
+    centroid_radius = marker_radius_cm / cell_size_cm
 
     eprint(f"{centroid_pos = }")
     eprint(f"{centroid_radius = }")
