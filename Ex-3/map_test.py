@@ -8,7 +8,7 @@ from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_m = 11 / 100  # meter
 marker_radius_cm = 18
-cell_size_cm = 5
+cell_size_cm = 8
 
 
 def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
