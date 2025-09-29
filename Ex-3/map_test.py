@@ -40,13 +40,13 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
 
     marker_center_mm = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_mm
 
-    centroid_pos = marker_center_mm / 2000
+    centroid_pos = marker_center_mm / 2000 + np.array((map.aabb.center[0], 0))
     centroid_radius = marker_radius_mm / 2000
 
-    eprint(f"{centroid_pos + map.aabb.center = }")
+    eprint(f"{centroid_pos = }")
     eprint(f"{centroid_radius = }")
 
-    map.plot_centroid(centroid_pos + map.aabb.center, np.array(centroid_radius))
+    map.plot_centroid(centroid_pos, np.array(centroid_radius))
 
     return map
 
