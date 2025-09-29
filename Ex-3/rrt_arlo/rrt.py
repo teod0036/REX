@@ -198,7 +198,7 @@ def main():
     map = grid_occ.GridOccupancyMap(low=(-1, 0), high=(1, 2), res=path_res)
     map.populate()
 
-    robot = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])   #
+    robot = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
     rrt = RRT(
         start=[0, 0],
@@ -216,7 +216,7 @@ def main():
     
     with writer.saving(fig, "rrt_test.mp4", 100):
         path = rrt.planning(animation=show_animation, writer=writer)
-
+        #print(path)
         if path is None:
             print("Cannot find path")
         else:
@@ -224,7 +224,7 @@ def main():
 
             #Smooth out path using RDP algorithm
             smooth_path = rdp.rdp(path, path_res*2)
-            print(arlo_path.path_to_arlo_instructions(smooth_path, [1, 0]))
+            #print(arlo_path.path_to_arlo_instructions(smooth_path, [1, 0]))
 
             # Draw final path and smooth path
             if show_animation:
