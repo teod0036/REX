@@ -7,7 +7,7 @@ from map.transform import AABB
 from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_cm = 11
-marker_radius_cm = 18
+marker_radius_cm = 1
 cell_size_cm = 200
 
 marker_half_depth_m = marker_half_depth_cm / 100.0
@@ -25,8 +25,10 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     rvecs = np.array(
         [pose.rvec for _, pose in markers], dtype=np.float32
     )  # shape (N, 3)
-    xz_tvec = np.array((-tvecs[0], -tvecs[2]))  # shape (N, 2)
+    xz_tvec = tvecs[:, [0, 2]]  # shape (N, 2)
     xz_rvec = rvecs[:, [0, 2]]  # shape (N, 2)
+
+    xz_tvec[:, 0] *= -1  # flip X-axis in-place
 
     def normalize(v):
         norm = np.linalg.norm(v)
