@@ -34,7 +34,7 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     marker_center = xz_tvec - normalize(xz_rvec[:, 1]) * marker_half_depth_m
 
     centroid_pos = marker_center * 100 / scale
-    centroid_radius = np.ones_like(marker_center) * marker_radius_cm / scale
+    centroid_radius = marker_radius_cm / scale
 
     print(centroid_pos)
 
