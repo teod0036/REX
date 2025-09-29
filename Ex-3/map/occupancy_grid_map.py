@@ -2,7 +2,10 @@ from typing import Tuple
 
 import numpy as np
 
-from aabb import AABB
+if __name__ == "__main__":
+    from transform import AABB
+else:
+    from map.transform import AABB
 
 
 def draw_map(grid: np.ndarray, extent: Tuple[float, float, float, float]):
@@ -93,9 +96,9 @@ class OccupancyGridMap:
             radius_sq_reshaped = radius_squared[
                 np.newaxis, np.newaxis, :
             ]  # shape (_, _, N)
-        mask = np.any(
-            dist_squared <= radius_sq_reshaped, axis=-1
-        ).reshape((self.grid_x, self.grid_y))  # shape (grid_x, grid_y)
+        mask = np.any(dist_squared <= radius_sq_reshaped, axis=-1).reshape(
+            (self.grid_x, self.grid_y)
+        )  # shape (grid_x, grid_y)
 
         self.grid[mask] = 1
 
@@ -109,8 +112,6 @@ class OccupancyGridMap:
         else:
             return self.grid[indices[0], indices[1]]
 
-
-import numpy as np
 
 if __name__ == "__main__":
     import matplotlib.pyplot as plt

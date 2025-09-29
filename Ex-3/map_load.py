@@ -1,5 +1,5 @@
 
-from occupancy_grid_map import OccupancyGridMap,draw_map
+from map.occupancy_grid_map import OccupancyGridMap,draw_map
 import matplotlib.pyplot as plt
 import numpy as np
 
