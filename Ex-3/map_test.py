@@ -33,8 +33,8 @@ def create_local_map(markers: List[Marker]):
     rvecs = np.array(
         [pose.rvec for _, pose in markers], dtype=np.float32
     )  # shape (N, 3)
-    xz_tvec = -tvecs[:, [0, 2]]  # shape (N, 2)
-    xz_rvec = +rvecs[:, [0, 2]]  # shape (N, 2)
+    xz_tvec = -tvecs[:, [2, 0]]  # shape (N, 2)
+    xz_rvec = +rvecs[:, [2, 0]]  # shape (N, 2)
 
     def normalize(v):
         norm = np.linalg.norm(v)
@@ -56,7 +56,7 @@ def create_local_map(markers: List[Marker]):
         # plt.clf()
         # map.draw_map()
         # plt.show()
-        save_array(map.grid, "map_data")
+        save_array(map.grid, "map_test_data")
 
 
 if __name__ == "__main__":
