@@ -36,6 +36,8 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     centroid_pos = marker_center * 100 / scale
     centroid_radius = np.ones_like(marker_center) * marker_radius_cm / scale
 
+    print(centroid_pos)
+
     map.plot_centroid(centroid_pos + map.aabb.center, centroid_radius)
 
     return map
