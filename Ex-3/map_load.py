@@ -15,7 +15,7 @@ plt.clf()
 draw_map(
     load_array("map_test_data"),
     OccupancyGridMap(
-        low=np.array((0, 0)), high=np.array((4, 4)), resolution=0.025
+        low=np.array((0, 0)), high=np.array((10, 10)), resolution=0.25
     ).extent,
 )
 plt.xlabel("x")
