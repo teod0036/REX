@@ -8,7 +8,7 @@ from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_cm = 11
 marker_radius_cm = 18
-cell_size_cm = 100
+cell_size_cm = 200
 
 marker_half_depth_m = marker_half_depth_cm / 100.0
 
