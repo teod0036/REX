@@ -20,9 +20,6 @@ draw_map(
     load_array("map_test_data"),
     gridmap.extent,
 )
-plt.xlabel("x (mm)")
-plt.ylabel("y (mm)")
-plt.xlim(
-    left=-gridmap.aabb.center[0], right=gridmap.aabb.right - gridmap.aabb.center[0]
-)
+plt.xlabel("x (m)")
+plt.ylabel("y (m)")
 plt.show()
