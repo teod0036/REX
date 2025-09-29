@@ -9,7 +9,7 @@ from robot_extended import Marker, RobotExtended, save_array
 
 marker_half_depth_m = 110 / 1000
 marker_radius_m = 180 / 1000
-distance_to_camera_m = (45 / 2) / 1000
+distance_to_camera_m = (450 / 2) / 1000
 
 
 def eprint(*args, **kwargs):
@@ -37,7 +37,7 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
 
     marker_center_m = xz_tvec - normalize(xz_rvec)[:, 1:] * marker_half_depth_m
 
-    centroid_pos = marker_center_m + np.array((map.aabb.center[0], distance_to_camera_m))
+    centroid_pos = marker_center_m + map.aabb.center + np.array((0, distance_to_camera_m))
     centroid_radius = marker_radius_m ** 2
 
     eprint(f"{centroid_pos = }")
