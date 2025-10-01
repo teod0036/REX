@@ -16,7 +16,7 @@ map_low = map_plot_markers.map_low
 map_high = map_plot_markers.map_low
 map_res = map_plot_markers.map_res
 
-marker_radius = map_plot_markers.marker_radius_m[0]
+marker_radius = map_plot_markers.marker_radius_m
 
 def eprint(*args, **kwargs):
     print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
