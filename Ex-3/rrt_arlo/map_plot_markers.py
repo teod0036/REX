@@ -9,9 +9,10 @@ import numpy as np
 from map.occupancy_grid_map import OccupancyGridMap
 from robot_extended import Marker, Pose, RobotExtended, save_array
 
-marker_half_depth_m = np.array(11 / 100)
-marker_radius_m = np.array(18 / 100)
 camera_offset_m = np.array((0, 22.5 / 100))
+
+marker_half_depth_m = np.array(11 / 100)
+marker_radius_m = np.array(18 / 100) + camera_offset_m
 
 map_low = np.array((-1, 0))
 map_high = np.array((1, 4))
