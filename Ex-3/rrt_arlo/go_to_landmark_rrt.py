@@ -51,7 +51,7 @@ if __name__ == "__main__":
     # print(markers)
     map = OccupancyGridMap(low=map_low, high=map_high, resolution=map_res)
     map.clear()
-    map, landmarks = map_plot_markers.plot_markers(map, markers, plot=False)
+    map, landmarks = map_plot_markers.plot_markers(map, markers)
     save_array(map.grid, "map_test_data")
 
     robot = robot_models.PointMassModel(ctrl_range=[-map.resolution, map.resolution])

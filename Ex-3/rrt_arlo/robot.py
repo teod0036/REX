@@ -1,7 +1,6 @@
 # Arlo Robot Controller
 
 from time import sleep
-import serial
 
 
 
@@ -23,6 +22,7 @@ class Robot(object):
         """The constructor port parameter can be changed from default value if you want
            to control the robot directly from your labtop (instead of from the on-board raspberry 
            pi). The value of port should point to the USB port on which the robot Arduino is connected."""
+        import serial
         self.port = port
         
         #self.serialRead = serial.Serial(self.port,9600, timeout=1) # 1 sec. timeout, wait until data is received or until timeout
