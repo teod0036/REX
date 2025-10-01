@@ -80,7 +80,7 @@ if __name__ == "__main__":
         port=22,
         username="pi",
         password="DIKU4Ever",
-        remote_path="~/Desktop/Rex/Ex-3/map_test_data.npy",
-        local_path="./map_test_data.npy",
+        remote_path="~/Desktop/Rex/Ex-3/rrt-arlo/map_data.npy",
+        local_path="./map_data.npy",
         poll_interval=1.0,
     )
