@@ -10,9 +10,17 @@ from map_plot_markers import map_high, map_low
 
 
 def update_map(fp, ax, map_aabb):
-    map_data = np.load(fp)
-
     ax.clear()
+
+    try:
+        map_data = np.load(fp)
+        if map_data.size == 0:
+            print("[!] Loaded array is empty — skipping update.")
+            return
+    except (EOFError, ValueError) as e:
+        print(f"[!] Failed to load map data: {e} — skipping update.")
+        return
+
     plt.imshow(
         map_data.transpose(),
         cmap="Greys",
