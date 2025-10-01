@@ -13,8 +13,8 @@ username = "pi"
 password = "DIKU4Ever"
 poll_interval = 1.0
 
-data_remote_path = "/home/pi/Desktop/REX/Ex-3/rrt_arlo/map_data.npy"
-data_local_path = "./map_data.npy"
+data_remote_path = "/home/pi/Desktop/REX/Ex-3/rrt_arlo/map_test_data.npy"
+data_local_path = "./map_test_data.npy"
 
 path_remote_path = "/home/pi/Desktop/REX/Ex-3/rrt_arlo/path.npy"
 path_local_path = "./path.npy"
