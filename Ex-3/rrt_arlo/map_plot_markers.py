@@ -2,6 +2,9 @@ import sys
 from time import perf_counter, sleep
 from typing import List
 
+import os
+
+
 import cv2
 import numpy as np
 
@@ -76,6 +79,9 @@ if __name__ == "__main__":
     while True:  # or some other form of loop
         markers = arlo_master.perform_image_analysis()
         create_local_map(map, markers)
+
+        if os.path.exists("./map_data.npy"):
+            os.remove("./map_data.npy")
         save_array(map.grid, "map_data")
 
         sleep(1)
