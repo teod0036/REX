@@ -195,9 +195,18 @@ def main():
     from matplotlib.animation import FFMpegWriter
     import matplotlib.pyplot as plt
     import rdp
-    path_res = 0.05
+
+    import map_plot_markers as map_plot_markers
+
+    map_low = map_plot_markers.map_low
+    map_high = map_plot_markers.map_low
+    map_res = map_plot_markers.map_res
+
+    marker_radius = map_plot_markers.marker_radius_m
+
+    path_res = map_res
     map = occupancy_grid_map.OccupancyGridMap(
-        low=np.array((-1, 0)), high=np.array((1, 2)), resolution=path_res
+        low=map_low, high=map_high, resolution=map_res
     )
     map.populate()
 
