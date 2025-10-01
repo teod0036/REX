@@ -14,7 +14,7 @@ marker_radius_m = np.array(18 / 100)
 camera_offset_m = np.array((0, 22.5 / 100))
 
 map_low = np.array((-1, 0))
-map_high = np.array((1, 2))
+map_high = np.array((1, 4))
 map_res = 0.05
 
 
