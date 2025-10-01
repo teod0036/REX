@@ -17,7 +17,7 @@ def turn(params):
 
 def forward(distance):
     # Time constants
-    extra = 0.1
+    extra = 0.125
     go_sleep = 2.3 * distance + extra
 
     # Speed constants
