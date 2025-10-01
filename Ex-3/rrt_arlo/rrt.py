@@ -6,9 +6,9 @@ Adapted from
 https://github.com/AtsushiSakai/PythonRobotics/blob/master/PathPlanning/RRT/rrt.py
 """
 
-import matplotlib.pyplot as plt
+
 import numpy as np
-from matplotlib.animation import FFMpegWriter
+
 
 
 class RRT:
@@ -145,6 +145,10 @@ class RRT:
         return rnd
 
     def draw_graph(self, rnd=None):
+        try:
+            import matplotlib.pyplot as plt
+        except:
+            pass
         # plt.clf()
         # # for stopping simulation with the esc key.
         # plt.gcf().canvas.mpl_connect(
@@ -188,6 +192,8 @@ import map.occupancy_grid_map as occupancy_grid_map
 import map.robot_models as robot_models
 
 def main():
+    from matplotlib.animation import FFMpegWriter
+    import matplotlib.pyplot as plt
     import rdp
     path_res = 0.05
     map = occupancy_grid_map.OccupancyGridMap(
