@@ -4,6 +4,8 @@ from rdp import rdp
 import numpy as np
 import map_plot_markers as map_plot_markers
 
+from robot_extended import save_array
+
 map_low = map_plot_markers.map_low
 map_high = map_plot_markers.map_high
 map_res = map_plot_markers.map_res
@@ -30,12 +32,13 @@ def plan_path(map, robot, start=np.array([0, 0], dtype=np.float32), goal=np.arra
     path = rdp(plan, rrt.path_resolution*2)
     path.reverse()
 
-    
-    
+    # todo: maybe make it part of 'debug'?
+    save_array(np.array(path), "path")
     
     if debug:
         with open('path.txt', 'w') as f:
             f.write(str(path))
+
 
     return path_to_arlo_instructions(path)
 
