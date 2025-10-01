@@ -3,15 +3,18 @@ from typing import Tuple
 import numpy as np
 
 if __name__ == "__main__":
-    from transform import AABB
+    from aabb import AABB
 else:
-    from map.transform import AABB
+    from map.aabb import AABB
 
 
-def draw_map(grid: np.ndarray, extent: Tuple[float, float, float, float]):
+def draw_map(grid: np.ndarray, extent: Tuple[float, float, float, float], ax=None):
     import matplotlib.pyplot as plt
 
-    plt.imshow(
+    if not ax:
+        ax = plt
+
+    ax.imshow(
         grid.transpose(),
         cmap="Greys",
         origin="lower",
@@ -62,8 +65,8 @@ class OccupancyGridMap:
             self.aabb.top,
         )
 
-    def draw_map(self):
-        draw_map(self.grid, self.extent)
+    def draw_map(self, ax=None):
+        draw_map(self.grid, self.extent, ax)
 
     def populate(self, n_obs=6):
         """
@@ -75,7 +78,10 @@ class OccupancyGridMap:
             size=(n_obs, 2),
         )
         radius = np.random.uniform(low=0.1, high=0.3, size=n_obs)
-        return self.plot_centroid(origins, radius**2)
+        radius_sq = radius**2
+        radius_sq_reshaped = radius_sq[np.newaxis, np.newaxis, :]  # shape (_, _, N)
+
+        return self.plot_centroid(origins, radius_sq_reshaped)
 
     def plot_centroid(self, origins: np.ndarray, radius_squared: np.ndarray):
         # fill the grids by checking if the grid centroid is in any of the circle
@@ -90,13 +96,7 @@ class OccupancyGridMap:
         dist = centorids_reshaped - origins_reshaped  # shape (grid_x, grid_y, N, 2)
         dist_squared = np.sum(dist**2, axis=-1)  # shape (grid_x, grid_y, N)
 
-        if np.ndim(radius_squared) == 0:
-            radius_sq_reshaped = radius_squared  # shape (1)
-        else:
-            radius_sq_reshaped = radius_squared[
-                np.newaxis, np.newaxis, :
-            ]  # shape (_, _, N)
-        mask = np.any(dist_squared <= radius_sq_reshaped, axis=-1).reshape(
+        mask = np.any(dist_squared <= radius_squared, axis=-1).reshape(
             (self.grid_x, self.grid_y)
         )  # shape (grid_x, grid_y)
 

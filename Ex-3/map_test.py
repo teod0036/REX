@@ -1,15 +1,19 @@
 import sys
-from typing import List, NamedTuple
+from typing import List
 
+import cv2
 import numpy as np
 
-from map.occupancy_grid_map import OccupancyGridMap, draw_map
-from map.transform import AABB
-from robot_extended import Marker, RobotExtended, save_array
+from map.occupancy_grid_map import OccupancyGridMap
+from robot_extended import Marker, Pose, RobotExtended, save_array
 
-marker_half_depth_m = 110 / 1000
-marker_radius_m = 180 / 1000
-distance_to_camera_m = (45 / 2) / 100
+marker_half_depth_m = np.array(11 / 100)
+marker_radius_m = np.array(18 / 100)
+camera_offset_m = np.array((0, 22.5 / 100))
+
+map_low = np.array((-1, 0))
+map_high = np.array((1, 2))
+map_res = 0.05
 
 
 def eprint(*args, **kwargs):
@@ -17,7 +21,7 @@ def eprint(*args, **kwargs):
 
 
 def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
-    map = OccupancyGridMap(low=np.array((-1, 0)), high=np.array((1, 2)), resolution=0.05)
+    map = OccupancyGridMap(low=map_low, high=map_high, resolution=map_res)
 
     if len(markers) == 0:
         return map
@@ -25,25 +29,21 @@ def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
     tvecs = np.array(
         [pose.tvec for _, pose in markers], dtype=np.float32
     )  # shape (N, 3)
-    rvecs = np.array(
-        [pose.rvec for _, pose in markers], dtype=np.float32
+    raxes = np.array(
+        [cv2.Rodrigues(pose.rvec)[0] for _, pose in markers], dtype=np.float32
     )  # shape (N, 3)
-    xz_tvec = tvecs[:, [0, 2]]  # shape (N, 2)
-    xz_rvec = rvecs[:, [0, 2]]  # shape (N, 2)
 
-    def normalize(v):
-        norm = np.linalg.norm(v)
-        return v / norm
+    pos = (
+        tvecs[:, [0, 2]] - raxes[:, :, 2][:, [0, 2]] * marker_half_depth_m
+    )  # shape (N, 2)
 
-    marker_center_m = xz_tvec # - normalize(xz_rvec) * np.array((0, marker_half_depth_m))
-
-    centroid_pos = marker_center_m + np.array((0, distance_to_camera_m))
-    centroid_radius = marker_radius_m ** 2
+    centroid_pos = camera_offset_m + pos
+    centroid_radius_sq = marker_radius_m**2
 
     eprint(f"{centroid_pos = }")
-    eprint(f"{centroid_radius = }")
+    eprint(f"{centroid_radius_sq = }")
 
-    map.plot_centroid(centroid_pos, np.array(centroid_radius))
+    map.plot_centroid(centroid_pos, centroid_radius_sq)
 
     return map
 
@@ -72,10 +72,10 @@ if __name__ == "__main__":
     # ]
 
     markers = RobotExtended().perform_image_analysis()
-    print(markers)
-    save_array(create_local_map(markers).grid, "map_test_data")
+    # print(markers)
+    map = create_local_map(markers)
+    save_array(map.grid, "map_test_data")
 
-    # print(marker_center * 100 * map.resolution + map.grid_size // 2)
     # import matplotlib.pyplot as plt
     # plt.clf()
     # map.draw_map()
