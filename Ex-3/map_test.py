@@ -20,9 +20,7 @@ def eprint(*args, **kwargs):
     print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
 
 
-def create_local_map(markers: List[Marker]) -> OccupancyGridMap:
-    map = OccupancyGridMap(low=map_low, high=map_high, resolution=map_res)
-
+def create_local_map(map: OccupancyGridMap, markers: List[Marker]) -> OccupancyGridMap:
     if len(markers) == 0:
         return map
 
@@ -73,7 +71,8 @@ if __name__ == "__main__":
 
     markers = RobotExtended().perform_image_analysis()
     # print(markers)
-    map = create_local_map(markers)
+    map = OccupancyGridMap(low=map_low, high=map_high, resolution=map_res)
+    create_local_map(map, markers)
     save_array(map.grid, "map_test_data")
 
     # import matplotlib.pyplot as plt
