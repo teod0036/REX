@@ -24,9 +24,9 @@ def eprint(*args, **kwargs):
     print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
 
 
-def create_local_map(map: OccupancyGridMap, markers: List[Marker]) -> OccupancyGridMap:
+def create_local_map(map: OccupancyGridMap, markers: List[Marker]) -> tuple[OccupancyGridMap, np.ndarray]:
     if len(markers) == 0:
-        return map
+        return map, np.ndarray([])
 
     tvecs = np.array(
         [pose.tvec for _, pose in markers], dtype=np.float32
@@ -47,7 +47,7 @@ def create_local_map(map: OccupancyGridMap, markers: List[Marker]) -> OccupancyG
 
     map.plot_centroid(centroid_pos, centroid_radius_sq)
 
-    return map
+    return map, centroid_pos
 
 
 if __name__ == "__main__":
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     robot = robot_models.PointMassModel(ctrl_range=[-map.resolution, map.resolution])
 
-    instructions = plan_path(map=map, robot=robot, debug=True)
+    instructions = plan_path(map=map, robot=robot, goal= debug=True)
 
     exec_instructions(instructions)
     # import matplotlib.pyplot as plt
