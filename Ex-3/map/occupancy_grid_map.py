@@ -8,23 +8,6 @@ else:
     from map.aabb import AABB
 
 
-def draw_map(grid: np.ndarray, extent: Tuple[float, float, float, float], ax=None):
-    import matplotlib.pyplot as plt
-
-    if not ax:
-        ax = plt
-
-    ax.imshow(
-        grid.transpose(),
-        cmap="Greys",
-        origin="lower",
-        vmin=0,
-        vmax=1,
-        extent=extent,
-        interpolation="none",
-    )
-
-
 class OccupancyGridMap:
     def __init__(
         self,
@@ -48,6 +31,9 @@ class OccupancyGridMap:
             np.stack((self.meshgrid[0] + 0.5, self.meshgrid[1] + 0.5), axis=-1)
         )  # shape (grid_x, grid_y, 2)
 
+    def clear(self):
+        self.grid = np.zeros(self.grid_size, dtype=np.uint8)
+
     @property
     def map_area(self):
         return np.array((self.aabb.min, self.aabb.max))
@@ -66,7 +52,17 @@ class OccupancyGridMap:
         )
 
     def draw_map(self, ax=None):
-        draw_map(self.grid, self.extent, ax)
+        import matplotlib.pyplot as plt
+
+        plt.imshow(
+            self.grid.transpose(),
+            cmap="Greys",
+            origin="lower",
+            vmin=0,
+            vmax=1,
+            extent=self.extent,
+            interpolation="none",
+        )
 
     def populate(self, n_obs=6):
         """
