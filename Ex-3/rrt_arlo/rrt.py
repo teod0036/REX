@@ -199,7 +199,7 @@ def main():
     import map_plot_markers as map_plot_markers
 
     map_low = map_plot_markers.map_low
-    map_high = map_plot_markers.map_low
+    map_high = map_plot_markers.map_high
     map_res = map_plot_markers.map_res
 
     marker_radius = map_plot_markers.marker_radius_m
