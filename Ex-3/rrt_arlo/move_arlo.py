@@ -10,20 +10,20 @@ def turn(params):
     rightSpeed = 64 - 3
     if withclock:
         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
+        sleep((0.694 + 0.2) * degrees/90)
     else:
         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
+        sleep((0.694 + 0.25) * degrees/90)
 
-    sleep(0.694 * degrees/90)
 
 def forward(distance):
     # Time constants
-    extra = 0.125
-    go_sleep = 2.3 * distance + extra
+    go_sleep = (2.3 + 1.65) * distance
 
     # Speed constants
     leftSpeed = 64
     rightSpeed = 64
-    rightSpeedmodifier = -3
+    rightSpeedmodifier = 0
 
     #go straight
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
