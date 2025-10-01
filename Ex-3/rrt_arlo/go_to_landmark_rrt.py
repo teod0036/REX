@@ -12,10 +12,11 @@ from exec_arlo_instructions import exec_instructions
 import map.robot_models as robot_models
 import map_plot_markers as map_plot_markers
 
-map_low = np.array((-1, 0))
-map_high = np.array((1, 2))
-map_res = 0.05
+map_low = map_plot_markers.map_low
+map_high = map_plot_markers.map_low
+map_res = map_plot_markers.map_res
 
+marker_radius = map_plot_markers.marker_radius_m[0]
 
 def eprint(*args, **kwargs):
     print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
@@ -54,10 +55,14 @@ if __name__ == "__main__":
     save_array(map.grid, "map_test_data")
 
     robot = robot_models.PointMassModel(ctrl_range=[-map.resolution, map.resolution])
+    
+    target_landmark = 6
+    goal = (landmarks[target_landmark][0], landmarks[target_landmark][1]-marker_radius)
 
     instructions = plan_path(map=map, robot=robot, goal=landmarks[6], debug=True)
-
-    exec_instructions(instructions)
+    
+    if len(instructions) != 0:  
+        exec_instructions(instructions)
     # import matplotlib.pyplot as plt
     # plt.clf()
     # map.draw_map()
