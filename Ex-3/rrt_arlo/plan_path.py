@@ -1,8 +1,9 @@
 from arlo_path import path_to_arlo_instructions
 from rrt import RRT
 from rdp import rdp
+import numpy as np
 
-def plan_path(map, robot, start=[0, 0], goal=[0, 1.9], expand_dis=0.2, debug=False):
+def plan_path(map, robot, start=np.array([0, 0], dtype=np.float32), goal=np.array([0, 1.9], dtype=np.float32), expand_dis=0.2, debug=False):
     rrt = RRT(
         start=start,
         goal=goal,
@@ -21,15 +22,17 @@ def plan_path(map, robot, start=[0, 0], goal=[0, 1.9], expand_dis=0.2, debug=Fal
     return path_to_arlo_instructions(path)
 
 if __name__ == "__main__":
-    import grid_occ, robot_models
-    from exec_arlo_instructions import exec_instructions
+    import map.occupancy_grid_map as occupancy_grid_map
+    import map.robot_models as robot_models
+    #from exec_arlo_instructions import exec_instructions
 
 
     path_res = 0.05
-    map = grid_occ.GridOccupancyMap(low=(-1, 0), high=(1, 2), res=path_res)
+    map = occupancy_grid_map.OccupancyGridMap(low=np.array((-1, 0), dtype=np.float32), high=np.array((1, 2), dtype=np.float32), resolution=path_res)
     map.populate()
 
     robot = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
     instructions = plan_path(map=map, robot=robot, debug=True)
-    exec_instructions(instructions)
+    
+    #exec_instructions(instructions)
