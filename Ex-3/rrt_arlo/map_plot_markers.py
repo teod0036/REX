@@ -73,13 +73,7 @@ if __name__ == "__main__":
     arlo_master = RobotExtended()
     map = OccupancyGridMap(low=map_low, high=map_high, resolution=map_res)
 
-    start = perf_counter()
-    isGoing = True
-    while isGoing:  # or some other form of loop
-        if perf_counter() - start > 10:  # Stop after 10 seconds
-            print(arlo_master.robot.stop())
-            isGoing = False
-
+    while True:  # or some other form of loop
         markers = arlo_master.perform_image_analysis()
         create_local_map(map, markers)
         save_array(map.grid, "map_data")
