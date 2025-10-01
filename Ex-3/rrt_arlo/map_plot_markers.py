@@ -47,7 +47,7 @@ def plot_markers(
 
     map.plot_centroid(centroid_pos, centroid_radius_sq)
 
-    return map, {id: pos for (id, _), pos in zip(markers, camera_offset_m + tvecs[:, [0, 2]])}
+    return map, {id: pos for (id, _), pos in zip(markers, centroid_pos)}
 
 
 if __name__ == "__main__":
