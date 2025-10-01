@@ -57,7 +57,7 @@ if __name__ == "__main__":
     robot = robot_models.PointMassModel(ctrl_range=[-map.resolution, map.resolution])
     
     target_landmark = 6
-    goal = np.ndarray((landmarks[target_landmark][0], landmarks[target_landmark][1]-marker_radius-(map_res*2)), dtype=np.float32)
+    goal = np.ndarray((landmarks[target_landmark][0], landmarks[target_landmark][1]-marker_radius-(map_res*2.0)), dtype=np.float32)
     #print(goal)
     instructions = plan_path(map=map, robot=robot, goal=goal, debug=True)
     
