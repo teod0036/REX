@@ -23,7 +23,7 @@ def eprint(*args, **kwargs):
 
 
 def plot_markers(
-    map: OccupancyGridMap, markers: List[Marker]
+    map: OccupancyGridMap, markers: List[Marker], plot=True
 ) -> Tuple[OccupancyGridMap, Dict[int, np.ndarray]]:
     if len(markers) == 0:
         return map, {}
@@ -45,7 +45,8 @@ def plot_markers(
     eprint(f"{centroid_pos = }")
     eprint(f"{centroid_radius_sq = }")
 
-    map.plot_centroid(centroid_pos, centroid_radius_sq)
+    if plot:
+        map.plot_centroid(centroid_pos, centroid_radius_sq)
 
     return map, {id: pos for (id, _), pos in zip(markers, centroid_pos)}
 
