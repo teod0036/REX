@@ -12,9 +12,13 @@ def plan_path(map, robot, start=np.array([0, 0], dtype=np.float32), goal=np.arra
         expand_dis=expand_dis,
         path_resolution=map.resolution,
         )
-
-    path = rdp(rrt.planning(animation=False), rrt.path_resolution*2)
-    path.reverse()
+    try:
+        path = rdp(rrt.planning(animation=False), rrt.path_resolution*2)
+        path.reverse()
+    except:
+        print("no path found")
+        return []
+    
     if debug:
         with open('path.txt', 'w') as f:
             f.write(str(path))
