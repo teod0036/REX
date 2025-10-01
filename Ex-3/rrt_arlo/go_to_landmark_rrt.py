@@ -4,15 +4,14 @@ from typing import List
 import cv2
 import numpy as np
 
-from rrt_arlo.map.occupancy_grid_map import OccupancyGridMap
+from map.occupancy_grid_map import OccupancyGridMap
 from robot_extended import Marker, Pose, RobotExtended, save_array
 
-from rrt_arlo.plan_path import plan_path 
-from rrt_arlo.exec_arlo_instructions import exec_instructions
-import rrt_arlo.map.robot_models as robot_models
-import rrt_arlo.map_plot_markers as map_plot_markers
+from plan_path import plan_path 
+from exec_arlo_instructions import exec_instructions
+import map.robot_models as robot_models
+import map_plot_markers as map_plot_markers
 
-from typing import Tuple, Dict
 map_low = np.array((-1, 0))
 map_high = np.array((1, 2))
 map_res = 0.05
