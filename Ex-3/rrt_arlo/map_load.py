@@ -6,24 +6,28 @@ import numpy as np
 import paramiko
 
 from map.aabb import AABB
-from map.occupancy_grid_map import draw_map
-from map_test import map_high, map_low
+from map_plot_markers import map_high, map_low
 
 
 def update_map(fp, ax, map_aabb):
     map_data = np.load(fp)
 
     ax.clear()
-    draw_map(
-        map_data,
+    plt.imshow(
+        map_data.transpose(),
+        cmap="Greys",
+        origin="lower",
+        vmin=0,
+        vmax=1,
         extent=(
             map_aabb.left,
             map_aabb.right,
             map_aabb.bottom,
             map_aabb.top,
         ),
-        ax=ax,
+        interpolation="none",
     )
+
     ax.set_xlabel("x (m)")
     ax.set_ylabel("y (m)")
     plt.draw()
@@ -80,7 +84,7 @@ if __name__ == "__main__":
         port=22,
         username="pi",
         password="DIKU4Ever",
-        remote_path="~/Desktop/Rex/Ex-3/map_test_data.npy",
-        local_path="./map_test_data.npy",
+        remote_path="/home/pi/Desktop/REX/Ex-3/rrt_arlo/map_data.npy",
+        local_path="./map_data.npy",
         poll_interval=1.0,
     )

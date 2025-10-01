@@ -24,7 +24,7 @@ def plan_path(map, robot, start=np.array([0, 0], dtype=np.float32), goal=np.arra
 if __name__ == "__main__":
     import map.occupancy_grid_map as occupancy_grid_map
     import map.robot_models as robot_models
-    #from exec_arlo_instructions import exec_instructions
+    from exec_arlo_instructions import exec_instructions
 
 
     path_res = 0.05
@@ -35,4 +35,4 @@ if __name__ == "__main__":
 
     instructions = plan_path(map=map, robot=robot, debug=True)
     
-    #exec_instructions(instructions)
+    exec_instructions(instructions)

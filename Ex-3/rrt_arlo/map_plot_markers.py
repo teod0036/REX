@@ -1,4 +1,5 @@
 import sys
+from time import perf_counter, sleep
 from typing import List
 
 import cv2
@@ -69,11 +70,15 @@ if __name__ == "__main__":
     #     )
     # ]
 
-    markers = RobotExtended().perform_image_analysis()
-    # print(markers)
+    arlo_master = RobotExtended()
     map = OccupancyGridMap(low=map_low, high=map_high, resolution=map_res)
-    create_local_map(map, markers)
-    save_array(map.grid, "map_test_data")
+
+    while True:  # or some other form of loop
+        markers = arlo_master.perform_image_analysis()
+        create_local_map(map, markers)
+        save_array(map.grid, "map_data")
+
+        sleep(1)
 
     # import matplotlib.pyplot as plt
     # plt.clf()
