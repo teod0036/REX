@@ -31,6 +31,9 @@ class OccupancyGridMap:
             np.stack((self.meshgrid[0] + 0.5, self.meshgrid[1] + 0.5), axis=-1)
         )  # shape (grid_x, grid_y, 2)
 
+    def clear(self):
+        self.grid = np.zeros(self.grid_size, dtype=np.uint8)
+
     @property
     def map_area(self):
         return np.array((self.aabb.min, self.aabb.max))
@@ -60,8 +63,6 @@ class OccupancyGridMap:
             extent=self.extent,
             interpolation="none",
         )
-
-
 
     def populate(self, n_obs=6):
         """

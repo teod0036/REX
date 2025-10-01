@@ -1,9 +1,7 @@
+import os
 import sys
 from time import perf_counter, sleep
-from typing import List
-
-import os
-
+from typing import Dict, List, Tuple
 
 import cv2
 import numpy as np
@@ -24,9 +22,11 @@ def eprint(*args, **kwargs):
     print(f"{__name__}.py: ", *args, file=sys.stderr, **kwargs)
 
 
-def create_local_map(map: OccupancyGridMap, markers: List[Marker]) -> OccupancyGridMap:
+def plot_markers(
+    map: OccupancyGridMap, markers: List[Marker]
+) -> Tuple[OccupancyGridMap, Dict[int, np.ndarray]]:
     if len(markers) == 0:
-        return map
+        return map, {}
 
     tvecs = np.array(
         [pose.tvec for _, pose in markers], dtype=np.float32
@@ -47,7 +47,7 @@ def create_local_map(map: OccupancyGridMap, markers: List[Marker]) -> OccupancyG
 
     map.plot_centroid(centroid_pos, centroid_radius_sq)
 
-    return map
+    return map, {id: pos for (id, _), pos in zip(markers, centroid_pos)}
 
 
 if __name__ == "__main__":
@@ -78,10 +78,10 @@ if __name__ == "__main__":
 
     while True:  # or some other form of loop
         markers = arlo_master.perform_image_analysis()
-        create_local_map(map, markers)
 
-        if os.path.exists("./map_data.npy"):
-            os.remove("./map_data.npy")
+        map.clear()
+        plot_markers(map, markers)
+
         save_array(map.grid, "map_data")
 
         sleep(1)
