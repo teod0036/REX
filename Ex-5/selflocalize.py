@@ -21,8 +21,9 @@ def isRunningOnArlo():
 
 if isRunningOnArlo():
     # XXX: You need to change this path to point to where your robot.py file is located
-    sys.path.append("../../../../Arlo/python")
-
+    #sys.path.append("../../../../Arlo/python")
+    #robot.py is in this directory
+    pass
 
 try:
     import robot
@@ -46,10 +47,10 @@ CBLACK = (0, 0, 0)
 
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
-landmarkIDs = [1, 2]
+landmarkIDs = [6, 7]
 landmarks = {
-    1: (0.0, 0.0),  # Coordinates for landmark 1
-    2: (300.0, 0.0)  # Coordinates for landmark 2
+    6: (0.0, 0.0),  # Coordinates for landmark 1
+    7: (300.0, 0.0)  # Coordinates for landmark 2
 }
 landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
 
@@ -143,6 +144,8 @@ try:
     angular_velocity = 0.0 # radians/sec
 
     # Initialize the robot (XXX: You do this)
+    if onRobot:
+        arlo = robot.Robot()
 
     # Allocate space for world map
     world = np.zeros((500,500,3), dtype=np.uint8)
@@ -156,7 +159,7 @@ try:
         cam = camera.Camera(0, robottype='arlo', useCaptureThread=False)
     else:
         #cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=True)
-        cam = camera.Camera(1, robottype='macbookpro', useCaptureThread=False)
+        cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
     while True:
 
@@ -167,16 +170,20 @@ try:
     
         if not isRunningOnArlo():
             if action == ord('w'): # Forward
-                velocity += 4.0
-            elif action == ord('x'): # Backwards
-                velocity -= 4.0
-            elif action == ord('s'): # Stop
+                if velocity < 4.0:
+                    velocity += 4.0
+            elif action == ord('s'): # Backwards
+                if velocity > -4.0:
+                    velocity -= 4.0
+            elif action == ord('x'): # Stop
                 velocity = 0.0
                 angular_velocity = 0.0
             elif action == ord('a'): # Left
-                angular_velocity += 0.2
+                if angular_velocity < 0.2:
+                    angular_velocity += 0.2
             elif action == ord('d'): # Right
-                angular_velocity -= 0.2
+                if angular_velocity > -0.2:
+                    angular_velocity -= 0.2
 
 
 
@@ -184,14 +191,21 @@ try:
         # Use motor controls to update particles
         # XXX: Make the robot drive
         # XXX: You do this
+        for p in particles:
+            p.setTheta(p.getTheta()+angular_velocity)
 
+            x_offset = np.cos(p.getTheta()) * velocity
+            y_offset = np.sin(p.getTheta()) * velocity
+            p.setX(p.getX() + x_offset)
+            p.setY(p.getY() + y_offset)
 
         # Fetch next frame
         colour = cam.get_next_frame()
         
         # Detect objects
         objectIDs, dists, angles = cam.detect_aruco_objects(colour)
-        if not isinstance(objectIDs, type(None)):
+        if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
+
             # List detected objects
             for i in range(len(objectIDs)):
                 print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
