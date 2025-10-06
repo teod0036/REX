@@ -3,8 +3,10 @@ import particle
 import camera
 import numpy as np
 import time
+import scipy
 from timeit import default_timer as timer
 import sys
+import scipy
 
 # Flags
 showGUI = True  # Whether or not to open GUI windows
@@ -154,6 +156,11 @@ if __name__ == "__main__":
         velocity_uncertainty = 0.0 #XXX: we need to measure this
         angular_uncertainty = 0.0 #XXX: we need to measure this
 
+        # XXX: more uncertainty parameters
+        distance_measurement_uncertainty = 0.0
+        angle_measurement_uncertainty = 0.0
+
+
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -258,11 +265,14 @@ if __name__ == "__main__":
                     exec.next(instructions)
 
                     
+            # predict particles after movement (prior):
             for p in particles:
                 x_offset = np.cos(p.getTheta()) * velocity
                 y_offset = np.sin(p.getTheta()) * velocity
+
                 p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
+            # Add some noise
             particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
 
             # Fetch next frame
@@ -275,13 +285,35 @@ if __name__ == "__main__":
                 # List detected objects
                 for i in range(len(objectIDs)):
                     print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
-                    # XXX: Do something for each detected object - remember, the same ID may appear several times
+
+                # XXX: Do something for each detected object - remember, the same ID may appear several times
+                objectDict = {objectIDs[i] : (dists[i][[0,2]], cv2.Rodrigues(angles[i])[0][0, 2]) for i in range(len(objectIDs))}
 
                 # Compute particle weights
                 # XXX: You do this
 
+                positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
+                weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
+
+                for (objID, (objPos, objAngleAxis)) in objectDict.items():
+                    if objID in landmarks:
+                        distances = np.linalg.norm(positions - landmarks[objID], axis=1)
+                        weights *= scipy.stats.norm(distances, distance_measurement_uncertainty).pdf(objPos)
+
+                weights += 1.e-300 # avoid problems with zeroes 
+                weights /= np.sum(weights)
+
                 # Resampling
                 # XXX: You do this
+
+                N = len(particles)
+                cumulative_sum = np.cumsum(weights)
+                cumulative_sum[-1] = 1. # avoid problems with zeroes
+                indicies = np.searchsorted(cumulative_sum, np.random.uniform(size=N))
+                particles = [particles[index] for index in indicies]
+
+                for p in particles:
+                    p.setWeight(1.0 / N)
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)

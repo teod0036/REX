@@ -71,15 +71,16 @@ def main():
     _, axes = plt.subplots(2, 3, figsize=(15, 8))
 
     q = uniform_pdf(min_x, max_x)
+
     for i, k in enumerate(ks):
         # sampling step:
-        x = uniform_samples(min_x, max_x, k)
+        x = uniform_samples(min_x, max_x, k)  # "motion" model (x_t | x_{t-1}, u_t)
         # importance computation step:
-        weights = p(x) / q(x)
+        weights = p(x) / q(x)                 # "observation" model / "belief" model
         # resampling step:
-        weights_new = resample(x, weights)
+        x_new = resample(x, weights)          # resample new x's
         # plot the graphs:
-        show(axes[0, i], k, min_x, max_x, "with uniform(0, 15) proposal", weights_new)
+        show(axes[0, i], k, min_x, max_x, "with uniform(0, 15) proposal", x_new)
 
     q = normal_pdf(5, 4)
     for i, k in enumerate(ks):
@@ -88,9 +89,9 @@ def main():
         # importance computation step:
         weights = p(x) / q(x)
         # resampling step:
-        weights_new = resample(x, weights)
+        x_new = resample(x, weights)
         # plot the graphs:
-        show(axes[1, i], k, min_x, max_x, "with normal(5, 4) proposal", weights_new)
+        show(axes[1, i], k, min_x, max_x, "with normal(5, 4) proposal", x_new)
 
     plt.tight_layout()
     plt.show()
