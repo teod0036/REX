@@ -18,12 +18,14 @@ def isRunningOnArlo():
     """
     return onRobot
 
-
 if isRunningOnArlo():
     # XXX: You need to change this path to point to where your robot.py file is located
     #sys.path.append("../../../../Arlo/python")
     #robot.py is in this directory
     pass
+
+if isRunningOnArlo():
+    instruction_debug = False
 
 try:
     import robot
@@ -135,6 +137,10 @@ try:
 
     # Initialize particles
     num_particles = 1000
+    
+    if instruction_debug:
+        num_particles = 5
+
     particles = initialize_particles(num_particles)
 
     est_pose = particle.estimate_pose(particles) # The estimate of the robots current pose
@@ -164,7 +170,12 @@ try:
 
     instructions = []
 
+    if instruction_debug:
+        instructions = [['turn', (True, 9.14)], ['forward', 0.2], ['turn', (False, 55.29)], ['forward', 0.6], ['turn', (False, 41.54)], ['forward', 0.2], ['turn', (True, 80.1)], ['forward', 0.59], ['turn', (True, 52.11)], ['forward', 0.97]]
+
     while True:
+        if instruction_debug:
+            time.sleep(0.2)
 
         # Move the robot according to user input (only for testing)
         action = cv2.waitKey(10)
@@ -194,7 +205,6 @@ try:
         # Use motor controls to update particles
         # XXX: Make the robot drive
         # XXX: You do this
-
         if (isRunningOnArlo() or instruction_debug) and not len(instructions) == 0:
             angular_velocity = 0
             velocity = 0
@@ -211,8 +221,15 @@ try:
                 velocity = centimeters
             else:
                 print("Unknown instruction, instructions have to be either turn or forward")
-            
-            exec.next(instructions)
+            if instruction_debug:
+                del instructions[0]
+                if len(instructions) == 0:
+                    velocity = 0
+                    angular_velocity = 0
+            else:
+                exec.next(instructions)
+
+                
 
         for p in particles:
             x_offset = np.cos(p.getTheta()) * velocity
