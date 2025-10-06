@@ -8,6 +8,10 @@ from timeit import default_timer as timer
 import sys
 import scipy
 
+from copy import deepcopy
+
+# from copy import deepcopy
+
 
 # Flags
 showGUI = True  # Whether or not to open GUI windows
@@ -30,11 +34,12 @@ if isRunningOnArlo():
     instruction_debug = False
 
 try:
+    print("selflocalize.py: assuming we are running on robot")
     import robot
-    onRobot = True
+    # onRobot = True
 except ImportError:
     print("selflocalize.py: robot module not present - forcing not running on Arlo!")
-    onRobot = False
+    # onRobot = False
 
 
 
@@ -65,6 +70,8 @@ landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of 
     a particle from its weight."""
+    x = max(0, min(1, x)) 
+
     r = (x >= 3.0/8.0 and x < 5.0/8.0) * (4.0 * x - 3.0/2.0) + (x >= 5.0/8.0 and x < 7.0/8.0) + (x >= 7.0/8.0) * (-4.0 * x + 9.0/2.0)
     g = (x >= 1.0/8.0 and x < 3.0/8.0) * (4.0 * x - 1.0/2.0) + (x >= 3.0/8.0 and x < 5.0/8.0) + (x >= 5.0/8.0 and x < 7.0/8.0) * (-4.0 * x + 7.0/2.0)
     b = (x < 1.0/8.0) * (4.0 * x + 1.0/2.0) + (x >= 1.0/8.0 and x < 3.0/8.0) + (x >= 3.0/8.0 and x < 5.0/8.0) * (-4.0 * x + 5.0/2.0)
@@ -151,12 +158,12 @@ if __name__ == "__main__":
         # Driving parameters
         velocity = 0.0 # cm/sec
         angular_velocity = 0.0 # radians/sec
-        velocity_uncertainty = 0.0 #XXX: we need to measure this
-        angular_uncertainty = 0.0 #XXX: we need to measure this
+        velocity_uncertainty = 0.1 #XXX: we need to measure this
+        angular_uncertainty = 0.1 #XXX: we need to measure this
 
         # XXX: more uncertainty parameters
-        distance_measurement_uncertainty = 0.0
-        angle_measurement_uncertainty = 0.0
+        distance_measurement_uncertainty = 0.1
+        angle_measurement_uncertainty = 0.1
 
 
 
@@ -259,11 +266,11 @@ if __name__ == "__main__":
             if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
 
                 # List detected objects
-                for i in range(len(objectIDs)):
-                    print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
+                # for i in range(len(objectIDs)):
+                    # print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
 
                 # XXX: Do something for each detected object - remember, the same ID may appear several times
-                objectDict = {objectIDs[i] : (dists[i][[0,2]], cv2.Rodrigues(angles[i])[0][0, 2]) for i in range(len(objectIDs))}
+                objectDict = {objectIDs[i] : (dists[i], angles[i]) for i in range(len(objectIDs))}
 
                 # Compute particle weights
                 # XXX: You do this
@@ -271,10 +278,10 @@ if __name__ == "__main__":
                 positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
-                for (objID, (objPos, objAngleAxis)) in objectDict.items():
+                for (objID, (objDist, objAngle)) in objectDict.items():
                     if objID in landmarks:
                         distances = np.linalg.norm(positions - landmarks[objID], axis=1)
-                        weights *= scipy.stats.norm(distances, distance_measurement_uncertainty).pdf(objPos)
+                        weights *= scipy.stats.norm(loc=distances, scale=distance_measurement_uncertainty).pdf(objDist)
 
                 weights += 1.e-300 # avoid problems with zeroes 
                 weights /= np.sum(weights)
@@ -282,14 +289,14 @@ if __name__ == "__main__":
                 # Resampling
                 # XXX: You do this
 
-                N = len(particles)
                 cumulative_sum = np.cumsum(weights)
                 cumulative_sum[-1] = 1. # avoid problems with zeroes
-                indicies = np.searchsorted(cumulative_sum, np.random.uniform(size=N))
-                particles = [particles[index] for index in indicies]
+                indicies = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles), side="left")
+
+                particles = [deepcopy(particles[index]) for index in indicies]
 
                 for p in particles:
-                    p.setWeight(1.0 / N)
+                    p.setWeight(1.0 / num_particles)
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)
