@@ -144,7 +144,7 @@ try:
     angular_velocity = 0.0 # radians/sec
 
     # Initialize the robot (XXX: You do this)
-    if onRobot:
+    if isRunningOnArlo():
         arlo = robot.Robot()
 
     # Allocate space for world map
