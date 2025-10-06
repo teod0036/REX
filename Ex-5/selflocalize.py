@@ -123,164 +123,165 @@ def initialize_particles(num_particles):
 
 
 # Main program #
-try:
-    if showGUI:
-        # Open windows
-        WIN_RF1 = "Robot view"
-        cv2.namedWindow(WIN_RF1)
-        cv2.moveWindow(WIN_RF1, 50, 50)
+if __name__ == "__main__":
+    try:
+        if showGUI:
+            # Open windows
+            WIN_RF1 = "Robot view"
+            cv2.namedWindow(WIN_RF1)
+            cv2.moveWindow(WIN_RF1, 50, 50)
 
-        WIN_World = "World view"
-        cv2.namedWindow(WIN_World)
-        cv2.moveWindow(WIN_World, 500, 50)
+            WIN_World = "World view"
+            cv2.namedWindow(WIN_World)
+            cv2.moveWindow(WIN_World, 500, 50)
 
 
-    # Initialize particles
-    num_particles = 1000
-    
-    if instruction_debug:
-        num_particles = 5
-
-    particles = initialize_particles(num_particles)
-
-    est_pose = particle.estimate_pose(particles) # The estimate of the robots current pose
-
-    # Driving parameters
-    velocity = 0.0 # cm/sec
-    angular_velocity = 0.0 # radians/sec
-
-    # Initialize the robot (XXX: You do this)
-    if isRunningOnArlo():
-        import exec_arlo_instructions as exec
-        arlo = robot.Robot()
-
-    # Allocate space for world map
-    world = np.zeros((500,500,3), dtype=np.uint8)
-
-    # Draw map
-    draw_world(est_pose, particles, world)
-
-    print("Opening and initializing camera")
-    if isRunningOnArlo():
-        #cam = camera.Camera(0, robottype='arlo', useCaptureThread=True)
-        cam = camera.Camera(0, robottype='arlo', useCaptureThread=False)
-    else:
-        #cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=True)
-        cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
-
-    instructions = []
-
-    if instruction_debug:
-        instructions = [['turn', (True, 9.14)], ['forward', 0.2], ['turn', (False, 55.29)], ['forward', 0.6], ['turn', (False, 41.54)], ['forward', 0.2], ['turn', (True, 80.1)], ['forward', 0.59], ['turn', (True, 52.11)], ['forward', 0.97]]
-
-    while True:
+        # Initialize particles
+        num_particles = 1000
+        
         if instruction_debug:
-            time.sleep(0.2)
+            num_particles = 5
 
-        # Move the robot according to user input (only for testing)
-        action = cv2.waitKey(10)
-        if action == ord('q'): # Quit
-            break
-    
-        if not isRunningOnArlo():
-            if action == ord('w'): # Forward
-                if velocity < 4.0:
-                    velocity += 4.0
-            elif action == ord('s'): # Backwards
-                if velocity > -4.0:
-                    velocity -= 4.0
-            elif action == ord('x'): # Stop
-                velocity = 0.0
-                angular_velocity = 0.0
-            elif action == ord('a'): # Left
-                if angular_velocity < 0.2:
-                    angular_velocity += 0.2
-            elif action == ord('d'): # Right
-                if angular_velocity > -0.2:
-                    angular_velocity -= 0.2
+        particles = initialize_particles(num_particles)
 
-
-
-        
-        # Use motor controls to update particles
-        # XXX: Make the robot drive
-        # XXX: You do this
-        if (isRunningOnArlo() or instruction_debug) and not len(instructions) == 0:
-            angular_velocity = 0
-            velocity = 0
-            if instructions[0][0] == "turn":
-                withclock, degrees = instructions[0][1]
-                radians = np.radians(degrees)
-                if withclock:
-                    radians = radians * -1
-                angular_velocity = radians
-            elif instructions[0][0] == "forward":
-                meters = instructions[0][1]
-                #instructions have their argument in meters, so they have to be converted to centimeters
-                centimeters = meters * 100
-                velocity = centimeters
-            else:
-                print("Unknown instruction, instructions have to be either turn or forward")
-            if instruction_debug:
-                del instructions[0]
-                if len(instructions) == 0:
-                    velocity = 0
-                    angular_velocity = 0
-            else:
-                exec.next(instructions)
-
-                
-
-        for p in particles:
-            x_offset = np.cos(p.getTheta()) * velocity
-            y_offset = np.sin(p.getTheta()) * velocity
-            p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
-
-        # Fetch next frame
-        colour = cam.get_next_frame()
-        
-        # Detect objects
-        objectIDs, dists, angles = cam.detect_aruco_objects(colour)
-        if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
-
-            # List detected objects
-            for i in range(len(objectIDs)):
-                print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
-                # XXX: Do something for each detected object - remember, the same ID may appear several times
-
-            # Compute particle weights
-            # XXX: You do this
-
-            # Resampling
-            # XXX: You do this
-
-            # Draw detected objects
-            cam.draw_aruco_objects(colour)
-        else:
-            # No observation - reset weights to uniform distribution
-            for p in particles:
-                p.setWeight(1.0/num_particles)
-
-    
         est_pose = particle.estimate_pose(particles) # The estimate of the robots current pose
 
-        if showGUI:
-            # Draw map
-            draw_world(est_pose, particles, world)
-    
-            # Show frame
-            cv2.imshow(WIN_RF1, colour)
+        # Driving parameters
+        velocity = 0.0 # cm/sec
+        angular_velocity = 0.0 # radians/sec
 
-            # Show world
-            cv2.imshow(WIN_World, world)
-    
-  
-finally: 
-    # Make sure to clean up even if an exception occurred
-    
-    # Close all windows
-    cv2.destroyAllWindows()
+        # Initialize the robot (XXX: You do this)
+        if isRunningOnArlo():
+            import exec_arlo_instructions as exec
+            arlo = robot.Robot()
 
-    # Clean-up capture thread
-    cam.terminateCaptureThread()
+        # Allocate space for world map
+        world = np.zeros((500,500,3), dtype=np.uint8)
 
+        # Draw map
+        draw_world(est_pose, particles, world)
+
+        print("Opening and initializing camera")
+        if isRunningOnArlo():
+            #cam = camera.Camera(0, robottype='arlo', useCaptureThread=True)
+            cam = camera.Camera(0, robottype='arlo', useCaptureThread=False)
+        else:
+            #cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=True)
+            cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
+
+        instructions = []
+
+        if instruction_debug:
+            instructions = [['turn', (True, 9.14)], ['forward', 0.2], ['turn', (False, 55.29)], ['forward', 0.6], ['turn', (False, 41.54)], ['forward', 0.2], ['turn', (True, 80.1)], ['forward', 0.59], ['turn', (True, 52.11)], ['forward', 0.97]]
+
+        while True:
+            if instruction_debug:
+                time.sleep(0.2)
+
+            # Move the robot according to user input (only for testing)
+            action = cv2.waitKey(10)
+            if action == ord('q'): # Quit
+                break
+        
+            if not isRunningOnArlo():
+                if action == ord('w'): # Forward
+                    if velocity < 4.0:
+                        velocity += 4.0
+                elif action == ord('s'): # Backwards
+                    if velocity > -4.0:
+                        velocity -= 4.0
+                elif action == ord('x'): # Stop
+                    velocity = 0.0
+                    angular_velocity = 0.0
+                elif action == ord('a'): # Left
+                    if angular_velocity < 0.2:
+                        angular_velocity += 0.2
+                elif action == ord('d'): # Right
+                    if angular_velocity > -0.2:
+                        angular_velocity -= 0.2
+
+
+
+            
+            # Use motor controls to update particles
+            # XXX: Make the robot drive
+            # XXX: You do this
+            if (isRunningOnArlo() or instruction_debug) and not len(instructions) == 0:
+                angular_velocity = 0
+                velocity = 0
+                if instructions[0][0] == "turn":
+                    withclock, degrees = instructions[0][1]
+                    radians = np.radians(degrees)
+                    if withclock:
+                        radians = radians * -1
+                    angular_velocity = radians
+                elif instructions[0][0] == "forward":
+                    meters = instructions[0][1]
+                    #instructions have their argument in meters, so they have to be converted to centimeters
+                    centimeters = meters * 100
+                    velocity = centimeters
+                else:
+                    print("Unknown instruction, instructions have to be either turn or forward")
+                if instruction_debug:
+                    del instructions[0]
+                    if len(instructions) == 0:
+                        velocity = 0
+                        angular_velocity = 0
+                else:
+                    exec.next(instructions)
+
+                    
+            for p in particles:
+                x_offset = np.cos(p.getTheta()) * velocity
+                y_offset = np.sin(p.getTheta()) * velocity
+                p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
+
+            
+
+            # Fetch next frame
+            colour = cam.get_next_frame()
+            
+            # Detect objects
+            objectIDs, dists, angles = cam.detect_aruco_objects(colour)
+            if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
+
+                # List detected objects
+                for i in range(len(objectIDs)):
+                    print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
+                    # XXX: Do something for each detected object - remember, the same ID may appear several times
+
+                # Compute particle weights
+                # XXX: You do this
+
+                # Resampling
+                # XXX: You do this
+
+                # Draw detected objects
+                cam.draw_aruco_objects(colour)
+            else:
+                # No observation - reset weights to uniform distribution
+                for p in particles:
+                    p.setWeight(1.0/num_particles)
+
+        
+            est_pose = particle.estimate_pose(particles) # The estimate of the robots current pose
+
+            if showGUI:
+                # Draw map
+                draw_world(est_pose, particles, world)
+        
+                # Show frame
+                cv2.imshow(WIN_RF1, colour)
+
+                # Show world
+                cv2.imshow(WIN_World, world)
+        
+    
+    finally: 
+        # Make sure to clean up even if an exception occurred
+        
+        # Close all windows
+        cv2.destroyAllWindows()
+
+        # Clean-up capture thread
+        cam.terminateCaptureThread()
