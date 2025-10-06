@@ -149,6 +149,9 @@ if __name__ == "__main__":
         # Driving parameters
         velocity = 0.0 # cm/sec
         angular_velocity = 0.0 # radians/sec
+        velocity_uncertainty = 0.0 #XXX: we need to measure this
+        angular_uncertainty = 0.0 #XXX: we need to measure this
+
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -236,7 +239,7 @@ if __name__ == "__main__":
                 y_offset = np.sin(p.getTheta()) * velocity
                 p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
-            
+            particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
 
             # Fetch next frame
             colour = cam.get_next_frame()
