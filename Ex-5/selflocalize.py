@@ -6,11 +6,10 @@ import time
 from timeit import default_timer as timer
 import sys
 
-
 # Flags
 showGUI = True  # Whether or not to open GUI windows
 onRobot = False  # Whether or not we are running on the Arlo robot
-instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = True #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -135,12 +134,15 @@ if __name__ == "__main__":
             cv2.namedWindow(WIN_World)
             cv2.moveWindow(WIN_World, 500, 50)
 
+        import plan_path
+        import map.robot_models as robot_models
+        import map.occupancy_grid_map as occupancy_grid_map
 
         # Initialize particles
         num_particles = 1000
         
         if instruction_debug:
-            num_particles = 5
+            num_particles = 2
 
         particles = initialize_particles(num_particles)
 
@@ -158,6 +160,23 @@ if __name__ == "__main__":
             import exec_arlo_instructions as exec
             arlo = robot.Robot()
 
+        #create map used for pathfinding
+        map_res = 0.05
+        path_map = occupancy_grid_map.OccupancyGridMap(low=np.array((-1, -2.5)), high=np.array((4, 2.5)), resolution=map_res) 
+        origins = []
+        for origin in landmarks.values():
+            origins.append((origin[0]/100, origin[1]/100))
+        radius_squared = ((18 / 100) + (22.5 / 100))**2
+        path_map.plot_centroid(np.array(origins), np.array(radius_squared))
+        
+        #create robot model for pathfinding
+        path_res = map_res
+        robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
+
+        #Where the robot wants to go
+        goal = np.array([((landmarks[6][0]+landmarks[7][0])/2)/100, ((landmarks[6][1]+landmarks[7][1])/2)/100])
+        print(f"Target point: {goal}")
+
         # Allocate space for world map
         world = np.zeros((500,500,3), dtype=np.uint8)
 
@@ -173,9 +192,6 @@ if __name__ == "__main__":
             cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
         instructions = []
-
-        if instruction_debug:
-            instructions = [['turn', (True, 9.14)], ['forward', 0.2], ['turn', (False, 55.29)], ['forward', 0.6], ['turn', (False, 41.54)], ['forward', 0.2], ['turn', (True, 80.1)], ['forward', 0.59], ['turn', (True, 52.11)], ['forward', 0.97]]
 
         while True:
             if instruction_debug:
@@ -209,7 +225,15 @@ if __name__ == "__main__":
             # Use motor controls to update particles
             # XXX: Make the robot drive
             # XXX: You do this
-            if (isRunningOnArlo() or instruction_debug) and not len(instructions) == 0:
+            if len(instructions) == 0:
+                pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+                current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
+                instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal)
+                if len(instructions) <= 2:
+                    print("I have arrived")
+                    print(instructions)
+
+            if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
                 angular_velocity = 0
                 velocity = 0
                 if instructions[0][0] == "turn":
