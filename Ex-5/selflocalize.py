@@ -9,8 +9,8 @@ import sys
 
 # Flags
 showGUI = True  # Whether or not to open GUI windows
-onRobot = True  # Whether or not we are running on the Arlo robot
-
+onRobot = False  # Whether or not we are running on the Arlo robot
+instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -145,6 +145,7 @@ try:
 
     # Initialize the robot (XXX: You do this)
     if isRunningOnArlo():
+        import exec_arlo_instructions as exec
         arlo = robot.Robot()
 
     # Allocate space for world map
@@ -160,6 +161,8 @@ try:
     else:
         #cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=True)
         cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
+
+    instructions = []
 
     while True:
 
@@ -191,6 +194,26 @@ try:
         # Use motor controls to update particles
         # XXX: Make the robot drive
         # XXX: You do this
+
+        if (isRunningOnArlo() or instruction_debug) and not len(instructions) == 0:
+            angular_velocity = 0
+            velocity = 0
+            if instructions[0][0] == "turn":
+                withclock, degrees = instructions[0][1]
+                radians = np.radians(degrees)
+                if withclock:
+                    radians = radians * -1
+                angular_velocity = radians
+            elif instructions[0][0] == "forward":
+                meters = instructions[0][1]
+                #instructions have their argument in meters, so they have to be converted to centimeters
+                centimeters = meters * 100
+                velocity = centimeters
+            else:
+                print("Unknown instruction, instructions have to be either turn or forward")
+            
+            exec.next(instructions)
+
         for p in particles:
             x_offset = np.cos(p.getTheta()) * velocity
             y_offset = np.sin(p.getTheta()) * velocity
