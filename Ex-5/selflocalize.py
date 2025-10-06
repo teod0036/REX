@@ -192,12 +192,9 @@ try:
         # XXX: Make the robot drive
         # XXX: You do this
         for p in particles:
-            p.setTheta(p.getTheta()+angular_velocity)
-
             x_offset = np.cos(p.getTheta()) * velocity
             y_offset = np.sin(p.getTheta()) * velocity
-            p.setX(p.getX() + x_offset)
-            p.setY(p.getY() + y_offset)
+            p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
         # Fetch next frame
         colour = cam.get_next_frame()
