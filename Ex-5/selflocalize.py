@@ -207,6 +207,7 @@ if __name__ == "__main__":
             cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
         instructions = []
+        arrived = False
 
         while True:
             if instruction_debug:
@@ -244,9 +245,20 @@ if __name__ == "__main__":
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                 current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
                 instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal)
-                if len(instructions) <= 2:
-                    print("I have arrived")
-                    print(instructions)
+                #The distance is in meters
+                dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
+                if len(instructions) == 2 and dist_from_target < 0.20:
+                    if arrived:
+                        print("I have arrived")
+                        print(f"The target is at {goal}")
+                        print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                        break
+                    arrived = True
+                    instructions = []
+                    for i in range(24):
+                        instructions.append(["turn", (True, 15)])
+                elif arrived:
+                    arrived = False
 
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
                 angular_velocity = 0
