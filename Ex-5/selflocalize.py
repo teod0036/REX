@@ -16,7 +16,7 @@ from copy import deepcopy
 # Flags
 showGUI = True  # Whether or not to open GUI windows
 onRobot = False  # Whether or not we are running on the Arlo robot
-instruction_debug = True #whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -207,6 +207,7 @@ if __name__ == "__main__":
             cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
         instructions = []
+        maxinstructions_per_execution = None
         arrived = False
 
         while True:
@@ -245,6 +246,8 @@ if __name__ == "__main__":
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                 current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
                 instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal)
+                if maxinstructions_per_execution is not None:
+                    instructions = instructions[:maxinstructions_per_execution]
                 #The distance is in meters
                 dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
                 if len(instructions) == 2 and dist_from_target < 0.20:
