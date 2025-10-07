@@ -16,7 +16,7 @@ from copy import deepcopy
 # Flags
 showGUI = True  # Whether or not to open GUI windows
 onRobot = False  # Whether or not we are running on the Arlo robot
-instruction_debug = True #whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
