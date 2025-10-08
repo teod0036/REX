@@ -249,7 +249,7 @@ if __name__ == "__main__":
             # XXX: Make the robot drive
             # XXX: You do this
             if len(instructions) == 0:
-                if search:
+                if not search:
                     search = True
                     pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                     current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
