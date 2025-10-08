@@ -13,10 +13,10 @@ def turn(params):
     extraconst_nc = -0.02
     if withclock:
         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
-        sleep((0.694 + extraconst_c) * (degrees/90))
+        sleep((0.694 + extraconst_c) * (degrees/90) * out_of_battery)
     else:
         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-        sleep((0.694 + extraconst_nc) * (degrees/90))
+        sleep((0.694 + extraconst_nc) * (degrees/90) * out_of_battery)
     print(arlo.stop())
 
 
@@ -24,7 +24,7 @@ def forward(distance):
     # Time constants
     out_of_battery = 2
     extraconst = 0.025
-    go_sleep = (2.3 + extraconst) * distance
+    go_sleep = (2.3 + extraconst) * distance * out_of_battery
 
     # Speed constants
     leftSpeed = 64
