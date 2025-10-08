@@ -192,7 +192,7 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         #Where the robot wants to go
-        goal = (landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2.
+        goal = (landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.
         print(f"Target point: {goal}")
 
         # Allocate space for world map
@@ -210,8 +210,8 @@ if __name__ == "__main__":
             cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
         instructions = []
-        for i in range(24):
-            instructions.append(["turn", (True, 15)])
+        for i in range(12):
+            instructions.append(["turn", (True, 30)])
         maxinstructions_per_execution = None
         arrived = False
 
@@ -250,7 +250,7 @@ if __name__ == "__main__":
             if len(instructions) == 0:
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                 current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
-                instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal)
+                instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
                 if len(instructions) == 0:
                     print(f"Current target is: {goal}")
                     print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
@@ -266,8 +266,8 @@ if __name__ == "__main__":
                         break
                     arrived = True
                     instructions = []
-                    for i in range(24):
-                        instructions.append(["turn", (True, 15)])
+                    for i in range(12):
+                        instructions.append(["turn", (True, 30)])
                 elif arrived:
                     arrived = False
 
