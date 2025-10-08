@@ -163,14 +163,14 @@ if __name__ == "__main__":
         est_pose = particle.estimate_pose(particles) # The estimate of the robots current pose
 
         # Driving parameters
-        velocity = 0.0 # cm/sec
-        angular_velocity = 0.0 # radians/sec
-        velocity_uncertainty = 1.57 #cm/sec
-        angular_uncertainty = 0.01 #radians/sec
-        angular_uncertainty_on_forward = 0.04 #radians/sec
-        angular_uncertainty_on_turn = 0.01 #radians/sec
+        velocity = 0.0 #cm/instruction
+        angular_velocity = 0.0 #radians/instruction
+        velocity_uncertainty = 4 #cm/instruction
+        angular_uncertainty = 0.01 #radians/instruction
+        angular_uncertainty_on_forward = 0.103 #radians/instruction
+        angular_uncertainty_on_turn = 0.01 #radians/instruction
 
-        # XXX: more uncertainty parameters
+        #More uncertainty parameters
         distance_measurement_uncertainty = 30.0  # cm
         angle_measurement_uncertainty = 11.5 * (2 * np.pi / 360) # radians
 
@@ -279,11 +279,13 @@ if __name__ == "__main__":
                     if withclock:
                         radians = radians * -1
                     angular_velocity = radians
+                    angular_uncertainty = angular_uncertainty_on_turn
                 elif instructions[0][0] == "forward":
                     meters = instructions[0][1]
                     #instructions have their argument in meters, so they have to be converted to centimeters
                     centimeters = meters * 100
                     velocity = centimeters
+                    angular_uncertainty = angular_uncertainty_on_forward
                 else:
                     print("Unknown instruction, instructions have to be either turn or forward")
                 if instruction_debug:
