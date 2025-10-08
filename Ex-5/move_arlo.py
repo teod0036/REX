@@ -35,5 +35,5 @@ def forward(distance):
     print(arlo.stop())
     
 if __name__ == "__main__":
-    for i in range(12):
-        turn((True, 30))
+    for i in range(4):
+        turn((True, 90))
