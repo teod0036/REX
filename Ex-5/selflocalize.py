@@ -191,7 +191,7 @@ if __name__ == "__main__":
         path_res = map_res
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
-        #Where the robot wants to go
+        #Where the robot wants to go, position in meters
         goal = (landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.
         print(f"Target point: {goal}")
 
@@ -212,8 +212,9 @@ if __name__ == "__main__":
         instructions = []
         for i in range(12):
             instructions.append(["turn", (True, 30)])
-        maxinstructions_per_execution = None
+        maxinstructions_per_execution = 4
         arrived = False
+        search = False
 
         while True:
             if instruction_debug:
@@ -248,14 +249,21 @@ if __name__ == "__main__":
             # XXX: Make the robot drive
             # XXX: You do this
             if len(instructions) == 0:
-                pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
-                current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
-                instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
-                if len(instructions) == 0:
-                    print(f"Current target is: {goal}")
-                    print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
-                if maxinstructions_per_execution is not None:
-                    instructions = instructions[:maxinstructions_per_execution]
+                if search:
+                    search = True
+                    pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+                    current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
+                    instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
+                    if len(instructions) == 0:
+                        print(f"Current target is: {goal}")
+                        print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
+                    if maxinstructions_per_execution is not None:
+                        instructions = instructions[:maxinstructions_per_execution]
+                else:
+                    search = False
+                    instructions = []
+                    for i in range(12):
+                        instructions.append(["turn", (True, 30)])
                 #The distance is in meters
                 dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
                 if len(instructions) == 2 and dist_from_target < 0.20:
