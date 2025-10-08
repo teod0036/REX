@@ -58,7 +58,7 @@ CBLACK = (0, 0, 0)
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
     1: np.array((0.0, 0.0)),  # Coordinates for landmark 1
-    7: np.array((300.0, 0.0))  # Coordinates for landmark 2
+    7: np.array((100.0, 0.0))  # Coordinates for landmark 2
 }
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
