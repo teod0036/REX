@@ -20,13 +20,13 @@ def turn(params):
 
 def forward(distance):
     # Time constants
-    extraconst = 0.1
+    extraconst = 0.05
     go_sleep = (2.3 + extraconst) * distance
 
     # Speed constants
     leftSpeed = 64
     rightSpeed = 64
-    rightSpeedmodifier = 0
+    rightSpeedmodifier = -2
 
     #go straight
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
