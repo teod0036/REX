@@ -251,6 +251,9 @@ if __name__ == "__main__":
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                 current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
                 instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal)
+                if len(instructions) == 0:
+                    print(f"Current target is: {goal}")
+                    print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
                 if maxinstructions_per_execution is not None:
                     instructions = instructions[:maxinstructions_per_execution]
                 #The distance is in meters
