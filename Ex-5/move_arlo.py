@@ -11,7 +11,7 @@ def turn(params):
     rightSpeed = 64 - 1
     extraconst_c = 0
     extraconst_nc = -0.02
-    if not withclock:
+    if withclock:
         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
         sleep((0.694 + extraconst_c) * (degrees/90) * out_of_battery)
     else:
