@@ -336,8 +336,7 @@ if __name__ == "__main__":
                         # compute distance and angles to presumed location of landmarks
                         v = landmarks[objID][np.newaxis, :] - positions
                         distances = np.linalg.norm(v, axis=1)
-                        angles = np.arctan2(v[:, 0], v[:, 1]) - np.arctan2(orientations[:, 0], orientations[:, 1])
-                        # flip the x,y to measure clockwise angles (left is positive)
+                        angles = np.arctan2(v[:, 1], v[:, 0]) - np.arctan2(orientations[:, 1], orientations[:, 0])
 
                         # create normal distributions centered around measurements
                         distance_pdf = ((1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) *
