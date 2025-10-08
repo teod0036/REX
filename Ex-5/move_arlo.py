@@ -6,7 +6,7 @@ arlo = robot.Robot()
 def turn(params):
     withclock, degrees = params
     # Speed constants
-    out_of_battery = 2
+    out_of_battery = 1.7
     leftSpeed = 64  
     rightSpeed = 64 - 1
     extraconst_c = 0
@@ -22,7 +22,7 @@ def turn(params):
 
 def forward(distance):
     # Time constants
-    out_of_battery = 2
+    out_of_battery = 1.7
     extraconst = 0.025
     go_sleep = (2.3 + extraconst) * distance * out_of_battery
 
