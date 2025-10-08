@@ -11,8 +11,8 @@ from copy import deepcopy
 
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
-showGUI = False  # Whether or not to open GUI windows
+onRobot = False  # Whether or not we are running on the Arlo robot
+showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
@@ -333,7 +333,7 @@ if __name__ == "__main__":
                         # compute distance and angles to presumed location of landmarks
                         v = landmarks[objID][np.newaxis, :] - positions
                         distances = np.linalg.norm(v, axis=1)
-                        angles = np.atan2(v[:, 0], v[:, 1]) - np.atan2(orientations[:, 0], orientations[:, 1])
+                        angles = np.arctan2(v[:, 0], v[:, 1]) - np.arctan2(orientations[:, 0], orientations[:, 1])
                         # flip the x,y to measure clockwise angles (left is positive)
 
                         # create normal distributions centered around measurements
