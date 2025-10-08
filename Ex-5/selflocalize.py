@@ -214,7 +214,6 @@ if __name__ == "__main__":
             instructions.append(["turn", (True, 30)])
         maxinstructions_per_execution = 8
         arrived = False
-        search = False
 
         while True:
             if instruction_debug:
@@ -249,24 +248,16 @@ if __name__ == "__main__":
             # XXX: Make the robot drive
             # XXX: You do this
             if len(instructions) == 0:
-                if not search:
-                    search = True
-                    pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
-                    current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
-                    instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
-                    if len(instructions) == 0:
-                        print(f"Current target is: {goal}")
-                        print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
-                    if maxinstructions_per_execution is not None:
-                        instructions = instructions[:maxinstructions_per_execution]
-                else:
-                    search = False
-                    instructions = []
-                    for i in range(12):
-                        instructions.append(["turn", (True, 30)])
+                pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+                current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
+                instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
+                if maxinstructions_per_execution is not None:
+                    instructions = instructions[:maxinstructions_per_execution]
                 #The distance is in meters
                 dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
                 print(f"I am currently {dist_from_target} meters from the target position")
+                print(f"Current target is: {goal}")
+                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
                 if len(instructions) == 2 and dist_from_target <= 0.80:
                     if arrived:
                         print("I have arrived")
@@ -276,6 +267,8 @@ if __name__ == "__main__":
                     arrived = True
                 elif arrived:
                     arrived = False
+                for i in range(12):
+                    instructions.append(["turn", (True, 30)])
 
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
                 angular_velocity = 0
