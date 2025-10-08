@@ -154,7 +154,7 @@ if __name__ == "__main__":
         num_particles = 1000
         
         if instruction_debug:
-            num_particles = 2
+            num_particles = 1000
 
         particles = initialize_particles(num_particles)
 
@@ -258,6 +258,7 @@ if __name__ == "__main__":
                 print(f"I am currently {dist_from_target} meters from the target position")
                 print(f"Current target is: {goal}")
                 print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
+                print(f"My instructions are {instructions}")
                 if dist_from_target <= 0.40:
                     if arrived:
                         print("I have arrived")
