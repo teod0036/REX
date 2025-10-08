@@ -3,10 +3,7 @@ import particle
 import camera
 import numpy as np
 import time
-import scipy
 from timeit import default_timer as timer
-import sys
-import scipy
 
 from copy import deepcopy
 
@@ -340,11 +337,13 @@ if __name__ == "__main__":
                         # flip the x,y to measure clockwise angles (left is positive)
 
                         # create normal distributions centered around measurements
-                        distance_distrib = scipy.stats.norm(loc=distances, scale=distance_measurement_uncertainty)
-                        angle_distrib = scipy.stats.norm(loc=angles, scale=angle_measurement_uncertainty)
+                        distance_pdf = ((1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) *
+                                        np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2))
+                        angle_pdf = ((1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) *
+                                        np.exp(-0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2))
                         
                         # compute the weights for this particular landmark
-                        weights_l = distance_distrib.pdf(objDist) * angle_distrib.pdf(objAngle)
+                        weights_l = distance_pdf * angle_pdf
 
                         # compute the culminative weights for all landmarks
                         weights *= weights_l
