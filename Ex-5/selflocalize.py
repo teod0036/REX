@@ -58,7 +58,7 @@ CBLACK = (0, 0, 0)
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
     1: np.array((0.0, 0.0)),  # Coordinates for landmark 1
-    7: np.array((100.0, 0.0))  # Coordinates for landmark 2
+    7: np.array((300.0, 0.0))  # Coordinates for landmark 2
 }
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
@@ -331,8 +331,8 @@ if __name__ == "__main__":
                         # compute distance and angles to presumed location of landmarks
                         v = landmarks[objID][np.newaxis, :] - positions
                         distances = np.linalg.norm(v, axis=1)
-                        angles = np.atan2(v[:, 1], v[:, 0]) - np.atan2(orientations[:, 1], orientations[:, 0])
-
+                        angles = np.atan2(v[:, 0], v[:, 1]) - np.atan2(orientations[:, 0], orientations[:, 1])
+                        # flip the x,y to measure clockwise angles (left is positive)
 
                         # create normal distributions centered around measurements
                         distance_distrib = scipy.stats.norm(loc=distances, scale=distance_measurement_uncertainty)
