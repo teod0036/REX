@@ -12,10 +12,10 @@ def turn(params):
     extraconst_nc = 0.25
     if withclock:
         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
-        sleep((0.694) * degrees/90)
+        sleep(0.694 * (degrees/90))
     else:
         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-        sleep((0.694) * degrees/90)
+        sleep(0.694 * (degrees/90))
 
 
 def forward(distance):
@@ -33,4 +33,4 @@ def forward(distance):
     sleep(go_sleep)
 
 if __name__ == "__main__":
-    turn((90, True))
+    turn((True, 90))
