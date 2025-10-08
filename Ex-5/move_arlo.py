@@ -31,3 +31,6 @@ def forward(distance):
     #go straight
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
     sleep(go_sleep)
+
+if __name__ == "__main__":
+    forward(1)
