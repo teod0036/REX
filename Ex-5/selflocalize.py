@@ -207,6 +207,8 @@ if __name__ == "__main__":
             cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
         instructions = []
+        for i in range(24):
+            instructions.append(["turn", (True, 15)])
         maxinstructions_per_execution = None
         arrived = False
 
