@@ -58,8 +58,8 @@ CBLACK = (0, 0, 0)
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarkIDs = [6, 7]
 landmarks = {
-    6: (0.0, 0.0),  # Coordinates for landmark 1
-    7: (300.0, 0.0)  # Coordinates for landmark 2
+    6: np.array((0.0, 0.0)),  # Coordinates for landmark 1
+    7: np.array((300.0, 0.0))  # Coordinates for landmark 2
 }
 landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
 
@@ -165,9 +165,8 @@ if __name__ == "__main__":
         angular_uncertainty = 0.1 #XXX: we need to measure this
 
         # XXX: more uncertainty parameters
-        distance_measurement_uncertainty = 0.1
-        angle_measurement_uncertainty = 0.1
-
+        distance_measurement_uncertainty = 30.0  # cm
+        angle_measurement_uncertainty = 11.5 * (2 * np.pi / 360) # radians
 
 
         # Initialize the robot (XXX: You do this)
@@ -292,7 +291,7 @@ if __name__ == "__main__":
 
                 # List detected objects
                 # for i in range(len(objectIDs)):
-                    # print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
+                #     print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
 
                 # XXX: Do something for each detected object - remember, the same ID may appear several times
                 objectDict = {objectIDs[i] : (dists[i], angles[i]) for i in range(len(objectIDs))}
@@ -300,26 +299,43 @@ if __name__ == "__main__":
                 # Compute particle weights
                 # XXX: You do this
 
+                # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
+                orientations = np.array([(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles], dtype=np.float32)
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
+                # scale the weights for each observation (multiply by likelihood)
                 for (objID, (objDist, objAngle)) in objectDict.items():
-                    if objID in landmarks:
-                        distances = np.linalg.norm(positions - landmarks[objID], axis=1)
-                        weights *= scipy.stats.norm(loc=distances, scale=distance_measurement_uncertainty).pdf(objDist)
+                    if objID in landmarkIDs:
+                        # compute distance and angles to presumed location of landmarks
+                        v = landmarks[objID][np.newaxis, :] - positions
+                        distances = np.linalg.norm(v, axis=1)
+                        angles = np.atan2(v.y, v.x) - np.atan2(orientations.y, orientations.x)
 
+                        # create normal distributions centered around measurements
+                        distance_distrib = scipy.stats.norm(loc=distances, scale=distance_measurement_uncertainty)
+                        angle_distrib = scipy.stats.norm(loc=angles, scale=angle_measurement_uncertainty)
+                        
+                        # compute the weights for this particular landmark
+                        weights_l = distance_distrib.pdf(objDist) * angle_distrib.pdf(objAngle)
+
+                        # compute the culminative weights for all landmarks
+                        weights *= weights_l
+
+                # normalise weights (compute the posterior)
                 weights += 1.e-300 # avoid problems with zeroes 
-                weights /= np.sum(weights)
+                weights /= np.sum(weights) 
 
                 # Resampling
                 # XXX: You do this
 
+                # resample particles to avoid degenerate particles
                 cumulative_sum = np.cumsum(weights)
                 cumulative_sum[-1] = 1. # avoid problems with zeroes
-                indicies = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles), side="left")
+                indicies = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+                particles = [deepcopy(particles[index]) for index in indicies] # copy by value
 
-                particles = [deepcopy(particles[index]) for index in indicies]
-
+                # reset weights to uniform distribution (for the next cycle of weighting and resampling)
                 for p in particles:
                     p.setWeight(1.0 / num_particles)
 
