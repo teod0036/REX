@@ -56,11 +56,11 @@ CBLACK = (0, 0, 0)
 
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
-landmarkIDs = [6, 7]
 landmarks = {
-    6: np.array((0.0, 0.0)),  # Coordinates for landmark 1
-    7: np.array((300.0, 0.0))  # Coordinates for landmark 2
+    1: np.array((0.0, 0.0)),  # Coordinates for landmark 1
+    7: np.array((100.0, 0.0))  # Coordinates for landmark 2
 }
+landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
 
 
@@ -111,6 +111,10 @@ def draw_world(est_pose, particles, world):
         ID = landmarkIDs[i]
         lm = (int(landmarks[ID][0] + offsetX), int(ymax - (landmarks[ID][1] + offsetY)))
         cv2.circle(world, lm, 5, landmark_colors[i], 2)
+        fontScale = 1
+        thickness = 2
+        lineType = 2
+        cv2.putText(world, f"{ID}", lm, cv2.FONT_HERSHEY_SIMPLEX, fontScale, landmark_colors[i], thickness, lineType)
 
     # Draw estimated robot pose
     a = (int(est_pose.getX())+offsetX, ymax-(int(est_pose.getY())+offsetY))
@@ -188,7 +192,7 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         #Where the robot wants to go
-        goal = np.array([((landmarks[6][0]+landmarks[7][0])/2)/100, ((landmarks[6][1]+landmarks[7][1])/2)/100])
+        goal = np.array([float((([0]+landmarks[landmarkIDs[0]][0])/2)/100), float(((landmarks[landmarkIDs[0]][1]+landmarks[landmarkIDs[1]][1])/2)/100)])
         print(f"Target point: {goal}")
 
         # Allocate space for world map
@@ -327,7 +331,8 @@ if __name__ == "__main__":
                         # compute distance and angles to presumed location of landmarks
                         v = landmarks[objID][np.newaxis, :] - positions
                         distances = np.linalg.norm(v, axis=1)
-                        angles = np.atan2(v.y, v.x) - np.atan2(orientations.y, orientations.x)
+                        angles = np.atan2(v[:, 1], v[:, 0]) - np.atan2(orientations[:, 1], orientations[:, 0])
+
 
                         # create normal distributions centered around measurements
                         distance_distrib = scipy.stats.norm(loc=distances, scale=distance_measurement_uncertainty)
