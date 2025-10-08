@@ -161,8 +161,10 @@ if __name__ == "__main__":
         # Driving parameters
         velocity = 0.0 # cm/sec
         angular_velocity = 0.0 # radians/sec
-        velocity_uncertainty = 0.1 #XXX: we need to measure this
-        angular_uncertainty = 0.1 #XXX: we need to measure this
+        velocity_uncertainty = 1.57 #cm/sec
+        angular_uncertainty = 0.01 #radians/sec
+        angular_uncertainty_on_forward = 0.04 #radians/sec
+        angular_uncertainty_on_turn = 0.01 #radians/sec
 
         # XXX: more uncertainty parameters
         distance_measurement_uncertainty = 30.0  # cm
