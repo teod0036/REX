@@ -12,7 +12,7 @@ from copy import deepcopy
 
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
-showGUI = False  # Whether or not to open GUI windows
+showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
@@ -192,7 +192,7 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         #Where the robot wants to go
-        goal = np.array([float((([0]+landmarks[landmarkIDs[0]][0])/2)/100), float(((landmarks[landmarkIDs[0]][1]+landmarks[landmarkIDs[1]][1])/2)/100)])
+        goal = (landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2.
         print(f"Target point: {goal}")
 
         # Allocate space for world map
@@ -336,7 +336,7 @@ if __name__ == "__main__":
                         # compute distance and angles to presumed location of landmarks
                         v = landmarks[objID][np.newaxis, :] - positions
                         distances = np.linalg.norm(v, axis=1)
-                        angles = np.atan2(v[:, 0], v[:, 1]) - np.atan2(orientations[:, 0], orientations[:, 1])
+                        angles = np.arctan2(v[:, 0], v[:, 1]) - np.arctan2(orientations[:, 0], orientations[:, 1])
                         # flip the x,y to measure clockwise angles (left is positive)
 
                         # create normal distributions centered around measurements
