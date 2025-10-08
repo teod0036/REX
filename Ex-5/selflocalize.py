@@ -11,7 +11,7 @@ from copy import deepcopy
 
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
@@ -328,6 +328,8 @@ if __name__ == "__main__":
                 # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
                 orientations = np.array([(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles], dtype=np.float32)
+                orientations_orthogonal = orientations[:, [1,0]]
+                orientations_orthogonal[:, 0] *= -1
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
                 # scale the weights for each observation (multiply by likelihood)
@@ -336,7 +338,9 @@ if __name__ == "__main__":
                         # compute distance and angles to presumed location of landmarks
                         v = landmarks[objID][np.newaxis, :] - positions
                         distances = np.linalg.norm(v, axis=1)
-                        angles = np.arctan2(v[:, 1], v[:, 0]) - np.arctan2(orientations[:, 1], orientations[:, 0])
+                        v /= distances[:, np.newaxis]
+                        angles = np.multiply(np.sign(np.sum(v * orientations_orthogonal, axis=1)),
+                                             np.arccos(np.sum(v * orientations, axis=1)))
 
                         # create normal distributions centered around measurements
                         distance_pdf = ((1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) *
@@ -351,7 +355,7 @@ if __name__ == "__main__":
                         weights *= weights_l
 
                 # normalise weights (compute the posterior)
-                weights += 1.e-300 # avoid problems with zeroes 
+                weights += 0.0000001 # avoid problems with zeroes 
                 weights /= np.sum(weights) 
 
                 # Resampling
