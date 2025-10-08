@@ -22,7 +22,7 @@ def turn(params):
 
 def forward(distance):
     # Time constants
-    out_of_battery = 1.7
+    out_of_battery = 1.87
     extraconst = 0.025
     go_sleep = (2.3 + extraconst) * distance * out_of_battery
 
