@@ -210,8 +210,8 @@ if __name__ == "__main__":
             cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
         instructions = []
-        for i in range(24):
-            instructions.append(["turn", (True, 15)])
+        for i in range(12):
+            instructions.append(["turn", (True, 30)])
         maxinstructions_per_execution = None
         arrived = False
 
@@ -266,8 +266,8 @@ if __name__ == "__main__":
                         break
                     arrived = True
                     instructions = []
-                    for i in range(24):
-                        instructions.append(["turn", (True, 15)])
+                    for i in range(12):
+                        instructions.append(["turn", (True, 30)])
                 elif arrived:
                     arrived = False
 
