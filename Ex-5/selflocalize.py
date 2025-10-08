@@ -258,7 +258,7 @@ if __name__ == "__main__":
                 print(f"I am currently {dist_from_target} meters from the target position")
                 print(f"Current target is: {goal}")
                 print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
-                if len(instructions) == 2 and dist_from_target <= 0.80:
+                if dist_from_target <= 0.80:
                     if arrived:
                         print("I have arrived")
                         print(f"The target is at {goal}")
