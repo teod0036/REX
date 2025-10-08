@@ -324,8 +324,8 @@ if __name__ == "__main__":
             if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
 
                 # List detected objects
-                # for i in range(len(objectIDs)):
-                #     print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
+                for i in range(len(objectIDs)):
+                    print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
 
                 # XXX: Do something for each detected object - remember, the same ID may appear several times
                 objectDict = {objectIDs[i] : (dists[i], angles[i]) for i in range(len(objectIDs))}
