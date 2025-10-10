@@ -248,6 +248,8 @@ if __name__ == "__main__":
             # XXX: Make the robot drive
             # XXX: You do this
             if len(instructions) == 0:
+                print("recalculating path")
+                print()
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                 current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
                 instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
@@ -259,14 +261,20 @@ if __name__ == "__main__":
                 print(f"Current target is: {goal}")
                 print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
                 print(f"My instructions are {instructions}")
+                print()
                 if dist_from_target <= 0.40:
+                    print("I am close to my target")
+                    print()
                     if arrived:
                         print("I have arrived")
                         print(f"The target is at {goal}")
                         print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                        print()
                         break
                     arrived = True
                 elif arrived:
+                    print("I have realized i am not close to my target")
+                    print()
                     arrived = False
                 for i in range(12):
                     instructions.append(["turn", (True, 30)])
