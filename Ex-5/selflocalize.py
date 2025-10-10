@@ -213,8 +213,11 @@ if __name__ == "__main__":
             instructions.append(["turn", (True, 30)])
         maxinstructions_per_execution = 8
         arrived = False
-
+        
+        i = 0
         while True:
+            print(f"We are on iteration {i}")
+            i += 1
             if instruction_debug:
                 time.sleep(0.2)
 
@@ -302,7 +305,8 @@ if __name__ == "__main__":
                         velocity = 0
                         angular_velocity = 0
                 else:
-                    exec.next(instructions)
+                    #exec.next(instructions)
+                    pass
 
                     
             # predict particles after movement (prior):
