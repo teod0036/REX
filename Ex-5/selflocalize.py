@@ -314,7 +314,7 @@ if __name__ == "__main__":
                 x_offset = np.cos(p.getTheta()) * velocity
                 y_offset = np.sin(p.getTheta()) * velocity
 
-                p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
+                #p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
             # Add some noise
             particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
