@@ -259,7 +259,7 @@ if __name__ == "__main__":
                 dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
                 print(f"I am currently {dist_from_target} meters from the target position")
                 print(f"Current target is: {goal}")
-                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getX()/100}]")
+                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                 print(f"My instructions are {instructions}")
                 print()
                 if dist_from_target <= 0.40:
