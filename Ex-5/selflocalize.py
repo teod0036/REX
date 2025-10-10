@@ -215,7 +215,7 @@ if __name__ == "__main__":
         maxinstructions_per_execution = 8
         arrived = False
         
-        i = 0
+        main_i = 0
         while True:
             if instruction_debug:
                 time.sleep(0.2)
@@ -248,7 +248,7 @@ if __name__ == "__main__":
             # Use motor controls to update particles
             # XXX: Make the robot drive
             # XXX: You do this
-            if (i % 10 == 0):
+            if (main_i % 10 == 0):
                 if len(instructions) == 0:
                     print("recalculating path")
                     print()
@@ -325,8 +325,8 @@ if __name__ == "__main__":
             # Detect objects
             objectIDs, dists, angles = cam.detect_aruco_objects(colour)
             if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
-                print(f"We are on iteration {i}")
-                i = i + 1
+                print(f"We are on iteration {main_i}")
+                main_i = main_i + 1
                 # List detected objects
                 objectDict = {}
                 for i in range(len(objectIDs)):
