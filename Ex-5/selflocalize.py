@@ -112,7 +112,7 @@ def draw_world(est_pose, particles, world):
         fontScale = 1
         thickness = 2
         lineType = 2
-        cv2.putText(world, f"{ID}", lm, cv2.FONT_HERSHEY_SIMPLEX, fontScale, landmark_colors[i], thickness, lineType)
+        cv2.putText(world, f"{ID}", lm, cv2.FONT_HERSHEY_SIMPLEX, fontScale, (255, 255, 255), thickness, lineType)
 
     # Draw estimated robot pose
     a = (int(est_pose.getX())+offsetX, ymax-(int(est_pose.getY())+offsetY))
@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
         #More uncertainty parameters
         distance_measurement_uncertainty = 30.0  # cm
-        angle_measurement_uncertainty = 11.5 * (2 * np.pi / 360) # radians
+        angle_measurement_uncertainty = np.deg2rad(10.0) # radians
 
 
         # Initialize the robot (XXX: You do this)
@@ -327,15 +327,18 @@ if __name__ == "__main__":
             if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
                 print(f"We are on iteration {main_i}")
                 main_i = main_i + 1
+
                 # List detected objects
                 objectDict = {}
                 for i in range(len(objectIDs)):
                     print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
 
                     # XXX: Do something for each detected object - remember, the same ID may appear several times
-                    if objectIDs[i] not in objectDict or (
-                        dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1])):
+                    if objectIDs[i] not in objectDict:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
+                    else:
+                        prev_dist, prev_angle = objectDict[objectIDs[i]]
+                        objectDict[objectIDs[i]] = ((prev_dist + dists[i]) / 2, (prev_angle + angles[i]) / 2)
 
                 # Compute particle weights
                 # XXX: You do this
@@ -351,26 +354,30 @@ if __name__ == "__main__":
                     if objID not in landmarkIDs:
                         continue
 
-                    landmark_pos = landmarks[objID][np.newaxis, :]  # shape (1, 2)
-                    v = landmark_pos - positions                    # vector from particle to landmark
+                    # vector from particle to landmark
+                    v = landmarks[objID][np.newaxis, :] - positions                    
                     distances = np.linalg.norm(v, axis=1)
-                    v /= distances[:, np.newaxis]                   # normalize to unit vector
-
-                    # angles from particle direction to landmark direction
-                    dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
-                    cross = np.sum(v * orientations_orthogonal, axis=1)
-                    angles = np.sign(cross) * np.arccos(dot)
 
                     # accumulate likelihood for each object for each measurement
                     distance_pdf = (
                         (1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) *
                         np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2)
                     )
-                    angle_pdf = (
-                        (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) *
-                        np.exp(-0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2)
-                    )
-                    weights *= distance_pdf * angle_pdf
+
+                    if len(objectDict) == 1:
+                        weights *= distance_pdf
+                    else:
+                        # angles from particle direction to landmark direction
+                        v /= distances[:, np.newaxis]
+                        dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
+                        cross = np.sum(v * orientations_orthogonal, axis=1)
+                        angles = np.sign(cross) * np.arccos(dot)
+
+                        angle_pdf = (
+                            (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) *
+                            np.exp(-0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2)
+                        )
+                        weights *= distance_pdf * angle_pdf
 
                 # normalise weights (compute the posterior)
                 weights += 1e-12 # avoid problems with zeroes 
