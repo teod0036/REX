@@ -217,7 +217,7 @@ if __name__ == "__main__":
         i = 0
         while True:
             print(f"We are on iteration {i}")
-            i += 1
+            i = i + 1
             if instruction_debug:
                 time.sleep(0.2)
 
