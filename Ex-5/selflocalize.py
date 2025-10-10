@@ -248,7 +248,7 @@ if __name__ == "__main__":
             # Use motor controls to update particles
             # XXX: Make the robot drive
             # XXX: You do this
-            if (main_i % 10 == 0):
+            if (main_i % 4 == 0):
                 if len(instructions) == 0:
                     print("recalculating path")
                     print()
@@ -278,8 +278,8 @@ if __name__ == "__main__":
                         print("I have realized i am not close to my target")
                         print()
                         arrived = False
-                    for i in range(12):
-                        instructions.append(["turn", (True, 30)])
+                    for i in range(24):
+                        instructions.append(["turn", (True, 15)])
 
                 if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
                     angular_velocity = 0
