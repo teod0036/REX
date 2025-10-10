@@ -29,7 +29,6 @@ if isRunningOnArlo():
 
 if isRunningOnArlo():
     instruction_debug = False
-    showGUI = False
 
 try:
     print("selflocalize.py: assuming we are running on robot")
