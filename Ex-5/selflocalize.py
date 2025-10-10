@@ -7,11 +7,13 @@ from timeit import default_timer as timer
 
 from copy import deepcopy
 
+from collections import defaultdict
+
 # from copy import deepcopy
 
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
@@ -68,13 +70,12 @@ landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of 
     a particle from its weight."""
-    x = max(0, min(1, x)) 
 
     r = (x >= 3.0/8.0 and x < 5.0/8.0) * (4.0 * x - 3.0/2.0) + (x >= 5.0/8.0 and x < 7.0/8.0) + (x >= 7.0/8.0) * (-4.0 * x + 9.0/2.0)
     g = (x >= 1.0/8.0 and x < 3.0/8.0) * (4.0 * x - 1.0/2.0) + (x >= 3.0/8.0 and x < 5.0/8.0) + (x >= 5.0/8.0 and x < 7.0/8.0) * (-4.0 * x + 7.0/2.0)
     b = (x < 1.0/8.0) * (4.0 * x + 1.0/2.0) + (x >= 1.0/8.0 and x < 3.0/8.0) + (x >= 3.0/8.0 and x < 5.0/8.0) * (-4.0 * x + 5.0/2.0)
 
-    return (255.0*r, 255.0*g, 255.0*b)
+    return (255.0*float(r), 255.0*float(g), 255.0*float(b))
 
 def draw_world(est_pose, particles, world):
     """Visualization.
@@ -322,11 +323,14 @@ if __name__ == "__main__":
             if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
 
                 # List detected objects
+                objectDict = {}
                 for i in range(len(objectIDs)):
                     print("Object ID = ", objectIDs[i], ", Distance = ", dists[i], ", angle = ", angles[i])
 
-                # XXX: Do something for each detected object - remember, the same ID may appear several times
-                objectDict = {objectIDs[i] : (dists[i], angles[i]) for i in range(len(objectIDs))}
+                    # XXX: Do something for each detected object - remember, the same ID may appear several times
+                    if objectIDs[i] not in objectDict or (
+                        dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1])):
+                        objectDict[objectIDs[i]] = (dists[i], angles[i])
 
                 # Compute particle weights
                 # XXX: You do this
@@ -334,48 +338,60 @@ if __name__ == "__main__":
                 # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
                 orientations = np.array([(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles], dtype=np.float32)
-                orientations_orthogonal = orientations[:, [1,0]]
-                orientations_orthogonal[:, 0] *= -1
+                orientations_orthogonal = np.column_stack([-orientations[:,1], orientations[:,0]])  # 90° rotated
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
                 # scale the weights for each observation (multiply by likelihood)
-                for (objID, (objDist, objAngle)) in objectDict.items():
-                    if objID in landmarkIDs:
-                        # compute distance and angles to presumed location of landmarks
-                        v = landmarks[objID][np.newaxis, :] - positions
-                        distances = np.linalg.norm(v, axis=1)
-                        v /= distances[:, np.newaxis]
-                        angles = np.multiply(np.sign(np.sum(v * orientations_orthogonal, axis=1)),
-                                             np.arccos(np.sum(v * orientations, axis=1)))
+                for objID, (objDist, objAngle) in objectDict.items():
+                    if objID not in landmarkIDs:
+                        continue
 
-                        # create normal distributions centered around measurements
-                        distance_pdf = ((1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) *
-                                        np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2))
-                        angle_pdf = ((1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) *
-                                        np.exp(-0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2))
-                        
-                        # compute the weights for this particular landmark
-                        weights_l = distance_pdf * angle_pdf
+                    landmark_pos = landmarks[objID][np.newaxis, :]  # shape (1, 2)
+                    v = landmark_pos - positions                    # vector from particle to landmark
+                    distances = np.linalg.norm(v, axis=1)
+                    v /= distances[:, np.newaxis]                   # normalize to unit vector
 
-                        # compute the culminative weights for all landmarks
-                        weights *= weights_l
+                    # angles from particle direction to landmark direction
+                    dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
+                    cross = np.sum(v * orientations_orthogonal, axis=1)
+                    angles = np.sign(cross) * np.arccos(dot)
+
+                    # accumulate likelihood for each object for each measurement
+                    distance_pdf = (
+                        (1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) *
+                        np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2)
+                    )
+                    angle_pdf = (
+                        (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) *
+                        np.exp(-0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2)
+                    )
+                    weights *= distance_pdf * angle_pdf
 
                 # normalise weights (compute the posterior)
-                weights += 0.0000001 # avoid problems with zeroes 
-                weights /= np.sum(weights) 
+                weights += 1e-12 # avoid problems with zeroes 
+                weights /= np.sum(weights)
 
                 # Resampling
                 # XXX: You do this
 
-                # resample particles to avoid degenerate particles
-                cumulative_sum = np.cumsum(weights)
-                cumulative_sum[-1] = 1. # avoid problems with zeroes
-                indicies = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
-                particles = [deepcopy(particles[index]) for index in indicies] # copy by value
+                # compute effective sample size (ESS)
+                N_eff = 1.0 / np.sum(np.square(weights))
 
-                # reset weights to uniform distribution (for the next cycle of weighting and resampling)
-                for p in particles:
-                    p.setWeight(1.0 / num_particles)
+                # resample particles to avoid degenerate particles
+                if N_eff < num_particles / 2:
+                    cumulative_sum = np.cumsum(weights)
+                    cumulative_sum[-1] = 1.0  # numerical fix
+                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+                    particles = [deepcopy(particles[i]) for i in indices]
+
+                    # reset weights to uniform distribution (for the next cycle of weighting and resampling)
+                    for p in particles:
+                        p.setWeight(1.0 / num_particles)
+                else:
+                    # keep weights as is:
+                    for i, p in enumerate(particles):
+                        p.setWeight(weights[i])
+
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)
