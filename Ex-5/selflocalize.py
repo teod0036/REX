@@ -217,8 +217,6 @@ if __name__ == "__main__":
         
         i = 0
         while True:
-            print(f"We are on iteration {i}")
-            i = i + 1
             if instruction_debug:
                 time.sleep(0.2)
 
@@ -250,75 +248,76 @@ if __name__ == "__main__":
             # Use motor controls to update particles
             # XXX: Make the robot drive
             # XXX: You do this
-            if len(instructions) == 0:
-                print("recalculating path")
-                print()
-                pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
-                current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
-                instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
-                if maxinstructions_per_execution is not None:
-                    instructions = instructions[:maxinstructions_per_execution]
-                #The distance is in meters
-                dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
-                print(f"I am currently {dist_from_target} meters from the target position")
-                print(f"Current target is: {goal}")
-                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
-                print(f"My instructions are {instructions}")
-                print()
-                if dist_from_target <= 0.40:
-                    print("I am close to my target")
+            if (i % 10 == 0):
+                if len(instructions) == 0:
+                    print("recalculating path")
                     print()
-                    if arrived:
-                        print("I have arrived")
-                        print(f"The target is at {goal}")
-                        print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                    pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+                    current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
+                    instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
+                    if maxinstructions_per_execution is not None:
+                        instructions = instructions[:maxinstructions_per_execution]
+                    #The distance is in meters
+                    dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
+                    print(f"I am currently {dist_from_target} meters from the target position")
+                    print(f"Current target is: {goal}")
+                    print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                    print(f"My instructions are {instructions}")
+                    print()
+                    if dist_from_target <= 0.40:
+                        print("I am close to my target")
                         print()
-                        break
-                    arrived = True
-                elif arrived:
-                    print("I have realized i am not close to my target")
-                    print()
-                    arrived = False
-                for i in range(12):
-                    instructions.append(["turn", (True, 30)])
+                        if arrived:
+                            print("I have arrived")
+                            print(f"The target is at {goal}")
+                            print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                            print()
+                            break
+                        arrived = True
+                    elif arrived:
+                        print("I have realized i am not close to my target")
+                        print()
+                        arrived = False
+                    for i in range(12):
+                        instructions.append(["turn", (True, 30)])
 
-            if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
-                angular_velocity = 0
-                velocity = 0
-                if instructions[0][0] == "turn":
-                    withclock, degrees = instructions[0][1]
-                    radians = np.radians(degrees)
-                    if withclock:
-                        radians = radians * -1
-                    angular_velocity = radians
-                    angular_uncertainty = angular_uncertainty_on_turn
-                elif instructions[0][0] == "forward":
-                    meters = instructions[0][1]
-                    #instructions have their argument in meters, so they have to be converted to centimeters
-                    centimeters = meters * 100
-                    velocity = centimeters
-                    angular_uncertainty = angular_uncertainty_on_forward
-                else:
-                    print("Unknown instruction, instructions have to be either turn or forward")
-                if instruction_debug:
-                    del instructions[0]
-                    if len(instructions) == 0:
-                        velocity = 0
-                        angular_velocity = 0
-                else:
-                    exec.next(instructions)
-                    
+                if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
+                    angular_velocity = 0
+                    velocity = 0
+                    if instructions[0][0] == "turn":
+                        withclock, degrees = instructions[0][1]
+                        radians = np.radians(degrees)
+                        if withclock:
+                            radians = radians * -1
+                        angular_velocity = radians
+                        angular_uncertainty = angular_uncertainty_on_turn
+                    elif instructions[0][0] == "forward":
+                        meters = instructions[0][1]
+                        #instructions have their argument in meters, so they have to be converted to centimeters
+                        centimeters = meters * 100
+                        velocity = centimeters
+                        angular_uncertainty = angular_uncertainty_on_forward
+                    else:
+                        print("Unknown instruction, instructions have to be either turn or forward")
+                    if instruction_debug:
+                        del instructions[0]
+                        if len(instructions) == 0:
+                            velocity = 0
+                            angular_velocity = 0
+                    else:
+                        exec.next(instructions)
+                        
 
-                    
-            # predict particles after movement (prior):
-            for p in particles:
-                x_offset = np.cos(p.getTheta()) * velocity
-                y_offset = np.sin(p.getTheta()) * velocity
+                        
+                # predict particles after movement (prior):
+                for p in particles:
+                    x_offset = np.cos(p.getTheta()) * velocity
+                    y_offset = np.sin(p.getTheta()) * velocity
 
-                p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
+                    p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
-            # Add some noise
-            particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
+                # Add some noise
+                particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
 
             # Fetch next frame
             colour = cam.get_next_frame()
@@ -326,7 +325,8 @@ if __name__ == "__main__":
             # Detect objects
             objectIDs, dists, angles = cam.detect_aruco_objects(colour)
             if not isinstance(objectIDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
-
+                print(f"We are on iteration {i}")
+                i = i + 1
                 # List detected objects
                 objectDict = {}
                 for i in range(len(objectIDs)):
