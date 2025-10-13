@@ -14,7 +14,7 @@ from collections import defaultdict
 
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
-showGUI = False  # Whether or not to open GUI windows
+showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
@@ -278,7 +278,7 @@ if __name__ == "__main__":
                     print()
                     arrived = False
                 for i in range(24):
-                    instructions.append(["turn", (True, 15)])
+                    instructions.append(["turn", (True, 30)])
 
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
                 angular_velocity = 0
