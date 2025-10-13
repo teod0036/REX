@@ -13,9 +13,9 @@ from collections import defaultdict
 
 
 # Flags
-onRobot = False  # Whether or not we are running on the Arlo robot
+onRobot = True  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = True #whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -291,7 +291,7 @@ if __name__ == "__main__":
                 if instructions[0][0] == "turn":
                     withclock, degrees = instructions[0][1]
                     radians = np.radians(degrees)
-                    if withclock:
+                    if not withclock:
                         radians = radians * -1
                     angular_velocity = radians
                     angular_uncertainty = angular_uncertainty_on_turn
