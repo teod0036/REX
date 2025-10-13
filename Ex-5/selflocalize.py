@@ -263,7 +263,7 @@ if __name__ == "__main__":
                 print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                 print(f"My instructions are {instructions}")
                 print()
-                if dist_from_target <= 0.40:
+                if dist_from_target <= 0.25:
                     print("I am close to my target")
                     print()
                     if arrived:
@@ -277,7 +277,7 @@ if __name__ == "__main__":
                     print("I have realized i am not close to my target")
                     print()
                     arrived = False
-                for i in range(24):
+                for i in range(12):
                     instructions.append(["turn", (True, 30)])
 
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
