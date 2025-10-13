@@ -18,7 +18,7 @@ def turn(params):
         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
         sleep((0.694 + extraconst_nc) * (degrees/90))
     print(arlo.stop())
-    sleep(0.05)
+    sleep(0.1)
 
 
 def forward(distance):
@@ -36,7 +36,7 @@ def forward(distance):
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
     sleep(go_sleep)
     print(arlo.stop())
-    sleep(0.05)
+    sleep(0.1)
 
 if __name__ == "__main__":
     for i in range(4):
