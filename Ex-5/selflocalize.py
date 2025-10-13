@@ -170,7 +170,7 @@ if __name__ == "__main__":
 
         #More uncertainty parameters
         distance_measurement_uncertainty = 30.0  # cm
-        angle_measurement_uncertainty = np.deg2rad(10.0) # radians
+        angle_measurement_uncertainty = np.deg2rad(22.5) # radians
 
 
         # Initialize the robot (XXX: You do this)
