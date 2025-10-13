@@ -13,9 +13,9 @@ from collections import defaultdict
 
 
 # Flags
-onRobot = False  # Whether or not we are running on the Arlo robot
+onRobot = True  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = True #whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
