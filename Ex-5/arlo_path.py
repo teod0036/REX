@@ -11,10 +11,10 @@ def path_to_arlo_instructions(path, current_dir=[0, 1], current_dir_orthogonal=[
         target_dir /= point_dist
         dot_prod = np.clip(np.sum(target_dir * current_dir), -1, 1)
         cross_prod = np.sum(target_dir * current_dir_orthogonal) 
-        rot_deg = (180/math.pi) * np.sign(cross_prod) * np.arccos(dot_prod) 
+        rot_deg = (180/math.pi) * np.arccos(dot_prod) 
 
-        withclock = (rot_deg < 0)
-        instructions.append(["turn", (withclock, round(abs(rot_deg), 2))]) 
+        withclock = (np.sign(cross_prod) < 0)
+        instructions.append(["turn", (withclock, round(rot_deg, 2))]) 
         instructions.append(["forward", round(point_dist, 2)])
 
         current_dir = target_dir
