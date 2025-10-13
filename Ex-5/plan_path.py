@@ -2,15 +2,30 @@ from arlo_path import path_to_arlo_instructions
 from rrt import RRT
 from rdp import rdp
 import numpy as np
-import map_plot_markers
 
-map_low = map_plot_markers.map_low
-map_high = map_plot_markers.map_high
-map_res = map_plot_markers.map_res
+# def save_array(arr: np.ndarray, name : str):
+#     datafile_name = f"{name}.npy"
+#
+#     with open(datafile_name, "wb") as f:
+#         np.save(f, np.array(arr))
+#         print(f"outputted array to {datafile_name}")
+#
+#
+# def load_array(name: str) -> np.ndarray:
+#     datafile_name = f"{name}.npy"
+#
+#     with open(datafile_name, "rb") as f:
+#         return np.load(f)
 
-marker_radius = map_plot_markers.marker_radius_m
 
-def plan_path(map, robot, current_dir=np.array([0,1]), current_dir_orthogonal=np.array([-1,0]), start=np.array([0.0, 0.0], dtype=np.float32), goal=np.array([0, 1.9], dtype=np.float32), expand_dis=0.2, debug=False):
+
+def plan_path(map, robot,
+              current_dir=np.array([0,1]),
+              current_dir_orthogonal=np.array([-1,0]),
+              start=np.array([0.0, 0.0], dtype=np.float32),
+              goal=np.array([0, 1.9], dtype=np.float32),
+              expand_dis=0.2,
+              debug=False):
     rrt = RRT(
         start=start,
         goal=goal,
@@ -27,5 +42,8 @@ def plan_path(map, robot, current_dir=np.array([0,1]), current_dir_orthogonal=np
     
     path = rdp(plan, rrt.path_resolution*2)
     path.reverse()
+
+    # if debug:
+    #     save_array(np.array(path), "path")
 
     return path_to_arlo_instructions(path, current_dir=current_dir, current_dir_orthogonal=current_dir_orthogonal)
