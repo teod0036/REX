@@ -5,7 +5,6 @@ def path_to_arlo_instructions(path, current_dir=[0, 1], current_dir_orthogonal=[
     instructions = []
     current_point = np.asarray(path[0])
     for point in path[1:]:
-
         point = np.asarray(point)
         target_dir = point - current_point
         point_dist = np.linalg.norm(target_dir)
