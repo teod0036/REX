@@ -291,7 +291,7 @@ if __name__ == "__main__":
                 if instructions[0][0] == "turn":
                     withclock, degrees = instructions[0][1]
                     radians = np.radians(degrees)
-                    if not withclock:
+                    if withclock:
                         radians = radians * -1
                     angular_velocity = radians
                     angular_uncertainty = angular_uncertainty_on_turn
