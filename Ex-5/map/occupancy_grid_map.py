@@ -18,6 +18,8 @@ class OccupancyGridMap:
         """
         note: low included, high not include in grid
         """
+        low = np.asarray(low)
+        high = np.asarray(high)
 
         self.aabb = AABB(low, high)
         self.resolution = resolution
@@ -63,7 +65,6 @@ class OccupancyGridMap:
             extent=self.extent,
             interpolation="none",
         )
-        plt.show()
 
     def populate(self, n_obs=6):
         """
@@ -82,6 +83,8 @@ class OccupancyGridMap:
 
     def plot_centroid(self, origins: np.ndarray, radius_squared: np.ndarray):
         # fill the grids by checking if the grid centroid is in any of the circle
+        origins = np.asarray(origins)
+        radius_squared = np.asarray(radius_squared)
 
         centorids_reshaped = self.centroids[
             :, :, np.newaxis, :
@@ -103,6 +106,8 @@ class OccupancyGridMap:
         """
         find if the position is occupied or not. return if the queried pos is outside the map
         """
+        pos = np.asarray(pos)
+
         indices = np.rint((pos - self.aabb.min) / self.resolution).astype(int)
         if np.any((indices < np.array([0, 0])) | (self.grid_size <= indices)):
             return 1

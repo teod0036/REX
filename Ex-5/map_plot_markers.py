@@ -13,10 +13,6 @@ camera_offset_m = np.array((0, 22.5 / 100))
 marker_half_depth_m = np.array(11 / 100)
 marker_radius_m = np.array(18 / 100) + camera_offset_m[1]
 
-map_low = np.array((-1, 0))
-map_high = np.array((1, 4))
-map_res = 0.05
-
 try:
     from robot_extended import Marker
 

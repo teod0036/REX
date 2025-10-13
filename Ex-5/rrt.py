@@ -196,13 +196,9 @@ def main():
     import matplotlib.pyplot as plt
     import rdp
 
-    import map_plot_markers as map_plot_markers
-
-    map_low = map_plot_markers.map_low
-    map_high = map_plot_markers.map_high
-    map_res = map_plot_markers.map_res
-
-    marker_radius = map_plot_markers.marker_radius_m
+    map_low = np.array((-1, 0))
+    map_high = np.array((1, 4))
+    map_res = 0.05
 
     path_res = map_res
     map = occupancy_grid_map.OccupancyGridMap(
