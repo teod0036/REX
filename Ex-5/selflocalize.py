@@ -13,9 +13,9 @@ from collections import defaultdict
 
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = True #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         num_particles = 1000
         
         if instruction_debug:
-            num_particles = 1000
+            num_particles = 4
 
         particles = initialize_particles(num_particles)
 
@@ -253,10 +253,10 @@ if __name__ == "__main__":
                 print()
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                 current_dir = np.array([np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())])
-                current_dir_orthogonal = np.array([-np.sin(est_pose.getTheta(), np.cos(est_pose.getTheta()))])
-
+                current_dir_orthogonal = np.column_stack([-current_dir[1], current_dir[0]])
                 instructions = plan_path.plan_path(path_map, robot_model,
                                current_dir=current_dir,
+                               current_dir_orthogonal=current_dir_orthogonal,
                                start=pos_meter,
                                goal=goal) #type: ignore
                 if maxinstructions_per_execution is not None:
