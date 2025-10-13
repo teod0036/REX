@@ -10,7 +10,7 @@ map_res = map_plot_markers.map_res
 
 marker_radius = map_plot_markers.marker_radius_m
 
-def plan_path(map, robot, current_dir=[0,1], start=np.array([0.0, 0.0], dtype=np.float32), goal=np.array([0, 1.9], dtype=np.float32), expand_dis=0.2, debug=False):
+def plan_path(map, robot, current_dir=np.array([0,1]), current_dir_orthogonal=np.array([-1,0]), start=np.array([0.0, 0.0], dtype=np.float32), goal=np.array([0, 1.9], dtype=np.float32), expand_dis=0.2, debug=False):
     rrt = RRT(
         start=start,
         goal=goal,
@@ -28,4 +28,4 @@ def plan_path(map, robot, current_dir=[0,1], start=np.array([0.0, 0.0], dtype=np
     path = rdp(plan, rrt.path_resolution*2)
     path.reverse()
 
-    return path_to_arlo_instructions(path, current_dir=current_dir)
+    return path_to_arlo_instructions(path, current_dir=current_dir, current_dir_orthogonal=current_dir_orthogonal)

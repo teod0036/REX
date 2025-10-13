@@ -252,8 +252,13 @@ if __name__ == "__main__":
                 print("recalculating path")
                 print()
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
-                current_dir = [np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())]
-                instructions = plan_path.plan_path(path_map, robot_model, current_dir=current_dir, start=pos_meter, goal=goal) #type: ignore
+                current_dir = np.array([np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())])
+                current_dir_orthogonal = np.array([-np.sin(est_pose.getTheta(), np.cos(est_pose.getTheta()))])
+
+                instructions = plan_path.plan_path(path_map, robot_model,
+                               current_dir=current_dir,
+                               start=pos_meter,
+                               goal=goal) #type: ignore
                 if maxinstructions_per_execution is not None:
                     instructions = instructions[:maxinstructions_per_execution]
                 #The distance is in meters
@@ -286,7 +291,7 @@ if __name__ == "__main__":
                 if instructions[0][0] == "turn":
                     withclock, degrees = instructions[0][1]
                     radians = np.radians(degrees)
-                    if not withclock:
+                    if withclock:
                         radians = radians * -1
                     angular_velocity = radians
                     angular_uncertainty = angular_uncertainty_on_turn

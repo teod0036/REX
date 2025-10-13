@@ -39,5 +39,5 @@ def forward(distance):
     sleep(0.1)
 
 if __name__ == "__main__":
-    for i in range(4):
-        turn((True, 90))
+    # for i in range(4):
+    turn((True, 45))
