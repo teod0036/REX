@@ -13,7 +13,7 @@ from collections import defaultdict
 
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
@@ -365,20 +365,18 @@ if __name__ == "__main__":
                         np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2)
                     )
 
-                    if len(objectDict) == 1:
-                        weights *= distance_pdf
-                    else:
-                        # angles from particle direction to landmark direction
-                        v /= distances[:, np.newaxis]
-                        dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
-                        cross = np.sum(v * orientations_orthogonal, axis=1)
-                        angles = np.sign(cross) * np.arccos(dot)
+                    # angles from particle direction to landmark direction
+                    v /= distances[:, np.newaxis]
+                    dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
+                    cross = np.sum(v * orientations_orthogonal, axis=1)
+                    angles = np.sign(cross) * np.arccos(dot)
 
-                        angle_pdf = (
-                            (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) *
-                            np.exp(-0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2)
-                        )
-                        weights *= distance_pdf * angle_pdf
+                    angle_pdf = (
+                        (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) *
+                        np.exp(-0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2)
+                    )
+
+                    weights *= distance_pdf * angle_pdf
 
                 # normalise weights (compute the posterior)
                 weights += 1e-12 # avoid problems with zeroes 
