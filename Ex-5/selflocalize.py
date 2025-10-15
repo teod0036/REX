@@ -169,8 +169,8 @@ if __name__ == "__main__":
         angular_uncertainty = angular_uncertainty_on_turn #radians/instruction
 
         #More uncertainty parameters
-        distance_measurement_uncertainty = 30.0  # cm
-        angle_measurement_uncertainty = np.deg2rad(22.5) # radians
+        distance_measurement_uncertainty = 5.0  # cm
+        angle_measurement_uncertainty = np.deg2rad(5) # radians
 
 
         # Initialize the robot (XXX: You do this)
