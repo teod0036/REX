@@ -6,7 +6,7 @@ import threading
 import framebuffer
 
 
-showGUI = False
+showGUI = True
 
 gstreamerCameraFound = False
 piCameraFound = False
