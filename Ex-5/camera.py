@@ -6,6 +6,8 @@ import threading
 import framebuffer
 
 
+openWindow = False
+
 gstreamerCameraFound = False
 piCameraFound = False
 piCamera2Found = False
@@ -509,19 +511,22 @@ if (__name__=='__main__'):
     
     # Open a window
     WIN_RF1 = "Camera view"
-    cv2.namedWindow(WIN_RF1)
-    cv2.moveWindow(WIN_RF1, 50, 50)
+    if openWindow:
+        cv2.namedWindow(WIN_RF1)
+        cv2.moveWindow(WIN_RF1, 50, 50)
         
     #WIN_RF3 = "Camera view - gray"
     #cv2.namedWindow(WIN_RF3)
     #cv2.moveWindow(WIN_RF3, 550, 50)
     
-    while True:
+    running = True
+    while running:
         
-        action = cv2.waitKey(10)
+        if openWindow:
+            action = cv2.waitKey(10)
         
-        if action == ord('q'):  # Quit
-            break
+            if action == ord('q'):  # Quit
+                break
     
         # Fetch next frame
         #colour = cam.get_colour()
@@ -542,7 +547,7 @@ if (__name__=='__main__'):
         #cam.draw_object(colour)
 
         IDs, dists, angles = cam.detect_aruco_objects(colour)
-        if not isinstance(IDs, type(None)):
+        if IDs and dists and angles:
             for i in range(len(IDs)):
                 print("Object ID = ", IDs[i], ", Distance = ", dists[i], ", angles = ", angles[i])
 
@@ -551,14 +556,19 @@ if (__name__=='__main__'):
 
     
         # Show frames
-        cv2.imshow(WIN_RF1, colour)
+        if openWindow:
+            cv2.imshow(WIN_RF1, colour)
         
         # Show frames
         #cv2.imshow(WIN_RF3, gray)
+
+        if not openWindow:
+            running = False
         
         
     # Close all windows
-    cv2.destroyAllWindows()
+    if openWindow:
+        cv2.destroyAllWindows()
 
     # Clean-up capture thread
     cam.terminateCaptureThread()
