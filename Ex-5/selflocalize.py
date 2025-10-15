@@ -164,9 +164,9 @@ if __name__ == "__main__":
         velocity = 0.0 #cm/instruction
         angular_velocity = 0.0 #radians/instruction
         velocity_uncertainty = 4 #cm/instruction
-        angular_uncertainty = 0.01 #radians/instruction
         angular_uncertainty_on_forward = 0.103 #radians/instruction
-        angular_uncertainty_on_turn = 0.01 #radians/instruction
+        angular_uncertainty_on_turn = 0.05 #radians/instruction
+        angular_uncertainty = angular_uncertainty_on_turn #radians/instruction
 
         #More uncertainty parameters
         distance_measurement_uncertainty = 30.0  # cm
