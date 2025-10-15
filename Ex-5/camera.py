@@ -6,7 +6,7 @@ import threading
 import framebuffer
 
 
-openWindow = False
+showGUI = False
 
 gstreamerCameraFound = False
 piCameraFound = False
@@ -511,7 +511,7 @@ if (__name__=='__main__'):
     
     # Open a window
     WIN_RF1 = "Camera view"
-    if openWindow:
+    if showGUI:
         cv2.namedWindow(WIN_RF1)
         cv2.moveWindow(WIN_RF1, 50, 50)
         
@@ -522,7 +522,7 @@ if (__name__=='__main__'):
     running = True
     while running:
         
-        if openWindow:
+        if showGUI:
             action = cv2.waitKey(10)
         
             if action == ord('q'):  # Quit
@@ -547,7 +547,7 @@ if (__name__=='__main__'):
         #cam.draw_object(colour)
 
         IDs, dists, angles = cam.detect_aruco_objects(colour)
-        if IDs and len(IDs) != 0 and dists and len(dists) != 0 and angles and len(angles) != 0:
+        if not isinstance(IDs, type(None)) and not isinstance(dists, type(None)) and not isinstance(angles, type(None)):
             for i in range(len(IDs)):
                 print("Object ID = ", IDs[i], ", Distance = ", dists[i], ", angles = ", angles[i])
 
@@ -556,18 +556,18 @@ if (__name__=='__main__'):
 
     
         # Show frames
-        if openWindow:
+        if showGUI:
             cv2.imshow(WIN_RF1, colour)
         
         # Show frames
         #cv2.imshow(WIN_RF3, gray)
 
-        if not openWindow:
+        if not showGUI:
             running = False
         
         
     # Close all windows
-    if openWindow:
+    if showGUI:
         cv2.destroyAllWindows()
 
     # Clean-up capture thread
