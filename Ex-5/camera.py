@@ -547,7 +547,7 @@ if (__name__=='__main__'):
         #cam.draw_object(colour)
 
         IDs, dists, angles = cam.detect_aruco_objects(colour)
-        if IDs and dists and angles:
+        if IDs and len(IDs) != 0 and dists and len(dists) != 0 and angles and len(angles) != 0:
             for i in range(len(IDs)):
                 print("Object ID = ", IDs[i], ", Distance = ", dists[i], ", angles = ", angles[i])
 
