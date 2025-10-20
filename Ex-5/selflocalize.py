@@ -15,7 +15,7 @@ from collections import defaultdict
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = False #whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = False #Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -57,7 +57,7 @@ CBLACK = (0, 0, 0)
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
     3: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
-    7: np.array((300.0, 0.0), dtype=np.float32)  # Coordinates for landmark 2
+    11: np.array((300.0, 0.0), dtype=np.float32)  # Coordinates for landmark 2
 }
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN] # Colors used when drawing the landmarks
@@ -154,6 +154,7 @@ if __name__ == "__main__":
         num_particles = 1000
         
         if instruction_debug:
+            #smaller amount of particles to test pathfinding and the effect of instructions 
             num_particles = 4
 
         particles = initialize_particles(num_particles)
@@ -164,8 +165,14 @@ if __name__ == "__main__":
         velocity = 0.0 #cm/instruction
         angular_velocity = 0.0 #radians/instruction
         velocity_uncertainty = 4 #cm/instruction
+
+        #Representation of the uncertainty in drift to either side when moving forwards
         angular_uncertainty_on_forward = 0.103 #radians/instruction
+
+        #Representation of the uncertainty of turning precision
         angular_uncertainty_on_turn = 0.05 #radians/instruction
+
+        #Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn #radians/instruction
 
         #More uncertainty parameters
@@ -178,7 +185,7 @@ if __name__ == "__main__":
             import exec_arlo_instructions as exec
             arlo = robot.Robot()
 
-        #create map used for pathfinding
+        #Create map used for pathfinding, map uses meters as it's unit
         map_res = 0.05
         path_map = occupancy_grid_map.OccupancyGridMap(low=np.array((-1, -2.5)), high=np.array((4, 2.5)), resolution=map_res) 
         origins = []
@@ -187,7 +194,7 @@ if __name__ == "__main__":
         radius_squared = ((18 / 100) + (22.5 / 100))**2
         path_map.plot_centroid(np.array(origins), np.array(radius_squared))
         
-        #create robot model for pathfinding
+        #Create robot model for pathfinding
         path_res = map_res
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
@@ -209,11 +216,21 @@ if __name__ == "__main__":
             #cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=True)
             cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
 
+        #Initialize the instruction list
         instructions = []
+
+        #value to control how many degrees the robot rotatates at a time when surveying its surroundings
         deg_per_rot = 15
+
+        #Make the robot start by rotating around itself once
         for i in range(360//deg_per_rot):
             instructions.append(["turn", (True, deg_per_rot)])
+
+        #The maximum amount of instructions the robot executs before surveying its surroundings.
+        #This value should always be a multiple of 2, set value to None to remove cap
         maxinstructions_per_execution = 8
+
+        #Initialize flag designating that the robot believes it has arrived
         arrived = False
         
         while True:
@@ -236,10 +253,10 @@ if __name__ == "__main__":
                     velocity = 0.0
                     angular_velocity = 0.0
                 elif action == ord('a'): # Left
-                    if angular_velocity < 0.2:
+                    if angular_velocity < 0.2: #clamp angular velocity so particles can't accelerate infinitely
                         angular_velocity += 0.2
                 elif action == ord('d'): # Right
-                    if angular_velocity > -0.2:
+                    if angular_velocity > -0.2: #clamp angular velocity so particles can't accelerate infinitely
                         angular_velocity -= 0.2
 
 
@@ -248,27 +265,50 @@ if __name__ == "__main__":
             # Use motor controls to update particles
             # XXX: Make the robot drive
             # XXX: You do this
-        
+
+            #This code block mainly calculates a new path for the robot to take
+            #Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
+                #print statement for debugging reasons
                 print("recalculating path")
                 print()
+
+                #Get the robots position in meters, since the path planning needs an input in meters
                 pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+
+                #Get the robots direction and orthogonal directions as vectors since they are needed to calculate 
+                #the robot instructions to for following the path outputted by the RRT algorithm 
                 current_dir = np.array([np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())])
                 current_dir_orthogonal = np.column_stack([-current_dir[1], current_dir[0]])
+
+                #Get a list of instructions that the robot can execute
+                #Instructions are created based on RRT algorithm output
                 instructions = plan_path.plan_path(path_map, robot_model,
                                current_dir=current_dir,
                                current_dir_orthogonal=current_dir_orthogonal,
                                start=pos_meter,
                                goal=goal) #type: ignore
+                
+                #remove instructions exceeding the maximum.
                 if maxinstructions_per_execution is not None:
                     instructions = instructions[:maxinstructions_per_execution]
-                #The distance is in meters
+                instructions = []
+                for i in range(360//deg_per_rot):
+                    instructions.append(["turn", (True, deg_per_rot)])
+                #Calculate how far the robot is from it's goal.
+                #This value is used to check whether the robot has arrived or not.
+                #The distance is in meters.
                 dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
+
+                #Print statements for debugging reasons
                 print(f"I am currently {dist_from_target} meters from the target position")
                 print(f"Current target is: {goal}")
                 print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                 print(f"My instructions are {instructions}")
                 print()
+
+                #If the robot center is closer than 40 cm to it's target set the arrived flag to true. 
+                #If the arrived falg is already true, the robot has arrived at it's target.
                 if dist_from_target <= 0.40:
                     print("I am close to my target")
                     print()
@@ -278,37 +318,75 @@ if __name__ == "__main__":
                         print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                         print()
                         break
+                    #Clear the instruction list to allow the robot to survey it's surroundings again 
+                    #to make sure it is in the right place without driving away
+                    instructions = [] 
                     arrived = True
+
+                #If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
+                #This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
                 elif arrived:
                     print("I have realized i am not close to my target")
                     print()
                     arrived = False
+
+                #Make the robot end every instruction sequence by rotating around itself once.
                 for i in range(360//deg_per_rot):
                     instructions.append(["turn", (True, deg_per_rot)])
 
+            #This code block moves the robot and 
+            #updates the velocity and angular velocity used when updating the particles 
+            #This code block only runs if the robot has instructions
+            #Instructions are empty at this point if the path planning algorithm didn't find a path
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
+                #reset the velocity and angular velocity to 0
                 angular_velocity = 0
                 velocity = 0
+
+                #If the current instruction is a turn instruction update angular velocity accordingly
                 if instructions[0][0] == "turn":
+                    #Unpack the direction and degrees rotated 
                     withclock, degrees = instructions[0][1]
+
+                    #Convert the degrees to radians
                     radians = np.radians(degrees)
+
+                    #If the robot rotated clockwise it means that the paritcles should rotate in the negative direction
                     if withclock:
                         radians = radians * -1
+                    
+                    #Set the angular velocity to the value obtained based on the direction and degrees rotated 
                     angular_velocity = radians
+
+                    #Set the angular uncertainty to the uncertainty used when rotating
                     angular_uncertainty = angular_uncertainty_on_turn
+                
+                #If the current instruction is a forward instruction update velocity accordingly
                 elif instructions[0][0] == "forward":
+                    #Unpack the meters driven
                     meters = instructions[0][1]
-                    #instructions have their argument in meters, so they have to be converted to centimeters
+
+                    #Convert meters to centimeters, since the particles move in units of centimeters
                     centimeters = meters * 100
+
+                    #Set the velocity to the value obtained based on the meters dictated by the instruction
                     velocity = centimeters
+
+                    #Set the angular uncertainty to the uncertainty used when driving
                     angular_uncertainty = angular_uncertainty_on_forward
+
+                #If the instruction is unknown print a message and do nothing
                 else:
                     print("Unknown instruction, instructions have to be either turn or forward")
+
+                #If run in debug mode simulate executing instructions by removing the first entry in the instruction list
                 if instruction_debug:
                     del instructions[0]
                     if len(instructions) == 0:
                         velocity = 0
                         angular_velocity = 0
+                        
+                #If not running in debug mode execute the next instruction.
                 else:
                     exec.next(instructions)
                     
