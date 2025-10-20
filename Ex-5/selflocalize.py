@@ -292,7 +292,7 @@ if __name__ == "__main__":
                 #remove instructions exceeding the maximum.
                 if maxinstructions_per_execution is not None:
                     instructions = instructions[:maxinstructions_per_execution]
-                
+                instructions = []
                 #Calculate how far the robot is from it's goal.
                 #This value is used to check whether the robot has arrived or not.
                 #The distance is in meters.
