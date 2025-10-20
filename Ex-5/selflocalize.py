@@ -469,10 +469,10 @@ if __name__ == "__main__":
                 cumulative_sum[-1] = 1.0  # numerical fix
                 indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
                 particles = [deepcopy(particles[i]) for i in indices]
-
+                
                 # reset weights to uniform distribution (for the next cycle of weighting and resampling)
-                for p in particles:
-                    p.setWeight(1.0 / num_particles)
+                for i,p in enumerate(particles):
+                    p.setWeight(weights[i])
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)
