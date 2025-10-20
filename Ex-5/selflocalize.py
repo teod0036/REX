@@ -170,7 +170,7 @@ if __name__ == "__main__":
         angular_uncertainty_on_forward = 0.103 #radians/instruction
 
         #Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = 0.05 #radians/instruction
+        angular_uncertainty_on_turn = 0.2 #radians/instruction
 
         #Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn #radians/instruction
@@ -220,7 +220,7 @@ if __name__ == "__main__":
         instructions = []
 
         #value to control how many degrees the robot rotatates at a time when surveying its surroundings
-        deg_per_rot = 15
+        deg_per_rot = 30
 
         #Make the robot start by rotating around itself once
         for i in range(360//deg_per_rot):
