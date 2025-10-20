@@ -316,9 +316,9 @@ if __name__ == "__main__":
                         print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                         print()
                         break
-                    #This line should also clear the instruction list, 
-                    #but since i can't test it right now i will leave it commented out
-                    #instructions = [] 
+                    #Clear the instruction list to allow the robot to survey it's surroundings again 
+                    #to make sure it is in the right place without driving away
+                    instructions = [] 
                     arrived = True
 
                 #If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
