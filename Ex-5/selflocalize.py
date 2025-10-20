@@ -224,7 +224,7 @@ if __name__ == "__main__":
 
         #Make the robot start by rotating around itself once
         for i in range(360//deg_per_rot):
-            instructions.append(["turn", (True, deg_per_rot)])
+            instructions.append(["turn", (False, deg_per_rot)])
 
         #The maximum amount of instructions the robot executs before surveying its surroundings.
         #This value should always be a multiple of 2, set value to None to remove cap
@@ -294,7 +294,7 @@ if __name__ == "__main__":
                     instructions = instructions[:maxinstructions_per_execution]
                 instructions = []
                 for i in range(360//deg_per_rot):
-                    instructions.append(["turn", (True, deg_per_rot)])
+                    instructions.append(["turn", (False, deg_per_rot)])
                 #Calculate how far the robot is from it's goal.
                 #This value is used to check whether the robot has arrived or not.
                 #The distance is in meters.
@@ -332,7 +332,7 @@ if __name__ == "__main__":
 
                 #Make the robot end every instruction sequence by rotating around itself once.
                 for i in range(360//deg_per_rot):
-                    instructions.append(["turn", (True, deg_per_rot)])
+                    instructions.append(["turn", (False, deg_per_rot)])
 
             #This code block moves the robot and 
             #updates the velocity and angular velocity used when updating the particles 
