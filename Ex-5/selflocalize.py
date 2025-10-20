@@ -293,6 +293,8 @@ if __name__ == "__main__":
                 if maxinstructions_per_execution is not None:
                     instructions = instructions[:maxinstructions_per_execution]
                 instructions = []
+                for i in range(360//deg_per_rot):
+                    instructions.append(["turn", (True, deg_per_rot)])
                 #Calculate how far the robot is from it's goal.
                 #This value is used to check whether the robot has arrived or not.
                 #The distance is in meters.
