@@ -6,17 +6,17 @@ arlo = robot.Robot()
 def turn(params):
     withclock, degrees = params
     # Speed constants
-    out_of_battery = 1.7
+    out_of_battery = 0.694
     leftSpeed = 64  
     rightSpeed = 64 - 1
     extraconst_c = 0
     extraconst_nc = 0
     if withclock:
         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
-        sleep((0.694 + extraconst_c) * (degrees/90))
+        sleep((0.694 + extraconst_c + out_of_battery) * (degrees/90))
     else:
         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-        sleep((0.694 + extraconst_nc) * (degrees/90))
+        sleep((0.694 + extraconst_nc + out_of_battery) * (degrees/90))
     print(arlo.stop())
     sleep(0.1)
 
