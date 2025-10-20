@@ -423,7 +423,7 @@ if __name__ == "__main__":
                 # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
                 orientations = np.array([(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles], dtype=np.float32)
-                orientations_orthogonal = np.column_stack([-orientations[:,1], orientations[:,0]])  # 90° rotated
+                orientations_orthogonal = np.column_stack([orientations[:,1], -orientations[:,0]])  # 90° rotated
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
                 # scale the weights for each observation (multiply by likelihood)
