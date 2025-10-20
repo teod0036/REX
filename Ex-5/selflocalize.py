@@ -170,7 +170,7 @@ if __name__ == "__main__":
         angular_uncertainty_on_forward = 0.103 #radians/instruction
 
         #Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = 0.2 #radians/instruction
+        angular_uncertainty_on_turn = 0.05 #radians/instruction
 
         #Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn #radians/instruction
