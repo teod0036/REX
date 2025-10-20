@@ -176,7 +176,7 @@ if __name__ == "__main__":
         angular_uncertainty = angular_uncertainty_on_turn #radians/instruction
 
         #More uncertainty parameters
-        distance_measurement_uncertainty = 5.0  # cm
+        distance_measurement_uncertainty = 15.0  # cm
         angle_measurement_uncertainty = np.deg2rad(5) # radians
 
 
