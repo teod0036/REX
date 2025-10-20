@@ -416,9 +416,6 @@ if __name__ == "__main__":
                     # XXX: Do something for each detected object - remember, the same ID may appear several times
                     if objectIDs[i] not in objectDict:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
-                    else:
-                        prev_dist, prev_angle = objectDict[objectIDs[i]]
-                        objectDict[objectIDs[i]] = ((prev_dist + dists[i]) / 2, (prev_angle + angles[i]) / 2)
 
                 # Compute particle weights
                 # XXX: You do this
