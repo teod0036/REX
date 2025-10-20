@@ -464,24 +464,15 @@ if __name__ == "__main__":
                 # Resampling
                 # XXX: You do this
 
-                # compute effective sample size (ESS)
-                N_eff = 1.0 / np.sum(np.square(weights))
-
                 # resample particles to avoid degenerate particles
-                if N_eff < num_particles / 2:
-                    cumulative_sum = np.cumsum(weights)
-                    cumulative_sum[-1] = 1.0  # numerical fix
-                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
-                    particles = [deepcopy(particles[i]) for i in indices]
+                cumulative_sum = np.cumsum(weights)
+                cumulative_sum[-1] = 1.0  # numerical fix
+                indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+                particles = [deepcopy(particles[i]) for i in indices]
 
-                    # reset weights to uniform distribution (for the next cycle of weighting and resampling)
-                    for p in particles:
-                        p.setWeight(1.0 / num_particles)
-                else:
-                    # keep weights as is:
-                    for i, p in enumerate(particles):
-                        p.setWeight(weights[i])
-
+                # reset weights to uniform distribution (for the next cycle of weighting and resampling)
+                for p in particles:
+                    p.setWeight(1.0 / num_particles)
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)
