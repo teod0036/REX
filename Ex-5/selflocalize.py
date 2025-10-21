@@ -132,6 +132,134 @@ def initialize_particles(num_particles):
 
     return particles
 
+def initialize_camera():
+    print("Opening and initializing camera")
+    if isRunningOnArlo():
+        cam = camera.Camera(0, robottype='arlo', useCaptureThread=False)
+    else:
+        cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
+    return cam
+
+def control_manually(action, velocity, angular_velocity):
+    if action == ord('w'): # Forward
+        if velocity < 4.0:
+            velocity += 4.0
+    elif action == ord('s'): # Backwards
+        if velocity > -4.0:
+            velocity -= 4.0
+    elif action == ord('x'): # Stop
+        velocity = 0.0
+        angular_velocity = 0.0
+    elif action == ord('a'): # Left
+        if angular_velocity < 0.2: #clamp angular velocity so particles can't accelerate infinitely
+            angular_velocity += 0.2
+    elif action == ord('d'): # Right
+        if angular_velocity > -0.2: #clamp angular velocity so particles can't accelerate infinitely
+            angular_velocity -= 0.2
+    return velocity, angular_velocity
+
+def RecalculatePath(goal, est_pose, instructions):
+    #print statement for debugging reasons
+    print("recalculating path")
+    print()
+
+    #Get the robots position in meters, since the path planning needs an input in meters
+    pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+
+    #Get the robots direction and orthogonal directions as vectors since they are needed to calculate 
+    #the robot instructions to for following the path outputted by the RRT algorithm 
+    current_dir = np.array([np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())])
+    current_dir_orthogonal = np.column_stack([-current_dir[1], current_dir[0]])
+
+    #Get a list of instructions that the robot can execute
+    #Instructions are created based on RRT algorithm output
+    instructions = plan_path.plan_path(path_map, robot_model,
+                    current_dir=current_dir,
+                    current_dir_orthogonal=current_dir_orthogonal,
+                    start=pos_meter,
+                    goal=goal) #type: ignore
+    
+    #remove instructions exceeding the maximum.
+    if maxinstructions_per_execution is not None:
+        instructions = instructions[:maxinstructions_per_execution]
+
+    #Make the robot end every instruction sequence by rotating around itself once.
+    for i in range(360//deg_per_rot):
+        instructions.append(["turn", (False, deg_per_rot)])
+
+    return instructions
+
+def check_if_arrived(goal, est_pose, instructions, arrived):
+    #Calculate how far the robot is from it's goal.
+    #This value is used to check whether the robot has arrived or not.
+    #The distance is in meters.
+    dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
+
+    #Print statements for debugging reasons
+    print(f"I am currently {dist_from_target} meters from the target position")
+    print(f"Current target is: {goal}")
+    print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+    print(f"My instructions are {instructions}")
+    print()
+    #If the robot center is closer than 40 cm to it's target set the arrived flag to true. 
+    #If the arrived falg is already true, the robot has arrived at it's target.
+    if dist_from_target <= 0.40:
+        print("I am close to my target")
+        print()
+        if arrived:
+            print("I have arrived")
+            print(f"The target is at {goal}")
+            print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+            print()
+            return True
+        #Clear the instruction list to allow the robot to survey it's surroundings again 
+        #to make sure it is in the right place without driving away
+        instructions = [] 
+        arrived = True
+        if check_if_arrived(goal, est_pose, instructions, arrived):
+            return True
+
+    #If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
+    #This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
+    elif arrived:
+        print("I have realized i am not close to my target")
+        print()
+        arrived = False
+        return arrived
+
+def turnRobot(instructions):
+    #Unpack the direction and degrees rotated 
+    withclock, degrees = instructions[0][1]
+
+    #Convert the degrees to radians
+    radians = np.radians(degrees)
+
+    #If the robot rotated clockwise it means that the paritcles should rotate in the negative direction
+    if withclock:
+        radians = radians * -1
+    
+    #Set the angular velocity to the value obtained based on the direction and degrees rotated 
+    angular_velocity = radians
+
+    #Set the angular uncertainty to the uncertainty used when rotating
+    angular_uncertainty = angular_uncertainty_on_turn
+
+    return angular_velocity, angular_uncertainty
+
+def forwardRobot(instructions):
+    #Unpack the meters driven
+    meters = instructions[0][1]
+
+    #Convert meters to centimeters, since the particles move in units of centimeters
+    centimeters = meters * 100
+
+    #Set the velocity to the value obtained based on the meters dictated by the instruction
+    velocity = centimeters
+
+    #Set the angular uncertainty to the uncertainty used when driving
+    angular_uncertainty = angular_uncertainty_on_forward
+
+    return velocity, angular_uncertainty
 
 # Main program #
 if __name__ == "__main__":
@@ -208,13 +336,7 @@ if __name__ == "__main__":
         # Draw map
         draw_world(est_pose, particles, world)
 
-        print("Opening and initializing camera")
-        if isRunningOnArlo():
-            #cam = camera.Camera(0, robottype='arlo', useCaptureThread=True)
-            cam = camera.Camera(0, robottype='arlo', useCaptureThread=False)
-        else:
-            #cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=True)
-            cam = camera.Camera(0, robottype='macbookpro', useCaptureThread=False)
+        cam = initialize_camera()
 
         #Initialize the instruction list
         instructions = []
@@ -243,23 +365,7 @@ if __name__ == "__main__":
                 break
         
             if not isRunningOnArlo():
-                if action == ord('w'): # Forward
-                    if velocity < 4.0:
-                        velocity += 4.0
-                elif action == ord('s'): # Backwards
-                    if velocity > -4.0:
-                        velocity -= 4.0
-                elif action == ord('x'): # Stop
-                    velocity = 0.0
-                    angular_velocity = 0.0
-                elif action == ord('a'): # Left
-                    if angular_velocity < 0.2: #clamp angular velocity so particles can't accelerate infinitely
-                        angular_velocity += 0.2
-                elif action == ord('d'): # Right
-                    if angular_velocity > -0.2: #clamp angular velocity so particles can't accelerate infinitely
-                        angular_velocity -= 0.2
-
-
+               velocity, angular_velocity = control_manually(action, velocity, angular_velocity)
 
             
             # Use motor controls to update particles
@@ -269,68 +375,9 @@ if __name__ == "__main__":
             #This code block mainly calculates a new path for the robot to take
             #Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                #print statement for debugging reasons
-                print("recalculating path")
-                print()
-
-                #Get the robots position in meters, since the path planning needs an input in meters
-                pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
-
-                #Get the robots direction and orthogonal directions as vectors since they are needed to calculate 
-                #the robot instructions to for following the path outputted by the RRT algorithm 
-                current_dir = np.array([np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())])
-                current_dir_orthogonal = np.column_stack([-current_dir[1], current_dir[0]])
-
-                #Get a list of instructions that the robot can execute
-                #Instructions are created based on RRT algorithm output
-                instructions = plan_path.plan_path(path_map, robot_model,
-                               current_dir=current_dir,
-                               current_dir_orthogonal=current_dir_orthogonal,
-                               start=pos_meter,
-                               goal=goal) #type: ignore
-                
-                #remove instructions exceeding the maximum.
-                if maxinstructions_per_execution is not None:
-                    instructions = instructions[:maxinstructions_per_execution]
-                
-                #Calculate how far the robot is from it's goal.
-                #This value is used to check whether the robot has arrived or not.
-                #The distance is in meters.
-                dist_from_target = np.linalg.norm([goal[0]-(est_pose.getX()/100), goal[1]-(est_pose.getY()/100)])
-
-                #Print statements for debugging reasons
-                print(f"I am currently {dist_from_target} meters from the target position")
-                print(f"Current target is: {goal}")
-                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
-                print(f"My instructions are {instructions}")
-                print()
-
-                #If the robot center is closer than 40 cm to it's target set the arrived flag to true. 
-                #If the arrived falg is already true, the robot has arrived at it's target.
-                if dist_from_target <= 0.40:
-                    print("I am close to my target")
-                    print()
-                    if arrived:
-                        print("I have arrived")
-                        print(f"The target is at {goal}")
-                        print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
-                        print()
-                        break
-                    #Clear the instruction list to allow the robot to survey it's surroundings again 
-                    #to make sure it is in the right place without driving away
-                    instructions = [] 
-                    arrived = True
-
-                #If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
-                #This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
-                elif arrived:
-                    print("I have realized i am not close to my target")
-                    print()
-                    arrived = False
-
-                #Make the robot end every instruction sequence by rotating around itself once.
-                for i in range(360//deg_per_rot):
-                    instructions.append(["turn", (False, deg_per_rot)])
+                instructions = RecalculatePath(goal, est_pose, instructions)
+                if check_if_arrived(goal, est_pose, instructions, arrived):
+                    break
 
             #This code block moves the robot and 
             #updates the velocity and angular velocity used when updating the particles 
@@ -343,35 +390,11 @@ if __name__ == "__main__":
 
                 #If the current instruction is a turn instruction update angular velocity accordingly
                 if instructions[0][0] == "turn":
-                    #Unpack the direction and degrees rotated 
-                    withclock, degrees = instructions[0][1]
-
-                    #Convert the degrees to radians
-                    radians = np.radians(degrees)
-
-                    #If the robot rotated clockwise it means that the paritcles should rotate in the negative direction
-                    if withclock:
-                        radians = radians * -1
-                    
-                    #Set the angular velocity to the value obtained based on the direction and degrees rotated 
-                    angular_velocity = radians
-
-                    #Set the angular uncertainty to the uncertainty used when rotating
-                    angular_uncertainty = angular_uncertainty_on_turn
+                    angular_velocity, angular_uncertainty = turnRobot(instructions)
                 
                 #If the current instruction is a forward instruction update velocity accordingly
                 elif instructions[0][0] == "forward":
-                    #Unpack the meters driven
-                    meters = instructions[0][1]
-
-                    #Convert meters to centimeters, since the particles move in units of centimeters
-                    centimeters = meters * 100
-
-                    #Set the velocity to the value obtained based on the meters dictated by the instruction
-                    velocity = centimeters
-
-                    #Set the angular uncertainty to the uncertainty used when driving
-                    angular_uncertainty = angular_uncertainty_on_forward
+                    velocity, angular_uncertainty = forwardRobot(instructions)
 
                 #If the instruction is unknown print a message and do nothing
                 else:
