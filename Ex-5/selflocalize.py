@@ -519,8 +519,10 @@ if __name__ == "__main__":
                 # List detected objects
                 objectDict = selectClosestObjects(objectIDs, dists, angles)
                 if (issearching):
-                    print(f"Adding these objects to searching landmarks: {objectDict}")
-                    searchinglandmarks += objectDict.keys()
+                    if not searchinglandmarks.__contains__(objectDict.keys()):
+                        print(f"Adding these objects to searching landmarks: {objectDict}")
+
+                        searchinglandmarks += objectDict.keys()
 
                 # Compute particle weights
                 # XXX: You do this
