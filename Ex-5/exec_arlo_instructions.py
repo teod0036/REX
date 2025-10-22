@@ -6,7 +6,6 @@ def all(arlo_instructions):
 
 def next(arlo_instructons, rm=True):
     distance_driven = getattr(move_arlo, arlo_instructons[0][0])(arlo_instructons[0][1])
-    print(distance_driven)
     if distance_driven != 0:
         del arlo_instructons[1:]
         if distance_driven < 0:
