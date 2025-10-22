@@ -31,5 +31,5 @@ def next(arlo_instructons, rm=True):
         del arlo_instructons[0]
 
 if __name__ == "__main__":
-    instructions = [["forward", (0.5)], ["forward", (0.5)]]
+    instructions = [["forward", (3)], ["forward", (0.5)]]
     next(instructions, rm=False)
