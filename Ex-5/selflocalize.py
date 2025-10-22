@@ -13,7 +13,7 @@ from collections import defaultdict
 
 
 # Flags
-onRobot = False  # Whether or not we are running on the Arlo robot
+onRobot = True  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
@@ -247,15 +247,14 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
         # Clear the instruction list to allow the robot to survey it's surroundings again
         # to make sure it is in the right place without driving away
         instructions[:] = []
-        arrived = True
+        return True
 
     # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
     # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
     elif arrived:
         print("I have realized i am not close to my target")
         print()
-        arrived = False
-        return arrived
+        return False
 
 
 def turn_particles(instructions):
@@ -332,17 +331,17 @@ if __name__ == "__main__":
         velocity_uncertainty = 4  # cm/instruction
 
         # Representation of the uncertainty in drift to either side when moving forwards
-        angular_uncertainty_on_forward = np.deg2rad(5.9)  # radians/instruction
+        angular_uncertainty_on_forward = np.deg2rad(1)  # radians/instruction
 
         # Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = np.deg2rad(2.86)  # radians/instruction
+        angular_uncertainty_on_turn = np.deg2rad(4)  # radians/instruction
 
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
         # More uncertainty parameters
         distance_measurement_uncertainty = 5.0 * 3  # cm
-        angle_measurement_uncertainty = np.deg2rad(5) * 10  # radians
+        angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -415,7 +414,12 @@ if __name__ == "__main__":
             if len(instructions) == 0:
                 instructions = RecalculatePath(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
-                    break
+                    arrived = True
+                    print("Double checking if really arrived")
+                    if check_if_arrived(goal, est_pose, instructions, arrived):
+                        break
+                    else:
+                        arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
                 generate_rotate_in_place(deg_per_rot)
