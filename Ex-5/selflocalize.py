@@ -440,6 +440,9 @@ if __name__ == "__main__":
             # This code block only runs if the robot has instructions
             # Instructions are empty at this point if the path planning algorithm didn't find a path
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
+                if not instruction_debug:
+                    exec.next(instructions, rm=False)
+
                 # reset the velocity and angular velocity to 0
                 angular_velocity = 0
                 velocity = 0
@@ -456,16 +459,8 @@ if __name__ == "__main__":
                 else:
                     print("Unknown instruction, instructions have to be either turn or forward")
 
-                # If run in debug mode simulate executing instructions by removing the first entry in the instruction list
-                if instruction_debug:
-                    del instructions[0]
-                    if len(instructions) == 0:
-                        velocity = 0
-                        angular_velocity = 0
-
-                # If not running in debug mode execute the next instruction.
-                else:
-                    exec.next(instructions)
+                #remove most recent instruction
+                del instructions[0]
 
             # predict particles after movement (prior):
             for p in particles:
