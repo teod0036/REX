@@ -17,7 +17,8 @@ def path_to_arlo_instructions(path, current_dir=[0, 1], current_dir_orthogonal=[
         instructions.append(["turn", (withclock, round(rot_deg, 2))]) 
         instructions.append(["forward", round(point_dist, 2)])
 
-        current_dir = target_dir
+        current_dir = target_dir / np.linalg.norm(target_dir)
+        current_dir_orthogonal = np.asarray([-current_dir[1], current_dir[0]])
         current_point = point
 
     return instructions

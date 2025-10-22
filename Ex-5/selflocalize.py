@@ -82,7 +82,7 @@ def jet(x):
     return (255.0 * float(r), 255.0 * float(g), 255.0 * float(b))
 
 
-def draw_world(est_pose, particles, world):
+def draw_world(est_pose, particles, world, path=None):
     """Visualization.
     This functions draws robots position in the world coordinate system."""
 
@@ -131,6 +131,14 @@ def draw_world(est_pose, particles, world):
             thickness,
             lineType,
         )
+    
+    if path is not None:
+        for i in range(len(path)):
+            if i >= (len(path)-1):
+                break
+            point1 = (int(path[i][0] * 100)+offsetX, int(ymax - (path[i][1] * 100+offsetY)))
+            point2 = (int(path[i+1][0] * 100)+offsetX, int(ymax - (path[i+1][1] * 100+offsetY)))
+            cv2.line(img=world, pt1=point1, pt2=point2, color=(0, 0, 255), thickness=2)        
 
     # Draw estimated robot pose
     a = (int(est_pose.getX()) + offsetX, ymax - (int(est_pose.getY()) + offsetY))
@@ -185,7 +193,7 @@ def control_manually(action, velocity, angular_velocity):
     return velocity, angular_velocity
 
 
-def RecalculatePath(goal, est_pose, instructions):
+def RecalculatePath(goal, est_pose, instructions, path_coords=[]):
     # print statement for debugging reasons
     print("recalculating path")
     print()
@@ -207,6 +215,7 @@ def RecalculatePath(goal, est_pose, instructions):
         current_dir_orthogonal=current_dir_orthogonal,
         start=pos_meter,
         goal=goal,
+        path_coords=path_coords
     )  # type: ignore
 
     # remove instructions exceeding the maximum.
@@ -317,7 +326,7 @@ if __name__ == "__main__":
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
-            num_particles = 4
+            num_particles = 1
 
         particles = initialize_particles(num_particles)
 
@@ -329,6 +338,7 @@ if __name__ == "__main__":
         velocity_uncertainty = 4  # cm/instruction
 
         # Representation of the uncertainty in drift to either side when moving forwards
+        angular_uncertainty_on_forward = np.deg2rad(1.5)  # radians/instruction
         angular_uncertainty_on_forward = np.deg2rad(1)  # radians/instruction
 
         # Representation of the uncertainty of turning precision
@@ -350,7 +360,7 @@ if __name__ == "__main__":
         # Create map used for pathfinding, map uses meters as it's unit
         map_res = 0.05
         path_map = occupancy_grid_map.OccupancyGridMap(
-            low=np.array((-1, -2.5)), high=np.array((4, 2.5)), resolution=map_res
+            low=np.array((-2, -5)), high=np.array((8, 5)), resolution=map_res
         )
 
         origins = []
@@ -390,6 +400,9 @@ if __name__ == "__main__":
 
         # Initialize flag designating that the robot believes it has arrived
         arrived = False
+        
+        #used for drawing path
+        path_coords=[]
 
         while True:
             if instruction_debug:
@@ -557,7 +570,7 @@ if __name__ == "__main__":
 
             if showGUI:
                 # Draw map
-                draw_world(est_pose, particles, world)
+                draw_world(est_pose, particles, world, path_coords)
 
                 # Show frame
                 cv2.imshow(WIN_RF1, colour)
