@@ -5,12 +5,7 @@ import numpy as np
 import time
 from timeit import default_timer as timer
 
-from copy import deepcopy
-
 from collections import defaultdict
-
-# from copy import deepcopy
-
 
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
@@ -533,21 +528,20 @@ if __name__ == "__main__":
                 # XXX: You do this
 
                 # resample particles to avoid degenerate particles
-                # num_effective_particles = 1 / np.sum(np.square(weights))
-                # if num_effective_particles < num_particles / 2:
-                cumulative_sum = np.cumsum(weights)
-                cumulative_sum[-1] = 1.0  # fix issues with zeroes
-                indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
-                particles = [deepcopy(particles[i]) for i in indices]
+                num_effective_particles = 1 / np.sum(np.square(weights))
+                if num_effective_particles < num_particles / 2:
+                    cumulative_sum = np.cumsum(weights)
+                    cumulative_sum[-1] = 1.0  # fix issues with zeroes
+                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+                    particles = [particles[i] for i in indices]
 
-                #     # too many degenerate particles - reset weights to uniform distribution
-                #     for p in particles:
-                #         p.setWeight(1.0 / num_particles)
-                # else:
-
-                # set weights for visualization
-                for i, p in enumerate(particles):
-                    p.setWeight(weights[i])
+                    # too many degenerate particles - reset weights to uniform distribution
+                    for p in particles:
+                        p.setWeight(1.0 / num_particles)
+                else:
+                    # set weights for visualization
+                    for i, p in enumerate(particles):
+                        p.setWeight(weights[i])
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)
