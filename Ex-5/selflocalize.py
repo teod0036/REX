@@ -304,6 +304,25 @@ def generate_rotate_in_place(deg_per_rot):
     for i in range(360 // deg_per_rot):
         instructions.append(["turn", (False, deg_per_rot)])
 
+def spottwolandmarks(deg_per_rot):
+    landmarks_spotted = 0
+    for i in range(360 // deg_per_rot):
+        instructions.append(["turn", (False, deg_per_rot)])
+
+def selectClosestObjects(objectIDs, dists, angles, i):
+    objectDict = {}
+    for i in range(len(objectIDs)):
+
+        print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
+
+        # XXX: Do something for each detected object - remember, the same ID may appear several times
+        if objectIDs[i] not in objectDict:
+            objectDict[objectIDs[i]] = (dists[i], angles[i])
+        elif dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1]):
+            objectDict[objectIDs[i]] = (dists[i], angles[i])
+    return objectDict
+
+
 # Main program #
 if __name__ == "__main__":
     try:
@@ -424,6 +443,7 @@ if __name__ == "__main__":
                 instructions = RecalculatePath(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     arrived = True
+                    generate_rotate_in_place(deg_per_rot)
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
                         break
@@ -486,15 +506,7 @@ if __name__ == "__main__":
                 and not isinstance(angles, type(None))
             ):
                 # List detected objects
-                objectDict = {}
-                for i in range(len(objectIDs)):
-                    print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
-
-                    # XXX: Do something for each detected object - remember, the same ID may appear several times
-                    if objectIDs[i] not in objectDict:
-                        objectDict[objectIDs[i]] = (dists[i], angles[i])
-                    elif dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1]):
-                        objectDict[objectIDs[i]] = (dists[i], angles[i])
+                objectDict = selectClosestObjects(objectIDs, dists, angles)
 
                 # Compute particle weights
                 # XXX: You do this
@@ -503,8 +515,7 @@ if __name__ == "__main__":
                 positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
                 orientations = np.array(
                     [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
-                    dtype=np.float32,
-                )
+                    dtype=np.float32,)
                 orientations_orthogonal = np.column_stack([orientations[:, 1], -orientations[:, 0]])  # 90° rotated
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
