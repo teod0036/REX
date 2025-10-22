@@ -51,6 +51,7 @@ CMAGENTA = (255, 0, 255)
 CWHITE = (255, 255, 255)
 CBLACK = (0, 0, 0)
 
+rotateuntiltwolandmarks = True
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
@@ -301,15 +302,9 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     return velocity, angular_uncertainty
 
+def add_rotation_in_place(deg_per_rot):
+    instructions.append(["turn", (False, deg_per_rot)])
 
-def generate_rotate_in_place(deg_per_rot):
-    for i in range(360 // deg_per_rot):
-        instructions.append(["turn", (False, deg_per_rot)])
-
-def spottwolandmarks(deg_per_rot):
-    landmarks_spotted = 0
-    for i in range(360 // deg_per_rot):
-        instructions.append(["turn", (False, deg_per_rot)])
 
 def selectClosestObjects(objectIDs, dists, angles, i):
     objectDict = {}
@@ -410,8 +405,10 @@ if __name__ == "__main__":
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
 
+        rotationspottedlandmarks = {}
+
         # Make the robot start by rotating around itself once
-        generate_rotate_in_place(deg_per_rot)
+
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
@@ -424,6 +421,15 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
+            if (rotateuntiltwolandmarks):
+                if (rotationspottedlandmarks.length < 2):
+                    instructions = []
+                    add_rotation_in_place(deg_per_rot)
+                else:
+                    rotateuntiltwolandmarks = False
+                    print("Spotted two landmarks, should be localized now.")
+
+
             if instruction_debug:
                 time.sleep(0.2)
 
@@ -445,7 +451,8 @@ if __name__ == "__main__":
                 instructions = RecalculatePath(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     arrived = True
-                    generate_rotate_in_place(deg_per_rot)
+                    rotateuntiltwolandmarks = True
+                    rotationspottedlandmarks = {}
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
                         break
@@ -453,7 +460,8 @@ if __name__ == "__main__":
                         arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                generate_rotate_in_place(deg_per_rot)
+                    rotateuntiltwolandmarks = True
+                    rotationspottedlandmarks = {}
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -507,8 +515,10 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
+                
                 # List detected objects
                 objectDict = selectClosestObjects(objectIDs, dists, angles)
+                rotationspottedlandmarks += objectDict.keys()
 
                 # Compute particle weights
                 # XXX: You do this
