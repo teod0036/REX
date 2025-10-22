@@ -139,9 +139,11 @@ def draw_world(est_pose, particles, world, path=None):
     
     if path is not None:
         for i in range(len(path)):
-            if i >= (len(path)):
+            if i >= (len(path)-1):
                 break
-            cv2.line(img=world, pt1=path[i], pt2=path[i+1], color=(0, 0, 255), thickness=2)        
+            point1 = (int(path[i][0] * 100)+offsetX, int(ymax - (path[i][1] * 100+offsetY)))
+            point2 = (int(path[i+1][0] * 100)+offsetX, int(ymax - (path[i+1][1] * 100+offsetY)))
+            cv2.line(img=world, pt1=point1, pt2=point2, color=(0, 0, 255), thickness=2)        
 
     # Draw estimated robot pose
     a = (int(est_pose.getX()) + offsetX, ymax - (int(est_pose.getY()) + offsetY))
@@ -327,7 +329,7 @@ if __name__ == "__main__":
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
-            num_particles = 4
+            num_particles = 1
 
         particles = initialize_particles(num_particles)
 
@@ -360,7 +362,7 @@ if __name__ == "__main__":
         # Create map used for pathfinding, map uses meters as it's unit
         map_res = 0.05
         path_map = occupancy_grid_map.OccupancyGridMap(
-            low=np.array((-1, -2.5)), high=np.array((4, 2.5)), resolution=map_res
+            low=np.array((-2, -5)), high=np.array((8, 5)), resolution=map_res
         )
 
         origins = []
@@ -400,6 +402,9 @@ if __name__ == "__main__":
 
         # Initialize flag designating that the robot believes it has arrived
         arrived = False
+        
+        #used for drawing path
+        path_coords=[]
 
         while True:
             if instruction_debug:
@@ -419,7 +424,6 @@ if __name__ == "__main__":
 
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
-            path_coords=[]
             if len(instructions) == 0:
                 instructions = RecalculatePath(goal, est_pose, instructions, path_coords)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
@@ -562,7 +566,7 @@ if __name__ == "__main__":
 
             if showGUI:
                 # Draw map
-                draw_world(est_pose, particles, world)
+                draw_world(est_pose, particles, world, path_coords)
 
                 # Show frame
                 cv2.imshow(WIN_RF1, colour)
