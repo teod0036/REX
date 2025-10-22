@@ -246,7 +246,7 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
             return True
         # Clear the instruction list to allow the robot to survey it's surroundings again
         # to make sure it is in the right place without driving away
-        instructions = []
+        instructions[:] = []
         arrived = True
 
     # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
