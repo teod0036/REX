@@ -460,8 +460,8 @@ if __name__ == "__main__":
 
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                issearching = True
-                searchinglandmarks.clear()
+                    issearching = True
+                    searchinglandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
