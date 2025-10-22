@@ -255,6 +255,7 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
 def turn_particles(instructions):
     # Unpack the direction and degrees rotated
     withclock, degrees = instructions[0][1]
+    print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
 
     # Convert the degrees to radians
     radians = np.deg2rad(degrees)
@@ -281,6 +282,8 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     # Set the velocity to the value obtained based on the meters dictated by the instruction
     velocity = centimeters
+    print(f"Forwarding particles by {centimeters} cm")
+
 
     # Set the angular uncertainty to the uncertainty used when driving
     angular_uncertainty = angular_uncertainty_on_forward
