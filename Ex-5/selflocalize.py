@@ -247,15 +247,14 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
         # Clear the instruction list to allow the robot to survey it's surroundings again
         # to make sure it is in the right place without driving away
         instructions[:] = []
-        arrived = True
+        return True
 
     # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
     # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
     elif arrived:
         print("I have realized i am not close to my target")
         print()
-        arrived = False
-        return arrived
+        return False
 
 
 def turn_particles(instructions):
@@ -415,7 +414,12 @@ if __name__ == "__main__":
             if len(instructions) == 0:
                 instructions = RecalculatePath(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
-                    break
+                    arrived = True
+                    print("Double checking if really arrived")
+                    if check_if_arrived(goal, est_pose, instructions, arrived):
+                        break
+                    else:
+                        arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
                 generate_rotate_in_place(deg_per_rot)
