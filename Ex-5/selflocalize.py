@@ -263,7 +263,7 @@ def turn_particles(instructions):
     withclock, degrees = instructions[0][1]
 
     # Convert the degrees to radians
-    radians = np.radians(degrees)
+    radians = np.deg2rad(degrees)
 
     # If the robot rotated clockwise it means that the paritcles should rotate in the negative direction
     if withclock:
