@@ -40,4 +40,6 @@ def forward(distance):
 
 if __name__ == "__main__":
     # for i in range(4):
-    turn((False, 90))
+    turn((False, 30))
+    turn((False, 30))
+    turn((False, 30))
