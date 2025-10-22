@@ -305,7 +305,7 @@ def add_rotation_in_place(deg_per_rot):
     instructions.append(["turn", (False, deg_per_rot)])
 
 
-def selectClosestObjects(objectIDs, dists, angles, i):
+def selectClosestObjects(objectIDs, dists, angles):
     objectDict = {}
     for i in range(len(objectIDs)):
 
@@ -314,7 +314,7 @@ def selectClosestObjects(objectIDs, dists, angles, i):
         # XXX: Do something for each detected object - remember, the same ID may appear several times
         if objectIDs[i] not in objectDict:
             objectDict[objectIDs[i]] = (dists[i], angles[i])
-        elif dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1]):
+        elif dists[i] < objectDict[objectIDs[i]][0]:
             objectDict[objectIDs[i]] = (dists[i], angles[i])
     return objectDict
 
@@ -361,7 +361,7 @@ if __name__ == "__main__":
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
         # More uncertainty parameters
-        distance_measurement_uncertainty = 15.0  # cm
+        distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
         # Initialize the robot (XXX: You do this)
@@ -404,8 +404,7 @@ if __name__ == "__main__":
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
 
-        issearching = True
-        rotationspottedlandmarks = {}
+        rotationspottedlandmarks = []
 
         # Make the robot start by rotating around itself once
 
@@ -421,8 +420,8 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
-            if (issearching):
-                if (rotationspottedlandmarks.length < 2):
+            if (rotateuntiltwolandmarks):
+                if (len(rotationspottedlandmarks) < 2):
                     instructions = []
                     add_rotation_in_place(deg_per_rot)
                 else:
@@ -451,8 +450,8 @@ if __name__ == "__main__":
                 instructions = RecalculatePath(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     arrived = True
-                    issearching = True
-                    rotationspottedlandmarks = {}
+                    rotateuntiltwolandmarks = True
+                    rotationspottedlandmarks = []
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
                         break
@@ -460,8 +459,8 @@ if __name__ == "__main__":
                         arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                    issearching = True
-                    rotationspottedlandmarks = {}
+                    rotateuntiltwolandmarks = True
+                    rotationspottedlandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -565,10 +564,16 @@ if __name__ == "__main__":
                 # XXX: You do this
                 # resample particles to avoid degenerate particles
                 num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < num_particles / 2: # less than half of the particles contribute meaningfully
+                if num_effective_particles < num_particles / 2: # if less than half of the particles contribute meaningfully
                     cumulative_sum = np.cumsum(weights)
                     cumulative_sum[-1] = 1.0  # fix issues with zeroes
-                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+
+                    # use uniform distribution once, and do systematic resampling
+                    offset = np.random.rand()
+                    positions = (np.arange(num_particles) + offset) / num_particles
+                    indices = np.searchsorted(cumulative_sum, positions, side='right').astype(int)
+
+                    # deep copy particless to avoid reference errors
                     particles = [deepcopy(particles[i]) for i in indices]
 
                     # too many degenerate particles - reset weights to uniform distribution
