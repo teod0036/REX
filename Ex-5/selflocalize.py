@@ -132,7 +132,7 @@ def draw_world(est_pose, particles, world):
             lm,
             cv2.FONT_HERSHEY_SIMPLEX,
             fontScale,
-            landmark_colors[i],
+            (0, 0, 0),
             thickness,
             lineType,
         )
@@ -331,17 +331,17 @@ if __name__ == "__main__":
         velocity_uncertainty = 4  # cm/instruction
 
         # Representation of the uncertainty in drift to either side when moving forwards
-        angular_uncertainty_on_forward = np.deg2rad(1)  # radians/instruction
+        angular_uncertainty_on_forward = np.deg2rad(5.9)  # radians/instruction
 
         # Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = np.deg2rad(4)  # radians/instruction
+        angular_uncertainty_on_turn = np.deg2rad(2.86)  # radians/instruction
 
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
         # More uncertainty parameters
-        distance_measurement_uncertainty = 5.0 * 3  # cm
-        angle_measurement_uncertainty = np.deg2rad(5)  # radians
+        distance_measurement_uncertainty = 15.0  # cm
+        angle_measurement_uncertainty = np.deg2rad(1)  # radians
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -533,20 +533,14 @@ if __name__ == "__main__":
                 # XXX: You do this
 
                 # resample particles to avoid degenerate particles
-                num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < num_particles / 2:
-                    cumulative_sum = np.cumsum(weights)
-                    cumulative_sum[-1] = 1.0  # numerical fix
-                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
-                    particles = [deepcopy(particles[i]) for i in indices]
+                cumulative_sum = np.cumsum(weights)
+                cumulative_sum[-1] = 1.0  # numerical fix
+                indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+                particles = [deepcopy(particles[i]) for i in indices]
 
-                    # too many degenerate particles - reset weights to uniform distribution
-                    for p in particles:
-                        p.setWeight(1.0 / num_particles)
-                else:
-                    # set weights for visualization
-                    for i, p in enumerate(particles):
-                        p.setWeight(weights[i])
+                # reset weights to uniform distribution (for the next cycle of weighting and resampling)
+                for i, p in enumerate(particles):
+                    p.setWeight(weights[i])
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)
