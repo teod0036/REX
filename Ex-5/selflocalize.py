@@ -5,12 +5,8 @@ import numpy as np
 import time
 from timeit import default_timer as timer
 
-from copy import deepcopy
-
-from collections import defaultdict
-
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
@@ -196,7 +192,7 @@ def control_manually(action, velocity, angular_velocity):
     return velocity, angular_velocity
 
 
-def RecalculatePath(goal, est_pose, instructions, path_coords=[]):
+def recalculate_path(goal, est_pose, instructions, path_coords=[]):
     # print statement for debugging reasons
     print("recalculating path")
     print()
@@ -306,11 +302,10 @@ def add_rotation_in_place(deg_per_rot):
     instructions.append(["turn", (False, deg_per_rot)])
 
 
-def selectClosestObjects(objectIDs, dists, angles):
+def select_closest_objects(objectIDs, dists, angles):
     objectDict = {}
     for i in range(len(objectIDs)):
-
-        print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
+        # print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
 
         # XXX: Do something for each detected object - remember, the same ID may appear several times
         if objectIDs[i] not in objectDict:
@@ -318,6 +313,72 @@ def selectClosestObjects(objectIDs, dists, angles):
         elif dists[i] < objectDict[objectIDs[i]][0]:
             objectDict[objectIDs[i]] = (dists[i], angles[i])
     return objectDict
+
+def extract_particle_data(particles):
+    positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
+    orientations = np.array(
+        [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
+        dtype=np.float32,)
+    weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
+    return positions, orientations, weights
+
+
+def measurement_model(objDist, objAngle, positions, orientations, orientations_orthogonal):
+    # vector from particle to landmark
+    v = landmarks[objID][np.newaxis, :] - positions
+    distances = np.linalg.norm(v, axis=1)
+
+    # accumulate likelihood for each object for each measurement
+    distance_pdf = (1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
+        -0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2
+    )
+
+    # angles from particle direction to landmark direction
+    v /= distances[:, np.newaxis]
+    dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
+    cross = np.sum(v * orientations_orthogonal, axis=1)
+    angles = np.sign(cross) * np.arccos(dot)
+
+    angle_pdf = (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
+        -0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2
+    )
+    return distance_pdf * angle_pdf
+
+def resample_particles(particles, weights):
+    cumulative_sum = np.cumsum(weights)
+    cumulative_sum[-1] = 1.0  # fix issues with zeroes
+
+    # use uniform distribution once, and do systematic resampling
+    offset = np.random.rand()
+    positions = (np.arange(len(particles)) + offset) / len(particles)
+    indices = np.searchsorted(cumulative_sum, positions, side='right').astype(int)
+
+    return [
+        particle.Particle(
+            particles[i].getX(),
+            particles[i].getY(),
+            particles[i].getTheta(),
+            float(weights[i]),
+        )
+        for i in indices
+    ]
+
+def inject_random_particles(particles, w_slow, w_fast):
+    w_avg = sum([p.getWeight() for p in particles]) / num_particles
+    w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
+    w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
+    p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow != 0.0 else 0.0
+
+    for i in range(num_particles):
+        if np.random.rand() < p_inject:
+            particles[i] = particle.Particle(
+                600.0 * np.random.ranf() - 100.0,
+                600.0 * np.random.ranf() - 250.0,
+                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
+                1.0 / num_particles,
+            )
+    return w_slow, w_fast
+
 
 
 # Main program #
@@ -364,6 +425,12 @@ if __name__ == "__main__":
         # More uncertainty parameters
         distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
+
+        # particle filter parameters
+        resample_threshold = num_particles / 2.0  # resample if less than half of particles have large weights
+        alpha_slow = 0.001
+        alpha_fast = 0.1
+        w_slow = w_fast = sum([p.getWeight() for p in particles]) / num_particles
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -448,7 +515,7 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                instructions = RecalculatePath(goal, est_pose, instructions)
+                instructions = recalculate_path(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     arrived = True
                     rotateuntiltwolandmarks = True
@@ -517,45 +584,21 @@ if __name__ == "__main__":
             ):
                 
                 # List detected objects
-                objectDict = selectClosestObjects(objectIDs, dists, angles)
+                objectDict = select_closest_objects(objectIDs, dists, angles)
                 rotationspottedlandmarks += objectDict.keys()
 
                 # Compute particle weights
                 # XXX: You do this
 
                 # put positions and weights into homogenous numpy arrays for vectorized operations
-                positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
-                orientations = np.array(
-                    [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
-                    dtype=np.float32,)
+                positions, orientations, weights = extract_particle_data(particles)
                 orientations_orthogonal = np.column_stack([orientations[:, 1], -orientations[:, 0]])  # 90° rotated
-                weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
                 # scale the weights for each observation (multiply by likelihood)
                 for objID, (objDist, objAngle) in objectDict.items():
                     if objID not in landmarkIDs:
                         continue
-
-                    # vector from particle to landmark
-                    v = landmarks[objID][np.newaxis, :] - positions
-                    distances = np.linalg.norm(v, axis=1)
-
-                    # accumulate likelihood for each object for each measurement
-                    distance_pdf = (1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
-                        -0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2
-                    )
-
-                    # angles from particle direction to landmark direction
-                    v /= distances[:, np.newaxis]
-                    dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
-                    cross = np.sum(v * orientations_orthogonal, axis=1)
-                    angles = np.sign(cross) * np.arccos(dot)
-
-                    angle_pdf = (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
-                        -0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2
-                    )
-
-                    weights *= distance_pdf * angle_pdf
+                    weights *= measurement_model(objDist, objAngle, positions, orientations, orientations_orthogonal)
 
                 # normalise weights (compute the posterior)
                 weights += 1e-12  # avoid problems with zeroes
@@ -563,23 +606,11 @@ if __name__ == "__main__":
 
                 # Resampling
                 # XXX: You do this
-                # resample particles to avoid degenerate particles
+
+                # resample if less than half of the particles contribute meaningfully
                 num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < num_particles / 2: # if less than half of the particles contribute meaningfully
-                    cumulative_sum = np.cumsum(weights)
-                    cumulative_sum[-1] = 1.0  # fix issues with zeroes
-
-                    # use uniform distribution once, and do systematic resampling
-                    offset = np.random.rand()
-                    positions = (np.arange(num_particles) + offset) / num_particles
-                    indices = np.searchsorted(cumulative_sum, positions, side='right').astype(int)
-
-                    # deep copy particless to avoid reference errors
-                    particles = [deepcopy(particles[i]) for i in indices]
-
-                    # too many degenerate particles - reset weights to uniform distribution
-                    for p in particles:
-                        p.setWeight(1.0 / num_particles)
+                if num_effective_particles < resample_threshold: 
+                    particles = resample_particles(particles, weights)
                 else:
                     # set weights for visualization
                     for i, p in enumerate(particles):
@@ -603,6 +634,9 @@ if __name__ == "__main__":
 
                 # Show world
                 cv2.imshow(WIN_World, world)
+
+            # inject new particles depending on the speed of weight change
+            w_slow, w_fast = inject_random_particles(particles, w_slow, w_fast)
 
     finally:
         # Make sure to clean up even if an exception occurred
