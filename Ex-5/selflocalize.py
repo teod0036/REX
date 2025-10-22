@@ -302,8 +302,9 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     return velocity, angular_uncertainty
 
-def add_rotation_in_place(deg_per_rot):
-    instructions.append(["turn", (False, deg_per_rot)])
+def generate_rotation_in_place(deg_per_rot):
+    for i in range(360 // deg_per_rot):
+        instructions.append(["turn", (False, deg_per_rot)])
 
 
 def selectClosestObjects(objectIDs, dists, angles):
@@ -408,7 +409,7 @@ if __name__ == "__main__":
         searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
-
+        generate_rotation_in_place(deg_per_rot)
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
@@ -421,12 +422,9 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
-            if (issearching):
-                if (len(searchinglandmarks) < 2):
-                    instructions = []
-                    add_rotation_in_place(deg_per_rot)
-                else:
+            if (issearching) and len(searchinglandmarks) >= 2:
                     issearching = False
+                    instructions = []
                     print("Spotted two landmarks, should be localized now.")
 
 
@@ -455,13 +453,13 @@ if __name__ == "__main__":
                         break
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     arrived = True
-                    issearching = True
-                    searchinglandmarks.clear()
-
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                    issearching = True
-                    searchinglandmarks = []
+                generate_rotation_in_place(deg_per_rot)
+
+            if len(instructions) == 360 // deg_per_rot:
+                issearching = True
+                searchinglandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -511,12 +509,13 @@ if __name__ == "__main__":
                 and not isinstance(angles, type(None))
             ):
                 
+                if (issearching):
+                    for o in objectIDs:
+                        if o not in searchinglandmarks and o in landmarkIDs:
+                            searchinglandmarks.append(o)
+
                 # List detected objects
                 objectDict = selectClosestObjects(objectIDs, dists, angles)
-                if (issearching):
-                    if not searchinglandmarks.__contains__(objectDict.keys()):
-                        print(f"Adding these objects to searching landmarks: {objectDict}")
-                        searchinglandmarks += objectDict.keys()
 
                 # Compute particle weights
                 # XXX: You do this
