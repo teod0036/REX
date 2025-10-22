@@ -341,7 +341,7 @@ if __name__ == "__main__":
 
         # More uncertainty parameters
         distance_measurement_uncertainty = 15.0  # cm
-        angle_measurement_uncertainty = np.deg2rad(5)  # radians
+        angle_measurement_uncertainty = np.deg2rad(1)  # radians
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
