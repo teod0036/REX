@@ -10,9 +10,9 @@ from copy import deepcopy
 from collections import defaultdict
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = True  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
 def isRunningOnArlo():
@@ -267,7 +267,7 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
 def turn_particles(instructions):
     # Unpack the direction and degrees rotated
     withclock, degrees = instructions[0][1]
-    print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
+    #print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
 
     # Convert the degrees to radians
     radians = np.deg2rad(degrees)
@@ -294,7 +294,7 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     # Set the velocity to the value obtained based on the meters dictated by the instruction
     velocity = centimeters
-    print(f"Forwarding particles by {centimeters} cm")
+    #print(f"Forwarding particles by {centimeters} cm")
 
 
     # Set the angular uncertainty to the uncertainty used when driving
@@ -343,7 +343,7 @@ if __name__ == "__main__":
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
-            num_particles = 4
+            num_particles = 1
 
         particles = initialize_particles(num_particles)
 
@@ -440,7 +440,7 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                instructions = RecalculatePath(goal, est_pose, instructions)
+                instructions = RecalculatePath(goal, est_pose, instructions, path_coords)
                 if arrived:
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
