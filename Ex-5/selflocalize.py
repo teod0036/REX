@@ -51,6 +51,7 @@ CMAGENTA = (255, 0, 255)
 CWHITE = (255, 255, 255)
 CBLACK = (0, 0, 0)
 
+
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
@@ -301,10 +302,23 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     return velocity, angular_uncertainty
 
+def add_rotation_in_place(deg_per_rot):
+    instructions.append(["turn", (False, deg_per_rot)])
 
-def generate_rotate_in_place(deg_per_rot):
-    for i in range(360 // deg_per_rot):
-        instructions.append(["turn", (False, deg_per_rot)])
+
+def selectClosestObjects(objectIDs, dists, angles):
+    objectDict = {}
+    for i in range(len(objectIDs)):
+
+        print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
+
+        # XXX: Do something for each detected object - remember, the same ID may appear several times
+        if objectIDs[i] not in objectDict:
+            objectDict[objectIDs[i]] = (dists[i], angles[i])
+        elif dists[i] < objectDict[objectIDs[i]][0]:
+            objectDict[objectIDs[i]] = (dists[i], angles[i])
+    return objectDict
+
 
 # Main program #
 if __name__ == "__main__":
@@ -348,7 +362,7 @@ if __name__ == "__main__":
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
         # More uncertainty parameters
-        distance_measurement_uncertainty = 15.0  # cm
+        distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
         # Initialize the robot (XXX: You do this)
@@ -390,9 +404,11 @@ if __name__ == "__main__":
 
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
+        issearching = True
+        searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
-        generate_rotate_in_place(deg_per_rot)
+
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
@@ -405,6 +421,15 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
+            if (issearching):
+                if (len(searchinglandmarks) < 2):
+                    instructions = []
+                    add_rotation_in_place(deg_per_rot)
+                else:
+                    issearching = False
+                    print("Spotted two landmarks, should be localized now.")
+
+
             if instruction_debug:
                 time.sleep(0.2)
 
@@ -424,16 +449,19 @@ if __name__ == "__main__":
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
                 instructions = RecalculatePath(goal, est_pose, instructions)
-                if check_if_arrived(goal, est_pose, instructions, arrived):
-                    arrived = True
+                if arrived:
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
                         break
-                    else:
-                        arrived = False
+                if check_if_arrived(goal, est_pose, instructions, arrived):
+                    arrived = True
+                    issearching = True
+                    searchinglandmarks.clear()
+
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                generate_rotate_in_place(deg_per_rot)
+                    issearching = True
+                    searchinglandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -482,16 +510,13 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
+                
                 # List detected objects
-                objectDict = {}
-                for i in range(len(objectIDs)):
-                    print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
-
-                    # XXX: Do something for each detected object - remember, the same ID may appear several times
-                    if objectIDs[i] not in objectDict:
-                        objectDict[objectIDs[i]] = (dists[i], angles[i])
-                    elif dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1]):
-                        objectDict[objectIDs[i]] = (dists[i], angles[i])
+                objectDict = selectClosestObjects(objectIDs, dists, angles)
+                if (issearching):
+                    if not searchinglandmarks.__contains__(objectDict.keys()):
+                        print(f"Adding these objects to searching landmarks: {objectDict}")
+                        searchinglandmarks += objectDict.keys()
 
                 # Compute particle weights
                 # XXX: You do this
@@ -500,8 +525,7 @@ if __name__ == "__main__":
                 positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
                 orientations = np.array(
                     [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
-                    dtype=np.float32,
-                )
+                    dtype=np.float32,)
                 orientations_orthogonal = np.column_stack([orientations[:, 1], -orientations[:, 0]])  # 90° rotated
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
@@ -539,10 +563,16 @@ if __name__ == "__main__":
                 # XXX: You do this
                 # resample particles to avoid degenerate particles
                 num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < num_particles / 2: # less than half of the particles contribute meaningfully
+                if num_effective_particles < num_particles / 2: # if less than half of the particles contribute meaningfully
                     cumulative_sum = np.cumsum(weights)
                     cumulative_sum[-1] = 1.0  # fix issues with zeroes
-                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+
+                    # use uniform distribution once, and do systematic resampling
+                    offset = np.random.rand()
+                    positions = (np.arange(num_particles) + offset) / num_particles
+                    indices = np.searchsorted(cumulative_sum, positions, side='right').astype(int)
+
+                    # deep copy particless to avoid reference errors
                     particles = [deepcopy(particles[i]) for i in indices]
 
                     # too many degenerate particles - reset weights to uniform distribution
