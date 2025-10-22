@@ -456,12 +456,12 @@ if __name__ == "__main__":
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     arrived = True
                     issearching = True
-                    searchinglandmarks = []
+                    searchinglandmarks.clear()
 
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                    issearching = True
-                    searchinglandmarks = []
+                issearching = True
+                searchinglandmarks.clear()
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -521,7 +521,6 @@ if __name__ == "__main__":
                 if (issearching):
                     if not searchinglandmarks.__contains__(objectDict.keys()):
                         print(f"Adding these objects to searching landmarks: {objectDict}")
-
                         searchinglandmarks += objectDict.keys()
 
                 # Compute particle weights
