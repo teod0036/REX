@@ -324,7 +324,7 @@ if __name__ == "__main__":
 
         particles = initialize_particles(num_particles)
 
-        est_pose = particle.estimate_pose(particles)  # The estimate of the robots current pose
+        est_pose = particle.estimate_pose(particles)  # Initial random estimate
 
         # Driving parameters
         velocity = 0.0  # cm/instruction
@@ -381,7 +381,7 @@ if __name__ == "__main__":
         # Initialize the instruction list
         instructions = []
 
-        # value to control how many degrees the robot rotatates at a time when surveying its surroundings
+        # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
 
         # Make the robot start by rotating around itself once
@@ -475,17 +475,12 @@ if __name__ == "__main__":
                 # List detected objects
                 objectDict = {}
                 for i in range(len(objectIDs)):
-                    print(
-                        "Object ID = ",
-                        objectIDs[i],
-                        ", Distance = ",
-                        dists[i],
-                        ", angle = ",
-                        angles[i],
-                    )
+                    print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
 
                     # XXX: Do something for each detected object - remember, the same ID may appear several times
                     if objectIDs[i] not in objectDict:
+                        objectDict[objectIDs[i]] = (dists[i], angles[i])
+                    elif dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1]):
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
 
                 # Compute particle weights
