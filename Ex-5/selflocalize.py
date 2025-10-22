@@ -5,6 +5,8 @@ import numpy as np
 import time
 from timeit import default_timer as timer
 
+from copy import deepcopy
+
 from collections import defaultdict
 
 # Flags
@@ -540,14 +542,13 @@ if __name__ == "__main__":
 
                 # Resampling
                 # XXX: You do this
-
                 # resample particles to avoid degenerate particles
                 num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < num_particles / 2:
+                if num_effective_particles < num_particles / 2: # less than half of the particles contribute meaningfully
                     cumulative_sum = np.cumsum(weights)
                     cumulative_sum[-1] = 1.0  # fix issues with zeroes
                     indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
-                    particles = [particles[i] for i in indices]
+                    particles = [deepcopy(particles[i]) for i in indices]
 
                     # too many degenerate particles - reset weights to uniform distribution
                     for p in particles:
