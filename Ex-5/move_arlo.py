@@ -37,11 +37,11 @@ def forward(distance):
     #go straight
     start = perf_counter()
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
-    while start - perf_counter() < go_sleep:
+    while perf_counter() - start > go_sleep:
         front_dist = arlo.read_front_ping_sensor()
         print(f"Distance to object: {front_dist}")
-        print(f"Time driven {start - perf_counter()}")
-        if front_dist < 20 and front_dist != -1:
+        print(f"Time driven {perf_counter() - start}")
+        if front_dist < 200 and front_dist != -1:
             end = start - perf_counter()
             print(arlo.stop())
             distance_driven = end * (10/(10 * 2.3) + (10 * extraconst)) 
