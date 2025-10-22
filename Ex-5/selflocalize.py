@@ -51,7 +51,6 @@ CMAGENTA = (255, 0, 255)
 CWHITE = (255, 255, 255)
 CBLACK = (0, 0, 0)
 
-rotateuntiltwolandmarks = True
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
@@ -405,6 +404,7 @@ if __name__ == "__main__":
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
 
+        issearching = True
         rotationspottedlandmarks = {}
 
         # Make the robot start by rotating around itself once
@@ -421,12 +421,12 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
-            if (rotateuntiltwolandmarks):
+            if (issearching):
                 if (rotationspottedlandmarks.length < 2):
                     instructions = []
                     add_rotation_in_place(deg_per_rot)
                 else:
-                    rotateuntiltwolandmarks = False
+                    issearching = False
                     print("Spotted two landmarks, should be localized now.")
 
 
@@ -451,7 +451,7 @@ if __name__ == "__main__":
                 instructions = RecalculatePath(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     arrived = True
-                    rotateuntiltwolandmarks = True
+                    issearching = True
                     rotationspottedlandmarks = {}
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
@@ -460,7 +460,7 @@ if __name__ == "__main__":
                         arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                    rotateuntiltwolandmarks = True
+                    issearching = True
                     rotationspottedlandmarks = {}
 
             # This code block moves the robot and
