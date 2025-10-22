@@ -87,7 +87,7 @@ def jet(x):
     return (255.0 * float(r), 255.0 * float(g), 255.0 * float(b))
 
 
-def draw_world(est_pose, particles, world):
+def draw_world(est_pose, particles, world, path=None):
     """Visualization.
     This functions draws robots position in the world coordinate system."""
 
@@ -136,6 +136,12 @@ def draw_world(est_pose, particles, world):
             thickness,
             lineType,
         )
+    
+    if path is not None:
+        for i in range(len(path)):
+            if i >= (len(path)):
+                break
+            cv2.line(img=world, pt1=path[i], pt2=path[i+1], color=(0, 0, 255), thickness=2)        
 
     # Draw estimated robot pose
     a = (int(est_pose.getX()) + offsetX, ymax - (int(est_pose.getY()) + offsetY))
@@ -190,7 +196,7 @@ def control_manually(action, velocity, angular_velocity):
     return velocity, angular_velocity
 
 
-def RecalculatePath(goal, est_pose, instructions):
+def RecalculatePath(goal, est_pose, instructions, path_coords=[]):
     # print statement for debugging reasons
     print("recalculating path")
     print()
@@ -212,6 +218,7 @@ def RecalculatePath(goal, est_pose, instructions):
         current_dir_orthogonal=current_dir_orthogonal,
         start=pos_meter,
         goal=goal,
+        path_coords=path_coords
     )  # type: ignore
 
     # remove instructions exceeding the maximum.
@@ -332,10 +339,10 @@ if __name__ == "__main__":
         velocity_uncertainty = 4  # cm/instruction
 
         # Representation of the uncertainty in drift to either side when moving forwards
-        angular_uncertainty_on_forward = np.deg2rad(5.9)  # radians/instruction
+        angular_uncertainty_on_forward = np.deg2rad(1.5)  # radians/instruction
 
         # Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = np.deg2rad(2.86)  # radians/instruction
+        angular_uncertainty_on_turn = np.deg2rad(3)  # radians/instruction
 
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
@@ -412,8 +419,9 @@ if __name__ == "__main__":
 
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
+            path_coords=[]
             if len(instructions) == 0:
-                instructions = RecalculatePath(goal, est_pose, instructions)
+                instructions = RecalculatePath(goal, est_pose, instructions, path_coords)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     break
 

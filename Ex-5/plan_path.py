@@ -25,7 +25,9 @@ def plan_path(map, robot,
               start=np.array([0.0, 0.0], dtype=np.float32),
               goal=np.array([0, 1.9], dtype=np.float32),
               expand_dis=0.2,
-              debug=False):
+              debug=False,
+              path_coords=[]
+              ):
     rrt = RRT(
         start=start,
         goal=goal,
@@ -42,6 +44,8 @@ def plan_path(map, robot,
     
     path = rdp(plan, rrt.path_resolution*2)
     path.reverse()
+
+    path_coords[:] = path
 
     # if debug:
     #     save_array(np.array(path), "path")
