@@ -10,7 +10,7 @@ from copy import deepcopy
 from collections import defaultdict
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
@@ -348,7 +348,7 @@ if __name__ == "__main__":
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
         # More uncertainty parameters
-        distance_measurement_uncertainty = 15.0  # cm
+        distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
         # Initialize the robot (XXX: You do this)
@@ -495,7 +495,7 @@ if __name__ == "__main__":
                     # XXX: Do something for each detected object - remember, the same ID may appear several times
                     if objectIDs[i] not in objectDict:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
-                    elif dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1]):
+                    elif dists[i] < objectDict[objectIDs[i]][0]:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
 
                 # Compute particle weights
@@ -544,10 +544,16 @@ if __name__ == "__main__":
                 # XXX: You do this
                 # resample particles to avoid degenerate particles
                 num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < num_particles / 2: # less than half of the particles contribute meaningfully
+                if num_effective_particles < num_particles / 2: # if less than half of the particles contribute meaningfully
                     cumulative_sum = np.cumsum(weights)
                     cumulative_sum[-1] = 1.0  # fix issues with zeroes
-                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+
+                    # use uniform distribution once, and do systematic resampling
+                    offset = np.random.rand()
+                    positions = (np.arange(num_particles) + offset) / num_particles
+                    indices = np.searchsorted(cumulative_sum, positions, side='right').astype(int)
+
+                    # deep copy particless to avoid reference errors
                     particles = [deepcopy(particles[i]) for i in indices]
 
                     # too many degenerate particles - reset weights to uniform distribution
