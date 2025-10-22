@@ -132,7 +132,7 @@ def draw_world(est_pose, particles, world):
             lm,
             cv2.FONT_HERSHEY_SIMPLEX,
             fontScale,
-            (255, 255, 255),
+            (0, 0, 0),
             thickness,
             lineType,
         )
@@ -182,14 +182,10 @@ def control_manually(action, velocity, angular_velocity):
         velocity = 0.0
         angular_velocity = 0.0
     elif action == ord("a"):  # Left
-        if (
-            angular_velocity < 0.2
-        ):  # clamp angular velocity so particles can't accelerate infinitely
+        if (angular_velocity < 0.2):  # clamp angular velocity so particles can't accelerate infinitely
             angular_velocity += 0.2
     elif action == ord("d"):  # Right
-        if (
-            angular_velocity > -0.2
-        ):  # clamp angular velocity so particles can't accelerate infinitely
+        if (angular_velocity > -0.2):  # clamp angular velocity so particles can't accelerate infinitely
             angular_velocity -= 0.2
     return velocity, angular_velocity
 
@@ -222,10 +218,6 @@ def RecalculatePath(goal, est_pose, instructions):
     if maxinstructions_per_execution is not None:
         instructions = instructions[:maxinstructions_per_execution]
 
-    # Make the robot end every instruction sequence by rotating around itself once.
-    for i in range(360 // deg_per_rot):
-        instructions.append(["turn", (False, deg_per_rot)])
-
     return instructions
 
 
@@ -233,9 +225,7 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
     # Calculate how far the robot is from it's goal.
     # This value is used to check whether the robot has arrived or not.
     # The distance is in meters.
-    dist_from_target = np.linalg.norm(
-        [goal[0] - (est_pose.getX() / 100), goal[1] - (est_pose.getY() / 100)]
-    )
+    dist_from_target = np.linalg.norm([goal[0] - (est_pose.getX() / 100), goal[1] - (est_pose.getY() / 100)])
 
     # Print statements for debugging reasons
     print(f"I am currently {dist_from_target} meters from the target position")
@@ -258,8 +248,6 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
         # to make sure it is in the right place without driving away
         instructions = []
         arrived = True
-        if check_if_arrived(goal, est_pose, instructions, arrived):
-            return True
 
     # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
     # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
@@ -270,7 +258,7 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
         return arrived
 
 
-def turnRobot(instructions):
+def turn_particles(instructions):
     # Unpack the direction and degrees rotated
     withclock, degrees = instructions[0][1]
 
@@ -290,7 +278,7 @@ def turnRobot(instructions):
     return angular_velocity, angular_uncertainty
 
 
-def forwardRobot(instructions):
+def forward_particles(instructions): #This function doesn't do anything to the robot
     # Unpack the meters driven
     meters = instructions[0][1]
 
@@ -305,6 +293,10 @@ def forwardRobot(instructions):
 
     return velocity, angular_uncertainty
 
+
+def generate_rotate_in_place(deg_per_rot):
+    for i in range(360 // deg_per_rot):
+        instructions.append(["turn", (False, deg_per_rot)])
 
 # Main program #
 if __name__ == "__main__":
@@ -332,9 +324,7 @@ if __name__ == "__main__":
 
         particles = initialize_particles(num_particles)
 
-        est_pose = particle.estimate_pose(
-            particles
-        )  # The estimate of the robots current pose
+        est_pose = particle.estimate_pose(particles)  # The estimate of the robots current pose
 
         # Driving parameters
         velocity = 0.0  # cm/instruction
@@ -365,6 +355,7 @@ if __name__ == "__main__":
         path_map = occupancy_grid_map.OccupancyGridMap(
             low=np.array((-1, -2.5)), high=np.array((4, 2.5)), resolution=map_res
         )
+
         origins = []
         for origin in landmarks.values():
             origins.append((origin[0] / 100, origin[1] / 100))
@@ -394,8 +385,7 @@ if __name__ == "__main__":
         deg_per_rot = 30
 
         # Make the robot start by rotating around itself once
-        for i in range(360 // deg_per_rot):
-            instructions.append(["turn", (False, deg_per_rot)])
+        generate_rotate_in_place(deg_per_rot)
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
@@ -414,9 +404,7 @@ if __name__ == "__main__":
                 break
 
             if not isRunningOnArlo():
-                velocity, angular_velocity = control_manually(
-                    action, velocity, angular_velocity
-                )
+                velocity, angular_velocity = control_manually(action, velocity, angular_velocity)
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
@@ -429,6 +417,9 @@ if __name__ == "__main__":
                 if check_if_arrived(goal, est_pose, instructions, arrived):
                     break
 
+                # Make the robot end every instruction sequence by rotating around itself once.
+                generate_rotate_in_place(deg_per_rot)
+
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
             # This code block only runs if the robot has instructions
@@ -440,17 +431,15 @@ if __name__ == "__main__":
 
                 # If the current instruction is a turn instruction update angular velocity accordingly
                 if instructions[0][0] == "turn":
-                    angular_velocity, angular_uncertainty = turnRobot(instructions)
+                    angular_velocity, angular_uncertainty = turn_particles(instructions)
 
                 # If the current instruction is a forward instruction update velocity accordingly
                 elif instructions[0][0] == "forward":
-                    velocity, angular_uncertainty = forwardRobot(instructions)
+                    velocity, angular_uncertainty = forward_particles(instructions)
 
                 # If the instruction is unknown print a message and do nothing
                 else:
-                    print(
-                        "Unknown instruction, instructions have to be either turn or forward"
-                    )
+                    print("Unknown instruction, instructions have to be either turn or forward")
 
                 # If run in debug mode simulate executing instructions by removing the first entry in the instruction list
                 if instruction_debug:
@@ -471,9 +460,7 @@ if __name__ == "__main__":
                 p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
             # Add some noise
-            particle.add_uncertainty(
-                particles, velocity_uncertainty, angular_uncertainty
-            )
+            particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
 
             # Fetch next frame
             colour = cam.get_next_frame()
@@ -505,16 +492,12 @@ if __name__ == "__main__":
                 # XXX: You do this
 
                 # put positions and weights into homogenous numpy arrays for vectorized operations
-                positions = np.array(
-                    [(p.getX(), p.getY()) for p in particles], dtype=np.float32
-                )
+                positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
                 orientations = np.array(
                     [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
                     dtype=np.float32,
                 )
-                orientations_orthogonal = np.column_stack(
-                    [orientations[:, 1], -orientations[:, 0]]
-                )  # 90° rotated
+                orientations_orthogonal = np.column_stack([orientations[:, 1], -orientations[:, 0]])  # 90° rotated
                 weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
 
                 # scale the weights for each observation (multiply by likelihood)
@@ -527,12 +510,8 @@ if __name__ == "__main__":
                     distances = np.linalg.norm(v, axis=1)
 
                     # accumulate likelihood for each object for each measurement
-                    distance_pdf = (
-                        1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))
-                    ) * np.exp(
-                        -0.5
-                        * ((objDist - distances) / distance_measurement_uncertainty)
-                        ** 2
+                    distance_pdf = (1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
+                        -0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2
                     )
 
                     # angles from particle direction to landmark direction
@@ -541,11 +520,8 @@ if __name__ == "__main__":
                     cross = np.sum(v * orientations_orthogonal, axis=1)
                     angles = np.sign(cross) * np.arccos(dot)
 
-                    angle_pdf = (
-                        1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))
-                    ) * np.exp(
-                        -0.5
-                        * ((objAngle - angles) / angle_measurement_uncertainty) ** 2
+                    angle_pdf = (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
+                        -0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2
                     )
 
                     weights *= distance_pdf * angle_pdf
@@ -560,9 +536,7 @@ if __name__ == "__main__":
                 # resample particles to avoid degenerate particles
                 cumulative_sum = np.cumsum(weights)
                 cumulative_sum[-1] = 1.0  # numerical fix
-                indices = np.searchsorted(
-                    cumulative_sum, np.random.uniform(size=num_particles)
-                )
+                indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
                 particles = [deepcopy(particles[i]) for i in indices]
 
                 # reset weights to uniform distribution (for the next cycle of weighting and resampling)
@@ -576,9 +550,7 @@ if __name__ == "__main__":
                 for p in particles:
                     p.setWeight(1.0 / num_particles)
 
-            est_pose = particle.estimate_pose(
-                particles
-            )  # The estimate of the robots current pose
+            est_pose = particle.estimate_pose(particles)  # The estimate of the robots current pose
 
             if showGUI:
                 # Draw map
