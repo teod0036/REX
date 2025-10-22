@@ -246,7 +246,7 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
             return True
         # Clear the instruction list to allow the robot to survey it's surroundings again
         # to make sure it is in the right place without driving away
-        instructions = []
+        instructions[:] = []
         arrived = True
 
     # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
@@ -263,7 +263,7 @@ def turn_particles(instructions):
     withclock, degrees = instructions[0][1]
 
     # Convert the degrees to radians
-    radians = np.radians(degrees)
+    radians = np.deg2rad(degrees)
 
     # If the robot rotated clockwise it means that the paritcles should rotate in the negative direction
     if withclock:
@@ -332,10 +332,10 @@ if __name__ == "__main__":
         velocity_uncertainty = 4  # cm/instruction
 
         # Representation of the uncertainty in drift to either side when moving forwards
-        angular_uncertainty_on_forward = 0.103  # radians/instruction
+        angular_uncertainty_on_forward = np.deg2rad(5.9)  # radians/instruction
 
         # Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = 0.05  # radians/instruction
+        angular_uncertainty_on_turn = np.deg2rad(2.86)  # radians/instruction
 
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
