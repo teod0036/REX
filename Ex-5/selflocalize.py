@@ -422,12 +422,6 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
-            if (issearching) and len(searchinglandmarks) >= 2:
-                    issearching = False
-                    instructions = []
-                    print("Spotted two landmarks, should be localized now.")
-
-
             if instruction_debug:
                 time.sleep(0.2)
 
@@ -456,6 +450,12 @@ if __name__ == "__main__":
 
                 # Make the robot end every instruction sequence by rotating around itself once.
                 generate_rotation_in_place(deg_per_rot)
+
+            
+            if (issearching) and len(searchinglandmarks) >= 2:
+                issearching = False
+                instructions = []
+                print("Spotted two landmarks, should be localized now.")
 
             if len(instructions) == 360 // deg_per_rot:
                 issearching = True
