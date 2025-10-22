@@ -8,7 +8,7 @@ from timeit import default_timer as timer
 # Flags
 onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = True  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
 def isRunningOnArlo():
@@ -47,7 +47,7 @@ CMAGENTA = (255, 0, 255)
 CWHITE = (255, 255, 255)
 CBLACK = (0, 0, 0)
 
-rotateuntiltwolandmarks = True
+
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
@@ -263,7 +263,7 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
 def turn_particles(instructions):
     # Unpack the direction and degrees rotated
     withclock, degrees = instructions[0][1]
-    print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
+    #print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
 
     # Convert the degrees to radians
     radians = np.deg2rad(degrees)
@@ -290,7 +290,7 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     # Set the velocity to the value obtained based on the meters dictated by the instruction
     velocity = centimeters
-    print(f"Forwarding particles by {centimeters} cm")
+    #print(f"Forwarding particles by {centimeters} cm")
 
 
     # Set the angular uncertainty to the uncertainty used when driving
@@ -298,8 +298,9 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     return velocity, angular_uncertainty
 
-def add_rotation_in_place(deg_per_rot):
-    instructions.append(["turn", (False, deg_per_rot)])
+def generate_rotation_in_place(deg_per_rot):
+    for i in range(360 // deg_per_rot):
+        instructions.append(["turn", (False, deg_per_rot)])
 
 
 def select_closest_objects(objectIDs, dists, angles):
@@ -403,7 +404,7 @@ if __name__ == "__main__":
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
-            num_particles = 4
+            num_particles = 1
 
         particles = initialize_particles(num_particles)
 
@@ -471,11 +472,11 @@ if __name__ == "__main__":
 
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
-
-        rotationspottedlandmarks = []
+        issearching = True
+        searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
-
+        generate_rotation_in_place(deg_per_rot)
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
@@ -488,15 +489,6 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
-            if (rotateuntiltwolandmarks):
-                if (len(rotationspottedlandmarks) < 2):
-                    instructions = []
-                    add_rotation_in_place(deg_per_rot)
-                else:
-                    rotateuntiltwolandmarks = False
-                    print("Spotted two landmarks, should be localized now.")
-
-
             if instruction_debug:
                 time.sleep(0.2)
 
@@ -515,26 +507,35 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                instructions = recalculate_path(goal, est_pose, instructions)
-                if check_if_arrived(goal, est_pose, instructions, arrived):
-                    arrived = True
-                    rotateuntiltwolandmarks = True
-                    rotationspottedlandmarks = []
+                instructions = recalculate_path(goal, est_pose, instructions, path_coords)
+                if arrived:
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
                         break
-                    else:
-                        arrived = False
+                if check_if_arrived(goal, est_pose, instructions, arrived):
+                    arrived = True
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                    rotateuntiltwolandmarks = True
-                    rotationspottedlandmarks = []
+                generate_rotation_in_place(deg_per_rot)
+
+            
+            if (issearching) and len(searchinglandmarks) >= 2:
+                issearching = False
+                instructions = []
+                print("Spotted two landmarks, should be localized now.")
+
+            if len(instructions) == 360 // deg_per_rot:
+                issearching = True
+                searchinglandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
             # This code block only runs if the robot has instructions
             # Instructions are empty at this point if the path planning algorithm didn't find a path
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
+                if not instruction_debug:
+                    exec.next(instructions, rm=False)
+
                 # reset the velocity and angular velocity to 0
                 angular_velocity = 0
                 velocity = 0
@@ -551,16 +552,8 @@ if __name__ == "__main__":
                 else:
                     print("Unknown instruction, instructions have to be either turn or forward")
 
-                # If run in debug mode simulate executing instructions by removing the first entry in the instruction list
-                if instruction_debug:
-                    del instructions[0]
-                    if len(instructions) == 0:
-                        velocity = 0
-                        angular_velocity = 0
-
-                # If not running in debug mode execute the next instruction.
-                else:
-                    exec.next(instructions)
+                #remove most recent instruction
+                del instructions[0]
 
             # predict particles after movement (prior):
             for p in particles:
@@ -583,9 +576,13 @@ if __name__ == "__main__":
                 and not isinstance(angles, type(None))
             ):
                 
+                if (issearching):
+                    for o in objectIDs:
+                        if o not in searchinglandmarks and o in landmarkIDs:
+                            searchinglandmarks.append(o)
+
                 # List detected objects
                 objectDict = select_closest_objects(objectIDs, dists, angles)
-                rotationspottedlandmarks += objectDict.keys()
 
                 # Compute particle weights
                 # XXX: You do this
