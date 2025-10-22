@@ -5,12 +5,7 @@ import numpy as np
 import time
 from timeit import default_timer as timer
 
-from copy import deepcopy
-
 from collections import defaultdict
-
-# from copy import deepcopy
-
 
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
@@ -256,23 +251,23 @@ def check_if_arrived(goal, est_pose, instructions, arrived):
         # Clear the instruction list to allow the robot to survey it's surroundings again
         # to make sure it is in the right place without driving away
         instructions[:] = []
-        arrived = True
+        return True
 
     # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
     # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
     elif arrived:
         print("I have realized i am not close to my target")
         print()
-        arrived = False
-        return arrived
+        return False
 
 
 def turn_particles(instructions):
     # Unpack the direction and degrees rotated
     withclock, degrees = instructions[0][1]
+    print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
 
     # Convert the degrees to radians
-    radians = np.radians(degrees)
+    radians = np.deg2rad(degrees)
 
     # If the robot rotated clockwise it means that the paritcles should rotate in the negative direction
     if withclock:
@@ -296,6 +291,8 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     # Set the velocity to the value obtained based on the meters dictated by the instruction
     velocity = centimeters
+    print(f"Forwarding particles by {centimeters} cm")
+
 
     # Set the angular uncertainty to the uncertainty used when driving
     angular_uncertainty = angular_uncertainty_on_forward
@@ -333,7 +330,7 @@ if __name__ == "__main__":
 
         particles = initialize_particles(num_particles)
 
-        est_pose = particle.estimate_pose(particles)  # The estimate of the robots current pose
+        est_pose = particle.estimate_pose(particles)  # Initial random estimate
 
         # Driving parameters
         velocity = 0.0  # cm/instruction
@@ -342,16 +339,17 @@ if __name__ == "__main__":
 
         # Representation of the uncertainty in drift to either side when moving forwards
         angular_uncertainty_on_forward = np.deg2rad(1.5)  # radians/instruction
+        angular_uncertainty_on_forward = np.deg2rad(1)  # radians/instruction
 
         # Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = np.deg2rad(3)  # radians/instruction
+        angular_uncertainty_on_turn = np.deg2rad(10)  # radians/instruction
 
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
         # More uncertainty parameters
         distance_measurement_uncertainty = 15.0  # cm
-        angle_measurement_uncertainty = np.deg2rad(5)  # radians
+        angle_measurement_uncertainty = np.deg2rad(10)  # radians
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -390,7 +388,7 @@ if __name__ == "__main__":
         # Initialize the instruction list
         instructions = []
 
-        # value to control how many degrees the robot rotatates at a time when surveying its surroundings
+        # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
 
         # Make the robot start by rotating around itself once
@@ -425,9 +423,14 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                instructions = RecalculatePath(goal, est_pose, instructions, path_coords)
+                instructions = RecalculatePath(goal, est_pose, instructions)
                 if check_if_arrived(goal, est_pose, instructions, arrived):
-                    break
+                    arrived = True
+                    print("Double checking if really arrived")
+                    if check_if_arrived(goal, est_pose, instructions, arrived):
+                        break
+                    else:
+                        arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
                 generate_rotate_in_place(deg_per_rot)
@@ -487,17 +490,12 @@ if __name__ == "__main__":
                 # List detected objects
                 objectDict = {}
                 for i in range(len(objectIDs)):
-                    print(
-                        "Object ID = ",
-                        objectIDs[i],
-                        ", Distance = ",
-                        dists[i],
-                        ", angle = ",
-                        angles[i],
-                    )
+                    print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
 
                     # XXX: Do something for each detected object - remember, the same ID may appear several times
                     if objectIDs[i] not in objectDict:
+                        objectDict[objectIDs[i]] = (dists[i], angles[i])
+                    elif dists[i] < objectDict[objectIDs[i]][0] and abs(angles[i]) < abs(objectDict[objectIDs[i]][1]):
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
 
                 # Compute particle weights
@@ -546,14 +544,20 @@ if __name__ == "__main__":
                 # XXX: You do this
 
                 # resample particles to avoid degenerate particles
-                cumulative_sum = np.cumsum(weights)
-                cumulative_sum[-1] = 1.0  # numerical fix
-                indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
-                particles = [deepcopy(particles[i]) for i in indices]
+                num_effective_particles = 1 / np.sum(np.square(weights))
+                if num_effective_particles < num_particles / 2:
+                    cumulative_sum = np.cumsum(weights)
+                    cumulative_sum[-1] = 1.0  # fix issues with zeroes
+                    indices = np.searchsorted(cumulative_sum, np.random.uniform(size=num_particles))
+                    particles = [particles[i] for i in indices]
 
-                # reset weights to uniform distribution (for the next cycle of weighting and resampling)
-                for i, p in enumerate(particles):
-                    p.setWeight(weights[i])
+                    # too many degenerate particles - reset weights to uniform distribution
+                    for p in particles:
+                        p.setWeight(1.0 / num_particles)
+                else:
+                    # set weights for visualization
+                    for i, p in enumerate(particles):
+                        p.setWeight(weights[i])
 
                 # Draw detected objects
                 cam.draw_aruco_objects(colour)
