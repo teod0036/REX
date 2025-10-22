@@ -51,6 +51,7 @@ CMAGENTA = (255, 0, 255)
 CWHITE = (255, 255, 255)
 CBLACK = (0, 0, 0)
 
+
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
@@ -403,8 +404,8 @@ if __name__ == "__main__":
 
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
-
-        rotationspottedlandmarks = []
+        issearching = True
+        searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
 
@@ -420,8 +421,8 @@ if __name__ == "__main__":
         path_coords=[]
 
         while True:
-            if (rotateuntiltwolandmarks):
-                if (len(rotationspottedlandmarks) < 2):
+            if (issearching):
+                if (len(searchinglandmarks) < 2):
                     instructions = []
                     add_rotation_in_place(deg_per_rot)
                 else:
@@ -448,19 +449,19 @@ if __name__ == "__main__":
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
                 instructions = RecalculatePath(goal, est_pose, instructions)
-                if check_if_arrived(goal, est_pose, instructions, arrived):
-                    arrived = True
-                    rotateuntiltwolandmarks = True
-                    rotationspottedlandmarks = []
+                if arrived:
                     print("Double checking if really arrived")
                     if check_if_arrived(goal, est_pose, instructions, arrived):
                         break
-                    else:
-                        arrived = False
+                if check_if_arrived(goal, est_pose, instructions, arrived):
+                    arrived = True
+                    issearching = True
+                    searchinglandmarks = []
+
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                    rotateuntiltwolandmarks = True
-                    rotationspottedlandmarks = []
+                    issearching = True
+                    searchinglandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -517,7 +518,9 @@ if __name__ == "__main__":
                 
                 # List detected objects
                 objectDict = selectClosestObjects(objectIDs, dists, angles)
-                rotationspottedlandmarks += objectDict.keys()
+                if (issearching):
+                    print(f"Adding these objects to searching landmarks: {objectDict}")
+                    searchinglandmarks += objectDict.keys()
 
                 # Compute particle weights
                 # XXX: You do this
