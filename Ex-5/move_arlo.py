@@ -1,4 +1,4 @@
-from time import sleep
+from time import sleep, perf_counter
 import robot
 
 arlo = robot.Robot()
@@ -20,6 +20,8 @@ def turn(params):
     print(arlo.stop())
     sleep(0.1)
 
+    return 0
+
 
 def forward(distance):
     # Time constants
@@ -33,10 +35,25 @@ def forward(distance):
     rightSpeedmodifier = -1
 
     #go straight
+    start = perf_counter()
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
-    sleep(go_sleep)
+    while start - perf_counter() < go_sleep:
+        front_dist = arlo.read_front_ping_sensor()
+        if front_dist < 20 and front_dist != -1:
+            end = start - perf_counter()
+            print(arlo.stop())
+            distance_driven = end * (10/(10 * 2.3) + (10 * extraconst)) 
+            
+            right_dist = arlo.read_right_ping_sensor()
+            if right_dist < 10 and right_dist != -1:
+                distance_driven = distance_driven * -1
+            
+            return distance_driven
+    
     print(arlo.stop())
     sleep(0.1)
+
+    return 0
 
 if __name__ == "__main__":
     # for i in range(4):
