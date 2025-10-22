@@ -334,14 +334,14 @@ if __name__ == "__main__":
         angular_uncertainty_on_forward = np.deg2rad(1)  # radians/instruction
 
         # Representation of the uncertainty of turning precision
-        angular_uncertainty_on_turn = np.deg2rad(1)  # radians/instruction
+        angular_uncertainty_on_turn = np.deg2rad(4)  # radians/instruction
 
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
         # More uncertainty parameters
         distance_measurement_uncertainty = 15.0  # cm
-        angle_measurement_uncertainty = np.deg2rad(1)  # radians
+        angle_measurement_uncertainty = np.deg2rad(4)  # radians
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
