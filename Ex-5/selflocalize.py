@@ -453,10 +453,10 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         # Where the robot wants to go, position in meters
-        #goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
+        goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
 
         #goal for testing goals as a list
-        goals = [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
+        #goals = [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
         print(f"Target point: {goals[0]}")
 
         # Allocate space for world map
