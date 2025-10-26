@@ -6,9 +6,9 @@ import time
 from timeit import default_timer as timer
 
 # Flags
-onRobot = False  # Whether or not we are running on the Arlo robot
+onRobot = True  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = True  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
 def isRunningOnArlo():
@@ -423,6 +423,13 @@ if __name__ == "__main__":
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
+        #Remove uncertainty when debugging pathfinding on laptop
+        if instruction_debug:
+            velocity_uncertainty = 0
+            angular_uncertainty_on_forward = 0
+            angular_uncertainty_on_turn = 0
+            angular_uncertainty = angular_uncertainty_on_turn
+
         # More uncertainty parameters
         distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
@@ -456,8 +463,11 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         # Where the robot wants to go, position in meters
-        goal = (landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0
-        print(f"Target point: {goal}")
+        goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
+
+        #goal for testing goals as a list
+        #goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0, [0.50, 0], [2.50, 0]]
+        print(f"Target point: {goals[0]}")
 
         # Allocate space for world map
         world = np.zeros((500, 500, 3), dtype=np.uint8)
@@ -507,12 +517,17 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                instructions = recalculate_path(goal, est_pose, instructions, path_coords)
+                instructions = recalculate_path(goals[0], est_pose, instructions, path_coords)
                 if arrived:
                     print("Double checking if really arrived")
-                    if check_if_arrived(goal, est_pose, instructions, arrived):
-                        break
-                if check_if_arrived(goal, est_pose, instructions, arrived):
+                    if check_if_arrived(goals[0], est_pose, instructions, arrived):
+                        if len(goals) == 1:
+                            break
+                        else:
+                            del goals[0]
+                            arrived = False
+
+                if check_if_arrived(goals[0], est_pose, instructions, arrived):
                     arrived = True
 
                 # Make the robot end every instruction sequence by rotating around itself once.
