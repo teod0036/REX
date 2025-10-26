@@ -56,7 +56,7 @@ landmarks = {
 }
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN]  # Colors used when drawing the landmarks
-landmark_radius_for_pathing = 0.50 #in cm
+landmark_radius_for_pathing = 0.45 #in cm
 
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of
@@ -238,7 +238,9 @@ def get_target(goal, est_pose):
     
     goal_is_landmark = False
     for lpos in landmarks.values():
-        if goal[0] == lpos[0] and goal[1] == lpos[1]:
+        print(f"current goal is: ({goal[0]},{goal[1]})")
+        print(f"current landmark is: ({lpos[0]},{lpos[1]})")
+        if goal[0] == lpos[0]/100 and goal[1] == lpos[1]/100:
             goal_is_landmark = True
 
     if goal_is_landmark:
@@ -523,7 +525,7 @@ if __name__ == "__main__":
                 print()
                 # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
                 # If the arrived falg is already true, the robot has arrived at it's target.
-                if np.round(dist_from_target, 2) <= landmark_radius_for_pathing:
+                if np.round(dist_from_target, 2) <= (landmark_radius_for_pathing + 0.05):
                     print("I am close to my target")
                     print()
                     if arrived:
