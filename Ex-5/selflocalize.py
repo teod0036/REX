@@ -519,7 +519,7 @@ if __name__ == "__main__":
                 generate_rotation_in_place(deg_per_rot)
 
             
-            if (issearching) and len(searchinglandmarks) >= 2:
+            if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
                 instructions = []
                 print("Spotted two landmarks, should be localized now.")
@@ -575,7 +575,6 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
-                
                 if (issearching):
                     for o in objectIDs:
                         if o not in searchinglandmarks and o in landmarkIDs:
