@@ -30,9 +30,9 @@ def forward(distance):
 
     leftSpeed = 64
     rightSpeed = 64
-    rightSpeedmodifier = -2
+    rightSpeedmodifier = +2
 
-    print(arlo.go_diff(leftSpeed, rightSpeed - rightSpeedmodifier, 1, 1))
+    print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
     sleep(go_sleep)
 
 if __name__ == "__main__":
