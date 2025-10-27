@@ -223,9 +223,6 @@ def recalculate_path(goal, est_pose, instructions, path_coords=[]):
 
     return instructions
 
-def check_if_arrived(goal, est_pose, instructions, arrived, target=[]):
-    pass
-
 
 def get_target(goal, est_pose):
     """
@@ -234,12 +231,13 @@ def get_target(goal, est_pose):
     """
 
     pos = [est_pose.getX()/100, est_pose.getY()/100]
-    dist = np.linalg.norm([pos, goal]).item()
+    dist = np.linalg.norm(goal - pos).item()
     
     goal_is_landmark = False
     for lpos in landmarks.values():
         print(f"current goal is: ({goal[0]},{goal[1]})")
-        print(f"current landmark is: ({lpos[0]},{lpos[1]})")
+        print(f"current landmark is: ({lpos[0]/100},{lpos[1]/100})")
+        print(f"I am currently at ({pos[0]},{pos[1]})")
         if goal[0] == lpos[0]/100 and goal[1] == lpos[1]/100:
             goal_is_landmark = True
 
@@ -456,7 +454,7 @@ if __name__ == "__main__":
         goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
 
         #goal for testing goals as a list
-        #goals = [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
+        #goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0, landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
         print(f"Target point: {goals[0]}")
 
         # Allocate space for world map
@@ -481,6 +479,9 @@ if __name__ == "__main__":
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
         maxinstructions_per_execution = 8
+        if instruction_debug:
+            maxinstructions_per_execution = None
+
 
         # Initialize flag designating that the robot believes it has arrived
         arrived = False
