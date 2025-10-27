@@ -2,6 +2,8 @@ from time import perf_counter, sleep
 
 import robot
 
+is_low_on_battery = False
+
 arlo = robot.Robot()
 
 def turn(params):
@@ -12,14 +14,19 @@ def turn(params):
     rightSpeed = 64
     rightSpeedmodifier = 1
 
+    turnsleep = 0.347
+    out_of_battery = 0.347
     extraconst_c = -0.005
     extraconst_nc = 0.005
+    if is_low_on_battery:
+        turnsleep += out_of_battery
+
     if withclock:
         print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 0))
-        sleep((0.347 + extraconst_c) * (degrees / 45))
+        sleep((turnsleep + extraconst_c) * (degrees / 45))
     else:
         print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 0, 1))
-        sleep((0.347 + extraconst_nc) * (degrees / 45))
+        sleep((turnsleep + extraconst_nc) * (degrees / 45))
 
     print(arlo.stop())
     sleep(0.1)
@@ -32,7 +39,9 @@ def forward(distance):
 
     c = 1.15 + 0.0125
     go_sleep = c * distance * 2
-
+    out_of_battery = 1.15
+    if is_low_on_battery:
+        go_sleep += out_of_battery
     '''
     go_sleep = c * distance * 2
     distance = 1/2 * go_sleep / c
