@@ -1,26 +1,30 @@
-from time import sleep, perf_counter
+from time import perf_counter, sleep
+
 import robot
 
 arlo = robot.Robot()
 
-# def turn(params):
-#     withclock, degrees = params
-#     # Speed constants
-#     out_of_battery = 0.694
-#     leftSpeed = 64  
-#     rightSpeed = 64 - 1
-#     extraconst_c = 0
-#     extraconst_nc = 0
-#     if withclock:
-#         print(arlo.go_diff(leftSpeed, rightSpeed, 1, 0))
-#         sleep((0.694 + extraconst_c) * (degrees/90))
-#     else:
-#         print(arlo.go_diff(leftSpeed, rightSpeed, 0, 1))
-#         sleep((0.694 + extraconst_nc) * (degrees/90))
-#     print(arlo.stop())
-#     sleep(0.1)
-#
-#     return 0
+def turn(params):
+    withclock, degrees = params
+
+    # Speed constants
+    leftSpeed = 64
+    rightSpeed = 64
+    rightSpeedmodifier = 1
+
+    extraconst_c = 0
+    extraconst_nc = 0
+    if withclock:
+        print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 0))
+        sleep((0.347 + extraconst_c) * (degrees / 45))
+    else:
+        print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 0, 1))
+        sleep((0.347 + extraconst_nc) * (degrees / 45))
+
+    print(arlo.stop())
+    sleep(0.1)
+
+    return 0
 
 def forward(distance):
     # Time constants
@@ -35,5 +39,9 @@ def forward(distance):
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
     sleep(go_sleep)
 
+    print(arlo.stop())
+    sleep(0.1)
+
+
 if __name__ == "__main__":
-    forward(0.5)
+    turn((False, 45))
