@@ -7,9 +7,9 @@ from typing import NamedTuple
 from timeit import default_timer as timer
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = True  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
 def isRunningOnArlo():
@@ -63,19 +63,19 @@ def eprint(*args, **kwargs):
     import sys
     print(f"selflocalize.py: ", *args, file=sys.stderr, **kwargs)
 
-def plot_markers(map, tvec, rvec):
-    raxes = cv2.Rodrigues(rvec)[0]  # shape (3)
-
-    pos = (
-        tvec[[0, 2]] - raxes[:, :, 2][:, [0, 2]] * marker_half_depth_m
-    )  # shape (N, 2)
-
-    centroid_pos = camera_offset_m + pos
-    centroid_radius_sq = marker_radius_m**2
-
-    eprint(f"{centroid_pos = }")
-
-    map.plot_centroid_w_radius_sq(centroid_pos, centroid_radius_sq)
+# def plot_markers(map, tvec, rvec):
+#     raxes = cv2.Rodrigues(rvec)[0]  # shape (3)
+#
+#     pos = (
+#         tvec[[0, 2]] - raxes[:, :, 2][:, [0, 2]] * marker_half_depth_m
+#     )  # shape (N, 2)
+#
+#     centroid_pos = camera_offset_m + pos
+#     centroid_radius_sq = marker_radius_m**2
+#
+#     eprint(f"{centroid_pos = }")
+#
+#     map.plot_centroid_w_radius_sq(centroid_pos, centroid_radius_sq)
 
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of
@@ -242,31 +242,19 @@ def recalculate_path(goal, est_pose, instructions, path_coords=[]):
 
     return instructions
 
-def check_if_arrived(goal, est_pose, instructions, arrived, target=[]):
-    pass
 
-
-def get_target(goal, est_pose):
+def get_target(goal, est_pose, goal_is_landmark):
     """
         This function gets the closest possible point to the center of a landmark that works with the path planning.
         goal input should be in meters.
     """
 
-    pos = [est_pose.getX()/100, est_pose.getY()/100]
-    dist = np.linalg.norm([pos, goal]).item()
-    
-    goal_is_landmark = False
-    for lpos in landmarks.values():
-        print(f"current goal is: ({goal[0]},{goal[1]})")
-        print(f"current landmark is: ({lpos[0]},{lpos[1]})")
-
-        if goal[0] == lpos[0]/100 and goal[1] == lpos[1]/100:
-            goal_is_landmark = True
+    pos = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+    dist = np.linalg.norm(goal - pos)
 
     if goal_is_landmark:
-        target_x = goal[0] + ((pos[0] - goal[0]) / dist) * landmark_radius_for_pathing
-        target_y = goal[1] + ((pos[1] - goal[1]) / dist) * landmark_radius_for_pathing
-        return np.array([target_x, target_y], dtype=np.float32)
+        target = goal + ((pos - goal) / dist) * landmark_radius_for_pathing
+        return target
     else:
         return goal
 
@@ -466,10 +454,10 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         # Where the robot wants to go, position in meters
-        goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
+        # goal_is_landmark, goals = False, [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
 
         #goal for testing goals as a list
-        #goals = [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
+        goal_is_landmark, goals = True, [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
         print(f"Target point: {goals[0]}")
 
         # Allocate space for world map
@@ -494,6 +482,9 @@ if __name__ == "__main__":
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
         maxinstructions_per_execution = 8
+        if instruction_debug:
+            maxinstructions_per_execution = None
+
 
         # Initialize flag designating that the robot believes it has arrived
         arrived = False
@@ -520,7 +511,7 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                target = get_target(goals[0], est_pose)
+                target = get_target(goals[0], est_pose, goal_is_landmark)
                 cur_goal = goals[0]
                 instructions = recalculate_path(target, est_pose, instructions, path_coords)
 
