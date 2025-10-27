@@ -12,8 +12,8 @@ def turn(params):
     rightSpeed = 64
     rightSpeedmodifier = 1
 
-    extraconst_c = 0
-    extraconst_nc = 0
+    extraconst_c = -0.005
+    extraconst_nc = 0.005
     if withclock:
         print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 0))
         sleep((0.347 + extraconst_c) * (degrees / 45))
@@ -29,19 +29,50 @@ def turn(params):
 def forward(distance):
     # Time constants
     # note: tuning for 0.5 meters, so distance is scaled by 2
-    extraconst = 0.0125
-    go_sleep = (1.15 + extraconst) * distance * 2
+
+    c = 1.15 + 0.0125
+    go_sleep = c * distance * 2
+
+    '''
+    go_sleep = c * distance * 2
+    distance = 1/2 * go_sleep / c
+    '''
 
     leftSpeed = 64
     rightSpeed = 64
     rightSpeedmodifier = 1
 
     print(arlo.go_diff(leftSpeed, rightSpeed + rightSpeedmodifier, 1, 1))
-    sleep(go_sleep)
 
-    print(arlo.stop())
+    # roughly equivalent to sleep(0.1) but with sensor detection
+    start = perf_counter()
+    isgoing = True
+    while isgoing:
+        if perf_counter() - start > go_sleep:
+            print(arlo.stop())
+            isgoing = False
+        
+        front_dist = arlo.read_front_ping_sensor()
+        if front_dist < 200 and front_dist != -1:
+            print(arlo.stop())
+            end = start - perf_counter()
+
+            distance_driven = end / (2 * c)
+            
+            right_dist = arlo.read_right_ping_sensor()
+            if right_dist < 100 and right_dist != -1:
+                distance_driven = distance_driven * -1
+            
+            sleep(0.1)
+            return distance_driven
+    
     sleep(0.1)
+    print(arlo.stop())
+
+    return 0
+
+
 
 
 if __name__ == "__main__":
-    turn((False, 45))
+    print(f"distance driven: {forward(2)}");
