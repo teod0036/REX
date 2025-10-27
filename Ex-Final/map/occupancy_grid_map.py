@@ -54,6 +54,9 @@ class OccupancyGridMap:
         )
 
     def draw_map(self, ax=None):
+        """
+        visualize map
+        """
         import matplotlib.pyplot as plt
 
         plt.imshow(
@@ -79,9 +82,18 @@ class OccupancyGridMap:
         radius_sq = radius**2
         radius_sq_reshaped = radius_sq[np.newaxis, np.newaxis, :]  # shape (_, _, N)
 
-        return self.plot_centroid(origins, radius_sq_reshaped)
+        return self.plot_centroid_w_radius_sq(origins, radius_sq_reshaped)
 
-    def plot_centroid(self, origins: np.ndarray, radius_squared: np.ndarray):
+    def plot_centroid(self, origins: np.ndarray, radius: np.ndarray):
+        """
+        plot centroid in map
+        """
+        return self.plot_centroid_w_radius_sq(origins, radius ** 2)
+
+    def plot_centroid_w_radius_sq(self, origins: np.ndarray, radius_squared: np.ndarray):
+        """
+        plot centroid in map, with radius passed as radius squared
+        """
         # fill the grids by checking if the grid centroid is in any of the circle
         origins = np.asarray(origins)
         radius_squared = np.asarray(radius_squared)
