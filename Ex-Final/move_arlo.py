@@ -28,7 +28,11 @@ def forward(distance):
     extraconst = 0.0125
     go_sleep = (1.15 + extraconst) * distance * 2
 
-    print(arlo.go_diff(64, 63, 1, 1))
+    leftSpeed = 64
+    rightSpeed = 64
+    rightSpeedmodifier = -2
+
+    print(arlo.go_diff(leftSpeed, rightSpeed - rightSpeedmodifier, 1, 1))
     sleep(go_sleep)
 
 if __name__ == "__main__":
