@@ -427,7 +427,7 @@ if __name__ == "__main__":
 
         # particle filter parameters
         resample_threshold = num_particles / 2.0  # resample if less than half of particles have large weights
-        alpha_slow = 0.001
+        alpha_slow = 0.002
         alpha_fast = 0.1
         w_slow = w_fast = sum([p.getWeight() for p in particles]) / num_particles
 
@@ -527,9 +527,9 @@ if __name__ == "__main__":
                         move_vec /= np.linalg.norm(move_vec)
                         
                         #Multiply that vector by radius
-                        pos = move_vec * pos
-
-                        instructions = recalculate_path(target, pos*100, instructions, path_coords)
+                        pos = move_vec * pos * 100
+                        
+                        instructions = recalculate_path(target, particle.Particle(pos[0], pos[1], 0, 0), instructions, path_coords)
                     pass
 
                 # Calculate how far the robot is from it's goal.
