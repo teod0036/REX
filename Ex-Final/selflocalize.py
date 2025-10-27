@@ -3,6 +3,7 @@ import particle
 import camera
 import numpy as np
 import time
+from typing import NamedTuple
 from timeit import default_timer as timer
 
 # Flags
@@ -51,12 +52,30 @@ CBLACK = (0, 0, 0)
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
 landmarks = {
-    3: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
+    1: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
     11: np.array((300.0, 0.0), dtype=np.float32),  # Coordinates for landmark 2
 }
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN]  # Colors used when drawing the landmarks
 landmark_radius_for_pathing = 0.45 #in cm
+
+def eprint(*args, **kwargs):
+    import sys
+    print(f"selflocalize.py: ", *args, file=sys.stderr, **kwargs)
+
+# def plot_markers(map, tvec, rvec):
+#     raxes = cv2.Rodrigues(rvec)[0]  # shape (3)
+#
+#     pos = (
+#         tvec[[0, 2]] - raxes[:, :, 2][:, [0, 2]] * marker_half_depth_m
+#     )  # shape (N, 2)
+#
+#     centroid_pos = camera_offset_m + pos
+#     centroid_radius_sq = marker_radius_m**2
+#
+#     eprint(f"{centroid_pos = }")
+#
+#     map.plot_centroid_w_radius_sq(centroid_pos, centroid_radius_sq)
 
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of
@@ -224,27 +243,18 @@ def recalculate_path(goal, est_pose, instructions, path_coords=[]):
     return instructions
 
 
-def get_target(goal, est_pose):
+def get_target(goal, est_pose, goal_is_landmark):
     """
         This function gets the closest possible point to the center of a landmark that works with the path planning.
         goal input should be in meters.
     """
 
-    pos = [est_pose.getX()/100, est_pose.getY()/100]
-    dist = np.linalg.norm(goal - pos).item()
-    
-    goal_is_landmark = False
-    for lpos in landmarks.values():
-        print(f"current goal is: ({goal[0]},{goal[1]})")
-        print(f"current landmark is: ({lpos[0]/100},{lpos[1]/100})")
-        print(f"I am currently at ({pos[0]},{pos[1]})")
-        if goal[0] == lpos[0]/100 and goal[1] == lpos[1]/100:
-            goal_is_landmark = True
+    pos = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+    dist = np.linalg.norm(goal - pos)
 
     if goal_is_landmark:
-        target_x = goal[0] + ((pos[0] - goal[0]) / dist) * landmark_radius_for_pathing
-        target_y = goal[1] + ((pos[1] - goal[1]) / dist) * landmark_radius_for_pathing
-        return np.array([target_x, target_y], dtype=np.float32)
+        target = goal + ((pos - goal) / dist) * landmark_radius_for_pathing
+        return target
     else:
         return goal
 
@@ -263,10 +273,7 @@ def turn_particles(instructions):
     # Set the angular velocity to the value obtained based on the direction and degrees rotated
     angular_velocity = radians
 
-    # Set the angular uncertainty to the uncertainty used when rotating
-    angular_uncertainty = angular_uncertainty_on_turn
-
-    return angular_velocity, angular_uncertainty
+    return angular_velocity, angular_uncertainty_on_turn
 
 
 def forward_particles(instructions): #This function doesn't do anything to the robot
@@ -274,17 +281,13 @@ def forward_particles(instructions): #This function doesn't do anything to the r
     meters = instructions[0][1]
 
     # Convert meters to centimeters, since the particles move in units of centimeters
-    centimeters = meters * 100
+    vector_centimeters = meters * 100
 
     # Set the velocity to the value obtained based on the meters dictated by the instruction
-    velocity = centimeters
+    velocity = vector_centimeters
     #print(f"Forwarding particles by {centimeters} cm")
 
-
-    # Set the angular uncertainty to the uncertainty used when driving
-    angular_uncertainty = angular_uncertainty_on_forward
-
-    return velocity, angular_uncertainty
+    return velocity, angular_uncertainty_on_forward
 
 def generate_rotation_in_place(deg_per_rot):
     for i in range(360 // deg_per_rot):
@@ -444,17 +447,17 @@ if __name__ == "__main__":
         for origin in landmarks.values():
             origins.append((origin[0] / 100, origin[1] / 100))
         radius_squared = ((18 / 100) + (22.5 / 100)) ** 2
-        path_map.plot_centroid(np.array(origins), np.array(radius_squared))
+        path_map.plot_centroid_w_radius_sq(np.array(origins), np.array(radius_squared))
 
         # Create robot model for pathfinding
         path_res = map_res
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         # Where the robot wants to go, position in meters
-        goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
+        # goal_is_landmark, goals = False, [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
 
         #goal for testing goals as a list
-        #goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0, landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
+        goal_is_landmark, goals = True, [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
         print(f"Target point: {goals[0]}")
 
         # Allocate space for world map
@@ -508,7 +511,7 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                target = get_target(goals[0], est_pose)
+                target = get_target(goals[0], est_pose, goal_is_landmark)
                 cur_goal = goals[0]
                 instructions = recalculate_path(target, est_pose, instructions, path_coords)
                 if len(instructions) == 0:
@@ -656,9 +659,10 @@ if __name__ == "__main__":
                 # Resampling
                 # XXX: You do this
 
-                # resample if less than half of the particles contribute meaningfully
+                # resample if less than some threshold of the particles contribute meaningfully
                 num_effective_particles = 1 / np.sum(np.square(weights))
                 if num_effective_particles < resample_threshold: 
+                    # set new particles, which have their weight adjusted as well for visualization
                     particles = resample_particles(particles, weights)
                 else:
                     # set weights for visualization
