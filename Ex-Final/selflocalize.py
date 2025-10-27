@@ -514,6 +514,23 @@ if __name__ == "__main__":
                 target = get_target(goals[0], est_pose, goal_is_landmark)
                 cur_goal = goals[0]
                 instructions = recalculate_path(target, est_pose, instructions, path_coords)
+                if len(instructions) == 0:
+                    pos = np.array([est_pose.getX()/100, est_pose.getY()/100])
+                    lmark = []
+                    for l in landmarks.values():
+                        if (l[0] - pos[0])**2 + (l[1]-pos[1])**2 <= landmark_radius_for_pathing**2:
+                            lmark = l 
+                    #Check if robot is inside landmark
+                    if len(lmark) > 0:
+                        #Vector from landmark to robot
+                        move_vec = pos - lmark
+                        move_vec /= np.linalg.norm(move_vec)
+                        
+                        #Multiply that vector by radius
+                        pos = move_vec * pos
+
+                        instructions = recalculate_path(target, pos*100, instructions, path_coords)
+                    pass
 
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
