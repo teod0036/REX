@@ -6,9 +6,9 @@ import time
 from timeit import default_timer as timer
 
 # Flags
-onRobot = False  # Whether or not we are running on the Arlo robot
+onRobot = True  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = True  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
 def isRunningOnArlo():
@@ -56,7 +56,7 @@ landmarks = {
 }
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN]  # Colors used when drawing the landmarks
-
+landmark_radius_for_pathing = 0.45 #in cm
 
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of
@@ -223,42 +223,32 @@ def recalculate_path(goal, est_pose, instructions, path_coords=[]):
 
     return instructions
 
+def check_if_arrived(goal, est_pose, instructions, arrived, target=[]):
+    pass
 
-def check_if_arrived(goal, est_pose, instructions, arrived):
-    # Calculate how far the robot is from it's goal.
-    # This value is used to check whether the robot has arrived or not.
-    # The distance is in meters.
-    dist_from_target = np.linalg.norm([goal[0] - (est_pose.getX() / 100), goal[1] - (est_pose.getY() / 100)])
 
-    # Print statements for debugging reasons
-    print(f"I am currently {dist_from_target} meters from the target position")
-    print(f"Current target is: {goal}")
-    print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
-    print(f"My instructions are {instructions}")
-    print()
-    # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
-    # If the arrived falg is already true, the robot has arrived at it's target.
-    if dist_from_target <= 0.40:
-        print("I am close to my target")
-        print()
-        if arrived:
-            print("I have arrived")
-            print(f"The target is at {goal}")
-            print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
-            print()
-            return True
-        # Clear the instruction list to allow the robot to survey it's surroundings again
-        # to make sure it is in the right place without driving away
-        instructions[:] = []
-        return True
+def get_target(goal, est_pose):
+    """
+        This function gets the closest possible point to the center of a landmark that works with the path planning.
+        goal input should be in meters.
+    """
 
-    # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
-    # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
-    elif arrived:
-        print("I have realized i am not close to my target")
-        print()
-        return False
+    pos = [est_pose.getX()/100, est_pose.getY()/100]
+    dist = np.linalg.norm([pos, goal]).item()
+    
+    goal_is_landmark = False
+    for lpos in landmarks.values():
+        print(f"current goal is: ({goal[0]},{goal[1]})")
+        print(f"current landmark is: ({lpos[0]},{lpos[1]})")
+        if goal[0] == lpos[0]/100 and goal[1] == lpos[1]/100:
+            goal_is_landmark = True
 
+    if goal_is_landmark:
+        target_x = goal[0] + ((pos[0] - goal[0]) / dist) * landmark_radius_for_pathing
+        target_y = goal[1] + ((pos[1] - goal[1]) / dist) * landmark_radius_for_pathing
+        return np.array([target_x, target_y], dtype=np.float32)
+    else:
+        return goal
 
 def turn_particles(instructions):
     # Unpack the direction and degrees rotated
@@ -423,6 +413,13 @@ if __name__ == "__main__":
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
+        #Remove uncertainty when debugging pathfinding on laptop
+        if instruction_debug:
+            velocity_uncertainty = 0
+            angular_uncertainty_on_forward = 0
+            angular_uncertainty_on_turn = 0
+            angular_uncertainty = angular_uncertainty_on_turn
+
         # More uncertainty parameters
         distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
@@ -456,8 +453,11 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         # Where the robot wants to go, position in meters
-        goal = (landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0
-        print(f"Target point: {goal}")
+        goals = [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
+
+        #goal for testing goals as a list
+        #goals = [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
+        print(f"Target point: {goals[0]}")
 
         # Allocate space for world map
         world = np.zeros((500, 500, 3), dtype=np.uint8)
@@ -507,19 +507,54 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                instructions = recalculate_path(goal, est_pose, instructions, path_coords)
-                if arrived:
-                    print("Double checking if really arrived")
-                    if check_if_arrived(goal, est_pose, instructions, arrived):
-                        break
-                if check_if_arrived(goal, est_pose, instructions, arrived):
+                target = get_target(goals[0], est_pose)
+                cur_goal = goals[0]
+                instructions = recalculate_path(target, est_pose, instructions, path_coords)
+
+                # Calculate how far the robot is from it's goal.
+                # This value is used to check whether the robot has arrived or not.
+                # The distance is in meters.
+                dist_from_target = np.linalg.norm([cur_goal[0] - (est_pose.getX() / 100), cur_goal[1] - (est_pose.getY() / 100)])
+
+                # Print statements for debugging reasons
+                print(f"I am currently {dist_from_target} meters from the target position")
+                print(f"Current goal is: {cur_goal}")
+                print(f"Current Target is: {target}")
+                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                print(f"My instructions are {instructions}")
+                print()
+                # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
+                # If the arrived falg is already true, the robot has arrived at it's target.
+                if np.round(dist_from_target, 2) <= (landmark_radius_for_pathing + 0.05):
+                    print("I am close to my target")
+                    print()
+                    if arrived:
+                        print("I have arrived")
+                        print(f"The target is at {cur_goal}")
+                        print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                        print()
+                        if len(goals) == 1:
+                            break
+                        else:
+                            del goals[0]
+                            arrived = False
+                    # Clear the instruction list to allow the robot to survey it's surroundings again
+                    # to make sure it is in the right place without driving away
+                    instructions = []
                     arrived = True
+
+                # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
+                # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
+                elif arrived:
+                    print("I have realized i am not close to my target")
+                    print()
+                    arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
                 generate_rotation_in_place(deg_per_rot)
 
             
-            if (issearching) and len(searchinglandmarks) >= 2:
+            if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
                 instructions = []
                 print("Spotted two landmarks, should be localized now.")
@@ -575,7 +610,6 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
-                
                 if (issearching):
                     for o in objectIDs:
                         if o not in searchinglandmarks and o in landmarkIDs:
