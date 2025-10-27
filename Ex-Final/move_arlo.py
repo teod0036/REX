@@ -47,6 +47,7 @@ def forward(distance):
     # roughly equivalent to sleep(0.1) but with sensor detection
     start = perf_counter()
     isgoing = True
+
     while isgoing:
         if perf_counter() - start > go_sleep:
             print(arlo.stop())
@@ -54,16 +55,16 @@ def forward(distance):
         
         front_dist = arlo.read_front_ping_sensor()
         if front_dist < 200 and front_dist != -1:
+            sleep(0.1)
             print(arlo.stop())
-            end = start - perf_counter()
 
+            end = perf_counter() - start 
             distance_driven = end / (2 * c)
             
             right_dist = arlo.read_right_ping_sensor()
-            if right_dist < 100 and right_dist != -1:
+            if right_dist < 300 and right_dist != -1:
                 distance_driven = distance_driven * -1
             
-            sleep(0.1)
             return distance_driven
     
     sleep(0.1)
