@@ -1,10 +1,12 @@
-import cv2
-import particle
-import camera
-import numpy as np
 import time
-from typing import NamedTuple
+from copy import deepcopy
 from timeit import default_timer as timer
+
+import cv2
+import numpy as np
+
+import camera
+import particle
 
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
@@ -57,25 +59,23 @@ landmarks = {
 }
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN]  # Colors used when drawing the landmarks
-landmark_radius_for_pathing = 0.45 #in cm
+landmark_radius_for_pathing = 0.45  # in cm
+marker_radius_meters = 18 / 100  # in m
+robot_radius_meters = 22.5 / 100  # in m
+
 
 def eprint(*args, **kwargs):
     import sys
+
     print(f"selflocalize.py: ", *args, file=sys.stderr, **kwargs)
 
-# def plot_markers(map, tvec, rvec):
-#     raxes = cv2.Rodrigues(rvec)[0]  # shape (3)
-#
-#     pos = (
-#         tvec[[0, 2]] - raxes[:, :, 2][:, [0, 2]] * marker_half_depth_m
-#     )  # shape (N, 2)
-#
-#     centroid_pos = camera_offset_m + pos
-#     centroid_radius_sq = marker_radius_m**2
-#
-#     eprint(f"{centroid_pos = }")
-#
-#     map.plot_centroid_w_radius_sq(centroid_pos, centroid_radius_sq)
+
+def plot_marker(map, objDist, objAngle):
+    pos = np.array([0, robot_radius_meters]) + np.array(
+        [np.cos(objAngle), np.sin(objAngle)]
+    ) * (objDist + marker_radius_meters)
+    map.plot_centroid_w_radius_sq(pos, marker_radius_meters)
+
 
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of
@@ -149,14 +149,20 @@ def draw_world(est_pose, particles, world, path=None):
             thickness,
             lineType,
         )
-    
+
     if path is not None:
         for i in range(len(path)):
-            if i >= (len(path)-1):
+            if i >= (len(path) - 1):
                 break
-            point1 = (int(path[i][0] * 100)+offsetX, int(ymax - (path[i][1] * 100+offsetY)))
-            point2 = (int(path[i+1][0] * 100)+offsetX, int(ymax - (path[i+1][1] * 100+offsetY)))
-            cv2.line(img=world, pt1=point1, pt2=point2, color=(0, 0, 255), thickness=2)        
+            point1 = (
+                int(path[i][0] * 100) + offsetX,
+                int(ymax - (path[i][1] * 100 + offsetY)),
+            )
+            point2 = (
+                int(path[i + 1][0] * 100) + offsetX,
+                int(ymax - (path[i + 1][1] * 100 + offsetY)),
+            )
+            cv2.line(img=world, pt1=point1, pt2=point2, color=(0, 0, 255), thickness=2)
 
     # Draw estimated robot pose
     a = (int(est_pose.getX()) + offsetX, ymax - (int(est_pose.getY()) + offsetY))
@@ -170,7 +176,7 @@ def draw_world(est_pose, particles, world, path=None):
 
 def initialize_particles(num_particles):
     particles = []
-    for i in range(num_particles):
+    for _ in range(num_particles):
         # Random starting points.
         p = particle.Particle(
             600.0 * np.random.ranf() - 100.0,
@@ -203,15 +209,27 @@ def control_manually(action, velocity, angular_velocity):
         velocity = 0.0
         angular_velocity = 0.0
     elif action == ord("a"):  # Left
-        if (angular_velocity < 0.2):  # clamp angular velocity so particles can't accelerate infinitely
+        if (
+            angular_velocity < 0.2
+        ):  # clamp angular velocity so particles can't accelerate infinitely
             angular_velocity += 0.2
     elif action == ord("d"):  # Right
-        if (angular_velocity > -0.2):  # clamp angular velocity so particles can't accelerate infinitely
+        if (
+            angular_velocity > -0.2
+        ):  # clamp angular velocity so particles can't accelerate infinitely
             angular_velocity -= 0.2
     return velocity, angular_velocity
 
 
-def recalculate_path(goal, est_pose, instructions, path_coords=[]):
+def recalculate_path(
+    path_map,
+    robot_model,
+    goal,
+    est_pose,
+    instructions,
+    path_coords,
+    maxinstructions_per_execution,
+):
     # print statement for debugging reasons
     print("recalculating path")
     print()
@@ -227,14 +245,14 @@ def recalculate_path(goal, est_pose, instructions, path_coords=[]):
     # Get a list of instructions that the robot can execute
     # Instructions are created based on RRT algorithm output
     instructions = plan_path.plan_path(
-        path_map,
-        robot_model,
+        map=path_map,
+        robot=robot_model,
         current_dir=current_dir,
         current_dir_orthogonal=current_dir_orthogonal,
         start=pos_meter,
         goal=goal,
-        path_coords=path_coords
-    )  # type: ignore
+        path_coords=path_coords,
+    )
 
     # remove instructions exceeding the maximum.
     if maxinstructions_per_execution is not None:
@@ -245,8 +263,8 @@ def recalculate_path(goal, est_pose, instructions, path_coords=[]):
 
 def get_target(goal, est_pose, goal_is_landmark):
     """
-        This function gets the closest possible point to the center of a landmark that works with the path planning.
-        goal input should be in meters.
+    This function gets the closest possible point to the center of a landmark that works with the path planning.
+    goal input should be in meters.
     """
 
     pos = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
@@ -258,10 +276,11 @@ def get_target(goal, est_pose, goal_is_landmark):
     else:
         return goal
 
+
 def turn_particles(instructions):
     # Unpack the direction and degrees rotated
     withclock, degrees = instructions[0][1]
-    #print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
+    # print(f"Rotating particles by {'+' if withclock else '-'}{degrees} degrees ")
 
     # Convert the degrees to radians
     radians = np.deg2rad(degrees)
@@ -276,7 +295,7 @@ def turn_particles(instructions):
     return angular_velocity, angular_uncertainty_on_turn
 
 
-def forward_particles(instructions): #This function doesn't do anything to the robot
+def forward_particles(instructions):  # This function doesn't do anything to the robot
     # Unpack the meters driven
     meters = instructions[0][1]
 
@@ -285,12 +304,13 @@ def forward_particles(instructions): #This function doesn't do anything to the r
 
     # Set the velocity to the value obtained based on the meters dictated by the instruction
     velocity = vector_centimeters
-    #print(f"Forwarding particles by {centimeters} cm")
+    # print(f"Forwarding particles by {centimeters} cm")
 
     return velocity, angular_uncertainty_on_forward
 
+
 def generate_rotation_in_place(deg_per_rot):
-    for i in range(360 // deg_per_rot):
+    for _ in range(360 // deg_per_rot):
         instructions.append(["turn", (False, deg_per_rot)])
 
 
@@ -306,24 +326,28 @@ def select_closest_objects(objectIDs, dists, angles):
             objectDict[objectIDs[i]] = (dists[i], angles[i])
     return objectDict
 
+
 def extract_particle_data(particles):
     positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
     orientations = np.array(
         [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
-        dtype=np.float32,)
+        dtype=np.float32,
+    )
     weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
     return positions, orientations, weights
 
 
-def measurement_model(objDist, objAngle, positions, orientations, orientations_orthogonal):
+def measurement_model(
+    objDist, objAngle, positions, orientations, orientations_orthogonal
+):
     # vector from particle to landmark
     v = landmarks[objID][np.newaxis, :] - positions
     distances = np.linalg.norm(v, axis=1)
 
     # accumulate likelihood for each object for each measurement
-    distance_pdf = (1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
-        -0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2
-    )
+    distance_pdf = (
+        1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))
+    ) * np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2)
 
     # angles from particle direction to landmark direction
     v /= distances[:, np.newaxis]
@@ -336,6 +360,7 @@ def measurement_model(objDist, objAngle, positions, orientations, orientations_o
     )
     return distance_pdf * angle_pdf
 
+
 def resample_particles(particles, weights):
     cumulative_sum = np.cumsum(weights)
     cumulative_sum[-1] = 1.0  # fix issues with zeroes
@@ -343,7 +368,7 @@ def resample_particles(particles, weights):
     # use uniform distribution once, and do systematic resampling
     offset = np.random.rand()
     positions = (np.arange(len(particles)) + offset) / len(particles)
-    indices = np.searchsorted(cumulative_sum, positions, side='right').astype(int)
+    indices = np.searchsorted(cumulative_sum, positions, side="right").astype(int)
 
     return [
         particle.Particle(
@@ -354,6 +379,7 @@ def resample_particles(particles, weights):
         )
         for i in indices
     ]
+
 
 def inject_random_particles(particles, w_slow, w_fast):
     w_avg = sum([p.getWeight() for p in particles]) / num_particles
@@ -372,9 +398,9 @@ def inject_random_particles(particles, w_slow, w_fast):
     return w_slow, w_fast
 
 
-
 # Main program #
 if __name__ == "__main__":
+    cam = None
     try:
         if showGUI:
             # Open windows
@@ -386,9 +412,9 @@ if __name__ == "__main__":
             cv2.namedWindow(WIN_World)
             cv2.moveWindow(WIN_World, 500, 50)
 
-        import plan_path
-        import map.robot_models as robot_models
         import map.occupancy_grid_map as occupancy_grid_map
+        import map.robot_models as robot_models
+        import plan_path
 
         # Initialize particles
         num_particles = 1000
@@ -414,7 +440,7 @@ if __name__ == "__main__":
         # Angular uncertainty is always equal to either angular_uncertainty_on_turn or angular_uncertainty_on_forward
         angular_uncertainty = angular_uncertainty_on_turn  # radians/instruction
 
-        #Remove uncertainty when debugging pathfinding on laptop
+        # Remove uncertainty when debugging pathfinding on laptop
         if instruction_debug:
             velocity_uncertainty = 0
             angular_uncertainty_on_forward = 0
@@ -426,7 +452,9 @@ if __name__ == "__main__":
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
         # particle filter parameters
-        resample_threshold = num_particles / 2.0  # resample if less than half of particles have large weights
+        resample_threshold = (
+            num_particles / 2.0
+        )  # resample if less than half of particles have large weights
         alpha_slow = 0.002
         alpha_fast = 0.1
         w_slow = w_fast = sum([p.getWeight() for p in particles]) / num_particles
@@ -435,19 +463,20 @@ if __name__ == "__main__":
         if isRunningOnArlo():
             import exec_arlo_instructions as exec
 
-            arlo = robot.Robot()
+            arlo = robot.Robot()  # type:ignore
 
         # Create map used for pathfinding, map uses meters as it's unit
         map_res = 0.05
-        path_map = occupancy_grid_map.OccupancyGridMap(
+        static_path_map = occupancy_grid_map.OccupancyGridMap(
             low=np.array((-2, -5)), high=np.array((8, 5)), resolution=map_res
         )
 
         origins = []
         for origin in landmarks.values():
             origins.append((origin[0] / 100, origin[1] / 100))
-        radius_squared = ((18 / 100) + (22.5 / 100)) ** 2
-        path_map.plot_centroid_w_radius_sq(np.array(origins), np.array(radius_squared))
+        radius = marker_radius_meters + robot_radius_meters
+        static_path_map.plot_centroid(np.array(origins), np.array(radius))
+        immediate_path_map = deepcopy(static_path_map)
 
         # Create robot model for pathfinding
         path_res = map_res
@@ -456,8 +485,11 @@ if __name__ == "__main__":
         # Where the robot wants to go, position in meters
         # goal_is_landmark, goals = False, [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
 
-        #goal for testing goals as a list
-        goal_is_landmark, goals = True, [landmarks[landmarkIDs[0]]/100, landmarks[landmarkIDs[1]]/100]
+        # goal for testing goals as a list
+        goal_is_landmark, goals = True, [
+            landmarks[landmarkIDs[0]] / 100,
+            landmarks[landmarkIDs[1]] / 100,
+        ]
         print(f"Target point: {goals[0]}")
 
         # Allocate space for world map
@@ -485,12 +517,11 @@ if __name__ == "__main__":
         if instruction_debug:
             maxinstructions_per_execution = None
 
-
         # Initialize flag designating that the robot believes it has arrived
         arrived = False
-        
-        #used for drawing path
-        path_coords=[]
+
+        # used for drawing path
+        path_coords = []
 
         while True:
             if instruction_debug:
@@ -502,7 +533,9 @@ if __name__ == "__main__":
                 break
 
             if not isRunningOnArlo():
-                velocity, angular_velocity = control_manually(action, velocity, angular_velocity)
+                velocity, angular_velocity = control_manually(
+                    action, velocity, angular_velocity
+                )
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
@@ -513,40 +546,69 @@ if __name__ == "__main__":
             if len(instructions) == 0:
                 target = get_target(goals[0], est_pose, goal_is_landmark)
                 cur_goal = goals[0]
-                instructions = recalculate_path(target, est_pose, instructions, path_coords)
+                instructions = recalculate_path(
+                    immediate_path_map,
+                    robot_model,
+                    target,
+                    est_pose,
+                    instructions,
+                    path_coords,
+                    maxinstructions_per_execution,
+                )
                 if len(instructions) == 0:
-                    pos = np.array([est_pose.getX()/100, est_pose.getY()/100])
+                    pos = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
                     lmark = []
                     for l in landmarks.values():
-                        if (l[0] - pos[0])**2 + (l[1]-pos[1])**2 <= landmark_radius_for_pathing**2:
-                            lmark = l 
-                    #Check if robot is inside landmark
+                        if (l[0] - pos[0]) ** 2 + (
+                            l[1] - pos[1]
+                        ) ** 2 <= landmark_radius_for_pathing**2:
+                            lmark = l
+                    # Check if robot is inside landmark
                     if len(lmark) > 0:
-                        #Vector from landmark to robot
+                        # Vector from landmark to robot
                         move_vec = pos - lmark
                         move_vec /= np.linalg.norm(move_vec)
-                        
-                        #Multiply that vector by radius
+
+                        # Multiply that vector by radius
                         pos = move_vec * pos * 100
-                        
-                        instructions = recalculate_path(target, particle.Particle(pos[0], pos[1], 0, 0), instructions, path_coords)
+
+                        instructions = recalculate_path(
+                            immediate_path_map,
+                            robot_model,
+                            target,
+                            particle.Particle(pos[0], pos[1], 0, 0),
+                            instructions,
+                            path_coords,
+                            maxinstructions_per_execution,
+                        )
                     pass
 
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
                 # The distance is in meters.
-                dist_from_target = np.linalg.norm([cur_goal[0] - (est_pose.getX() / 100), cur_goal[1] - (est_pose.getY() / 100)])
+                dist_from_target = np.linalg.norm(
+                    [
+                        cur_goal[0] - (est_pose.getX() / 100),
+                        cur_goal[1] - (est_pose.getY() / 100),
+                    ]
+                )
 
                 # Print statements for debugging reasons
-                print(f"I am currently {dist_from_target} meters from the target position")
+                print(
+                    f"I am currently {dist_from_target} meters from the target position"
+                )
                 print(f"Current goal is: {cur_goal}")
                 print(f"Current Target is: {target}")
-                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
+                print(
+                    f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]"
+                )
                 print(f"My instructions are {instructions}")
                 print()
                 # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
                 # If the arrived falg is already true, the robot has arrived at it's target.
-                if np.round(dist_from_target, 2) <= (landmark_radius_for_pathing + 0.05):
+                if np.round(dist_from_target, 2) <= (
+                    landmark_radius_for_pathing + 0.05
+                ):
                     print("I am close to my target")
                     print()
                     if arrived:
@@ -574,7 +636,6 @@ if __name__ == "__main__":
                 # Make the robot end every instruction sequence by rotating around itself once.
                 generate_rotation_in_place(deg_per_rot)
 
-            
             if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
                 instructions = []
@@ -590,7 +651,7 @@ if __name__ == "__main__":
             # Instructions are empty at this point if the path planning algorithm didn't find a path
             if (isRunningOnArlo() or instruction_debug) and len(instructions) != 0:
                 if not instruction_debug:
-                    exec.next(instructions, rm=False)
+                    exec.next(instructions, rm=False)  # type:ignore
 
                 # reset the velocity and angular velocity to 0
                 angular_velocity = 0
@@ -606,10 +667,15 @@ if __name__ == "__main__":
 
                 # If the instruction is unknown print a message and do nothing
                 else:
-                    print("Unknown instruction, instructions have to be either turn or forward")
+                    print(
+                        "Unknown instruction, instructions have to be either turn or forward"
+                    )
 
-                #remove most recent instruction
+                # remove most recent instruction
                 del instructions[0]
+
+                # reset immediate map
+                immediate_path_map = deepcopy(static_path_map)
 
             # predict particles after movement (prior):
             for p in particles:
@@ -619,7 +685,9 @@ if __name__ == "__main__":
                 p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
             # Add some noise
-            particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
+            particle.add_uncertainty(
+                particles, velocity_uncertainty, angular_uncertainty
+            )
 
             # Fetch next frame
             colour = cam.get_next_frame()
@@ -631,7 +699,7 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
-                if (issearching):
+                if issearching:
                     for o in objectIDs:
                         if o not in searchinglandmarks and o in landmarkIDs:
                             searchinglandmarks.append(o)
@@ -644,13 +712,23 @@ if __name__ == "__main__":
 
                 # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions, orientations, weights = extract_particle_data(particles)
-                orientations_orthogonal = np.column_stack([orientations[:, 1], -orientations[:, 0]])  # 90° rotated
+                orientations_orthogonal = np.column_stack(
+                    [orientations[:, 1], -orientations[:, 0]]
+                )  # 90 degrees rotated
 
-                # scale the weights for each observation (multiply by likelihood)
                 for objID, (objDist, objAngle) in objectDict.items():
                     if objID not in landmarkIDs:
-                        continue
-                    weights *= measurement_model(objDist, objAngle, positions, orientations, orientations_orthogonal)
+                        # plot any foreign landmark as non-crossable
+                        plot_marker(immediate_path_map, objDist, objAngle)
+                    else:
+                        # scale the weights for each observation (multiply by likelihood)
+                        weights *= measurement_model(
+                            objDist,
+                            objAngle,
+                            positions,
+                            orientations,
+                            orientations_orthogonal,
+                        )
 
                 # normalise weights (compute the posterior)
                 weights += 1e-12  # avoid problems with zeroes
@@ -661,7 +739,7 @@ if __name__ == "__main__":
 
                 # resample if less than some threshold of the particles contribute meaningfully
                 num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < resample_threshold: 
+                if num_effective_particles < resample_threshold:
                     # set new particles, which have their weight adjusted as well for visualization
                     particles = resample_particles(particles, weights)
                 else:
@@ -676,17 +754,19 @@ if __name__ == "__main__":
                 for p in particles:
                     p.setWeight(1.0 / num_particles)
 
-            est_pose = particle.estimate_pose(particles)  # The estimate of the robots current pose
+            est_pose = particle.estimate_pose(
+                particles
+            )  # The estimate of the robots current pose
 
             if showGUI:
                 # Draw map
                 draw_world(est_pose, particles, world, path_coords)
 
                 # Show frame
-                cv2.imshow(WIN_RF1, colour)
+                cv2.imshow(WIN_RF1, colour)  # type: ignore
 
                 # Show world
-                cv2.imshow(WIN_World, world)
+                cv2.imshow(WIN_World, world)  # type: ignore
 
             # inject new particles depending on the speed of weight change
             w_slow, w_fast = inject_random_particles(particles, w_slow, w_fast)
@@ -698,4 +778,5 @@ if __name__ == "__main__":
         cv2.destroyAllWindows()
 
         # Clean-up capture thread
-        cam.terminateCaptureThread()
+        if cam:
+            cam.terminateCaptureThread()
