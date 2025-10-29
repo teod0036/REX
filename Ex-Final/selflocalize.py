@@ -68,7 +68,7 @@ landmarks = {
 
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
-landmark_radius_for_pathing = 0.45  # in cm
+landmark_radius_for_pathing = 0.45  # in m
 marker_radius_meters = 18 / 100  # in m
 robot_radius_meters = 22.5 / 100  # in m
 
@@ -647,7 +647,9 @@ if __name__ == "__main__":
                 )
                 if len(instructions) == 0:
                     instructions = recalculate_path_on_failure(est_pose)
-
+                
+                if est_var.getX() <= 100 and est_var.getY() <= 100: 
+                    instructions = instructions[:2]
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
                 # The distance is in meters.
