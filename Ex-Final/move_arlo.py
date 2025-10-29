@@ -71,7 +71,7 @@ def forward(distance):
             end = perf_counter() - start 
             distance_driven = end / (2 * c)
             
-            if right_dist < 300 and right_dist != -1:
+            if left_dist < 300 and left_dist != -1:
                 distance_driven = distance_driven * -1
             
             sleep(0.1)
