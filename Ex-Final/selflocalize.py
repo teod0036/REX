@@ -57,8 +57,17 @@ landmarks = {
     1: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
     10: np.array((200.0, 0.0), dtype=np.float32),  # Coordinates for landmark 2
 }
+
+#Landmarks for 4 landmark track
+#landmarks = {
+#    1: np.array((-50.0, -200.0), dtype=np.float32),  # Coordinates for landmark 1
+#    2: np.array((-50.0, 200.0), dtype=np.float32),  # Coordinates for landmark 2
+#    3: np.array((350.0, -200.0), dtype=np.float32),  # Coordinates for landmark 3
+#    4: np.array((350.0, 200.0), dtype=np.float32),  # Coordinates for landmark 4
+#}
+
 landmarkIDs = list(landmarks.keys())
-landmark_colors = [CRED, CGREEN]  # Colors used when drawing the landmarks
+landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
 landmark_radius_for_pathing = 0.45  # in cm
 marker_radius_meters = 18 / 100  # in m
 robot_radius_meters = 22.5 / 100  # in m
@@ -557,6 +566,15 @@ if __name__ == "__main__":
             landmarks[landmarkIDs[1]] / 100,
         ]
         print(f"Target point: {goals[0]}")
+
+        # goal list for rally
+        #goal_is_landmark, goals = True, [
+        #    landmarks[landmarkIDs[0]] / 100,
+        #    landmarks[landmarkIDs[1]] / 100,
+        #    landmarks[landmarkIDs[2]] / 100,
+        #    landmarks[landmarkIDs[3]] / 100,
+        #    landmarks[landmarkIDs[0]] / 100,
+        #]
 
         # Allocate space for world map
         world = np.zeros((500, 500, 3), dtype=np.uint8)
