@@ -1,5 +1,9 @@
 import move_arlo
 
+def generate_rotation_in_place(deg_per_rot, instructions):
+    for _ in range(360 // deg_per_rot):
+        instructions.append(["turn", (False, deg_per_rot)])
+
 def all(arlo_instructions):
     for i in range(len(arlo_instructions)):
         next(arlo_instructons=arlo_instructions)
@@ -11,22 +15,23 @@ def next(arlo_instructons, rm=True):
         if distance_driven < 0:
             arlo_instructons.append(["turn", (False, 90)])
             arlo_instructons.append(["forward", (0.5)])
-            arlo_instructons.append(["turn", (True, 90)])
-            arlo_instructons.append(["forward", (0.5)])
-            arlo_instructons.append(["turn", (True, 90)])
-            arlo_instructons.append(["forward", (0.5)])
-            arlo_instructons.append(["turn", (False, 90)])
+            #arlo_instructons.append(["turn", (True, 90)])
+            #arlo_instructons.append(["forward", (0.5)])
+            #arlo_instructons.append(["turn", (True, 90)])
+            #arlo_instructons.append(["forward", (0.5)])
+            #arlo_instructons.append(["turn", (False, 90)])
             distance_driven = distance_driven * -1
         else:
             arlo_instructons.append(["turn", (True, 90)])
             arlo_instructons.append(["forward", (0.5)])
-            arlo_instructons.append(["turn", (False, 90)])
-            arlo_instructons.append(["forward", (0.5)])
-            arlo_instructons.append(["turn", (False, 90)])
-            arlo_instructons.append(["forward", (0.5)])
-            arlo_instructons.append(["turn", (True, 90)])
+            #arlo_instructons.append(["turn", (False, 90)])
+            #arlo_instructons.append(["forward", (0.5)])
+            #arlo_instructons.append(["turn", (False, 90)])
+            #arlo_instructons.append(["forward", (0.5)])
+            #arlo_instructons.append(["turn", (True, 90)])
 
         arlo_instructons[0][1] = distance_driven
+        generate_rotation_in_place(30, arlo_instructons)
 
     if rm:
         del arlo_instructons[0]
