@@ -10,7 +10,7 @@ import particle
 
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
-showGUI = True  # Whether or not to open GUI windows
+showGUI = False  # Whether or not to open GUI windows
 instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
