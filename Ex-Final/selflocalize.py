@@ -533,9 +533,6 @@ if __name__ == "__main__":
         high_x_variance, high_y_variance = 100, 100
 
         # particle filter parameters
-        resample_threshold = (
-            num_particles / 2.0
-        )  # resample if less than half of particles have large weights
         alpha_slow = 0.001
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
@@ -791,23 +788,8 @@ if __name__ == "__main__":
                 # Resampling
                 # XXX: You do this
 
-                # resample if less than some threshold of the particles contribute meaningfully
-                #
-                # note:
-                #     weight_variance = np.sum(weight**2) / n - weight_mean**2
-                # 1/np.sum(weight**2) = 1 / (weight_mean**2 + weight_variance) <=>
-                #
-                # So in that sense, the following quantity is a measure of whether the mean is
-                # small, or the variance is really small:
-
-                num_effective_particles = 1 / np.sum(np.square(weights))
-                if num_effective_particles < resample_threshold:
-                    # select new particles
-                    particles = resample_particles(particles, weights)
-                else:
-                    # keep as is, and set new weights for visualization
-                    for i, p in enumerate(particles):
-                        p.setWeight(weights[i])
+                # select new particles
+                particles = resample_particles(particles, weights)
 
                 # plot other landmarks as non-crossable
                 otherLandmarks.clear()
