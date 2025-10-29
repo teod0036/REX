@@ -536,7 +536,7 @@ if __name__ == "__main__":
         resample_threshold = (
             num_particles / 2.0
         )  # resample if less than half of particles have large weights
-        alpha_slow = 0.002
+        alpha_slow = 0.001
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
 
