@@ -14,7 +14,7 @@ def next(arlo_instructons, rm=True):
         del arlo_instructons[1:]
         if distance_driven < 0:
             arlo_instructons.append(["turn", (False, 90)])
-            arlo_instructons.append(["forward", (0.5)])
+            arlo_instructons.append(["forward", (0.25)])
             #arlo_instructons.append(["turn", (True, 90)])
             #arlo_instructons.append(["forward", (0.5)])
             #arlo_instructons.append(["turn", (True, 90)])
@@ -23,7 +23,7 @@ def next(arlo_instructons, rm=True):
             distance_driven = distance_driven * -1
         else:
             arlo_instructons.append(["turn", (True, 90)])
-            arlo_instructons.append(["forward", (0.5)])
+            arlo_instructons.append(["forward", (0.25)])
             #arlo_instructons.append(["turn", (False, 90)])
             #arlo_instructons.append(["forward", (0.5)])
             #arlo_instructons.append(["turn", (False, 90)])
