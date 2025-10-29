@@ -498,7 +498,7 @@ if __name__ == "__main__":
         import plan_path
 
         # Initialize particles
-        num_particles = 1000
+        num_particles = 2000
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
@@ -766,7 +766,7 @@ if __name__ == "__main__":
                 # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions, orientations, weights = extract_particle_data(particles)
                 orientations_orthogonal = np.column_stack(
-                    [orientations[:, 1], -orientations[:, 0]]
+                    [-orientations[:, 1], orientations[:, 0]]
                 )  # 90 degrees rotated
 
                 # scale the weights for each observation (multiply by likelihood)
@@ -823,7 +823,6 @@ if __name__ == "__main__":
 
             # The estimate of the robots current pose
             est_pose, est_var = estimate_pose(particles)  
-            print(f"{ est_var = }")
 
             # inject new particles depending on the speed of weight change
             w_slow, w_fast = inject_random_particles(
