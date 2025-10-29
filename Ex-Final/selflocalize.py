@@ -600,6 +600,7 @@ if __name__ == "__main__":
                             l[1] - pos[1]
                         ) ** 2 <= landmark_radius_for_pathing**2:
                             lmark = l
+                    print(f"{lmark =}")
                     # Check if robot is inside landmark
                     if len(lmark) > 0:
                         # Vector from landmark to robot
@@ -608,7 +609,7 @@ if __name__ == "__main__":
 
                         # Multiply that vector by radius
                         pos = move_vec * pos * 100
-
+                        print(f"{pos =}")
                         instructions = recalculate_path(
                             immediate_path_map,
                             robot_model,
