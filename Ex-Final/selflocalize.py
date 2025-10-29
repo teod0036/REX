@@ -633,18 +633,19 @@ if __name__ == "__main__":
             # This code block mainly calculates a new path for the robot to take
             # Instructions having a length of 0 means the robot has run out of plan for where to go
             if len(instructions) == 0:
-                target = get_target(goals[0], est_pose, goal_is_landmark)
-                cur_goal = goals[0]
-                instructions = recalculate_path(
-                    immediate_path_map,
-                    robot_model,
-                    target,
-                    est_pose,
-                    path_coords,
-                    maxinstructions_per_execution,
-                )
-                if len(instructions) == 0:
-                    instructions = recalculate_path_on_failure(est_pose)
+                if est_var.getX() <= 100 and est_var.getY() <= 100: 
+                    target = get_target(goals[0], est_pose, goal_is_landmark)
+                    cur_goal = goals[0]
+                    instructions = recalculate_path(
+                        immediate_path_map,
+                        robot_model,
+                        target,
+                        est_pose,
+                        path_coords,
+                        maxinstructions_per_execution,
+                    )
+                    if len(instructions) == 0:
+                        instructions = recalculate_path_on_failure(est_pose)
 
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
