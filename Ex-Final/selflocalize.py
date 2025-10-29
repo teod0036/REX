@@ -70,13 +70,6 @@ def eprint(*args, **kwargs):
     print(f"selflocalize.py: ", *args, file=sys.stderr, **kwargs)
 
 
-def plot_marker(map, objDist, objAngle):
-    pos = np.array((0, robot_radius_meters)) + np.array(
-        (np.cos(objAngle), np.sin(objAngle))
-    ) * (objDist + marker_radius_meters)
-    map.plot_centroid(np.array([pos]), marker_radius_meters)
-
-
 def jet(x):
     """Colour map for drawing particles. This function determines the colour of
     a particle from its weight."""
@@ -100,7 +93,7 @@ def jet(x):
     return (255.0 * float(r), 255.0 * float(g), 255.0 * float(b))
 
 
-def draw_world(est_pose, particles, world, path=None):
+def draw_world(est_pose, particles, world, path=None, otherLandmarks=[]):
     """Visualization.
     This functions draws robots position in the world coordinate system."""
 
@@ -149,6 +142,25 @@ def draw_world(est_pose, particles, world, path=None):
             thickness,
             lineType,
         )
+
+    # Draw other landmarks not defined
+    for (ID, (x, y)) in otherLandmarks:
+        lm = (int(x + offsetX), int(ymax - (y + offsetY)))
+        cv2.circle(world, lm, 5, (0, 0, 0), 2)
+        fontScale = 1
+        thickness = 2
+        lineType = 2
+        cv2.putText(
+            world,
+            f"{ID}",
+            lm,
+            cv2.FONT_HERSHEY_SIMPLEX,
+            fontScale,
+            (0, 0, 0),
+            thickness,
+            lineType,
+        )
+
 
     if path is not None:
         for i in range(len(path)):
@@ -352,127 +364,56 @@ def move_particles(particles):
     # Add some noise
     particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
 
-
-
-
-def particle_filter(runFilter, particles, w_slow, w_fast):
-    def extract_particle_data(particles):
-        positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
-        orientations = np.array(
-            [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
-            dtype=np.float32,
-        )
-        weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
-        return positions, orientations, weights
-
-    def measurement_model(
-        objID, objDist, objAngle, positions, orientations, orientations_orthogonal
-    ):
-        # vector from particle to landmark
-        v = landmarks[objID][np.newaxis, :] - positions
-        distances = np.linalg.norm(v, axis=1)
-
-        # accumulate likelihood for each object for each measurement
-        distance_pdf = (
-            1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))
-        ) * np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2)
-
-        # angles from particle direction to landmark direction
-        v /= distances[:, np.newaxis]
-        dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
-        cross = np.sum(v * orientations_orthogonal, axis=1)
-        angles = np.sign(cross) * np.arccos(dot)
-
-        angle_pdf = (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
-            -0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2
-        )
-        return distance_pdf * angle_pdf
-
-    def resample_particles(particles, weights):
-        cumulative_sum = np.cumsum(weights)
-        cumulative_sum[-1] = 1.0  # fix issues with zeroes
-
-        # use uniform distribution once, and do systematic resampling
-        offset = np.random.rand()
-        positions = (np.arange(len(particles)) + offset) / len(particles)
-        indices = np.searchsorted(cumulative_sum, positions, side="right").astype(int)
-
-        return [
-            particle.Particle(
-                particles[i].getX(),
-                particles[i].getY(),
-                particles[i].getTheta(),
-                float(weights[i]),
-            )
-            for i in indices
-        ]
-
-    if runFilter:
-        # Compute particle weights
-        # XXX: You do this
-
-        # put positions and weights into homogenous numpy arrays for vectorized operations
-        positions, orientations, weights = extract_particle_data(particles)
-        orientations_orthogonal = np.column_stack(
-            [orientations[:, 1], -orientations[:, 0]]
-        )  # 90 degrees rotated
-
-        for objID, (objDist, objAngle) in objectDict.items():
-            if objID not in landmarkIDs:
-                # plot any foreign landmark as non-crossable
-                plot_marker(immediate_path_map, objDist, objAngle)
-            else:
-                # scale the weights for each observation (multiply by likelihood)
-                weights *= measurement_model(
-                    objID,
-                    objDist,
-                    objAngle,
-                    positions,
-                    orientations,
-                    orientations_orthogonal,
-                )
-
-        # normalise weights (compute the posterior)
-        weights += 1e-12  # avoid problems with zeroes
-        weights /= np.sum(weights)
-
-        # Resampling
-        # XXX: You do this
-
-        # resample if less than some threshold of the particles contribute meaningfully
-        #
-        # note:
-        #     weight_variance = np.sum(weight**2) / n - weight_mean**2
-        # 1/np.sum(weight**2) = 1 / (weight_mean**2 + weight_variance) <=>
-        #
-        # So in that sense, the following quantity is a measure of whether the mean is
-        # small, or the variance is really small:
-
-        num_effective_particles = 1 / np.sum(np.square(weights))
-        if num_effective_particles < resample_threshold:
-            # select new particles
-            particles = resample_particles(particles, weights)
-        else:
-            # keep as is, and set new weights for visualization
-            for i, p in enumerate(particles):
-                p.setWeight(weights[i])
-
-    else:
-        # No observation - reset weights to uniform distribution
-        for p in particles:
-            p.setWeight(1.0 / num_particles)
-
-    # The estimate of the robots current pose
-    est_pose, est_var = estimate_pose(particles) 
-
-    # inject new particles depending on the speed of weight change
-    w_slow, w_fast = inject_random_particles(
-        particles, est_pose.getWeight(), w_slow, w_fast
+def extract_particle_data(particles):
+    positions = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float32)
+    orientations = np.array(
+        [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles],
+        dtype=np.float32,
     )
+    weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
+    return positions, orientations, weights
 
-    return est_pose, est_var, w_slow, w_fast
+def measurement_model(
+    objID, objDist, objAngle, positions, orientations, orientations_orthogonal
+):
+    # vector from particle to landmark
+    v = landmarks[objID][np.newaxis, :] - positions
+    distances = np.linalg.norm(v, axis=1)
 
+    # accumulate likelihood for each object for each measurement
+    distance_pdf = (
+        1 / (distance_measurement_uncertainty * np.sqrt(2 * np.pi))
+    ) * np.exp(-0.5 * ((objDist - distances) / distance_measurement_uncertainty) ** 2)
 
+    # angles from particle direction to landmark direction
+    v /= distances[:, np.newaxis]
+    dot = np.clip(np.sum(v * orientations, axis=1), -1.0, 1.0)
+    cross = np.sum(v * orientations_orthogonal, axis=1)
+    angles = np.sign(cross) * np.arccos(dot)
+
+    angle_pdf = (1 / (angle_measurement_uncertainty * np.sqrt(2 * np.pi))) * np.exp(
+        -0.5 * ((objAngle - angles) / angle_measurement_uncertainty) ** 2
+    )
+    return distance_pdf * angle_pdf
+
+def resample_particles(particles, weights):
+    cumulative_sum = np.cumsum(weights)
+    cumulative_sum[-1] = 1.0  # fix issues with zeroes
+
+    # use uniform distribution once, and do systematic resampling
+    offset = np.random.rand()
+    positions = (np.arange(len(particles)) + offset) / len(particles)
+    indices = np.searchsorted(cumulative_sum, positions, side="right").astype(int)
+
+    return [
+        particle.Particle(
+            particles[i].getX(),
+            particles[i].getY(),
+            particles[i].getTheta(),
+            float(weights[i]),
+        )
+        for i in indices
+    ]
 
 
 def estimate_pose(particles_list):
@@ -782,6 +723,7 @@ if __name__ == "__main__":
             colour = cam.get_next_frame()
 
             # Detect objects
+            otherLandmarks = []
             objectIDs, dists, angles = cam.detect_aruco_objects(colour)
             if (
                 not isinstance(objectIDs, type(None))
@@ -803,18 +745,82 @@ if __name__ == "__main__":
                     elif dists[i] < objectDict[objectIDs[i]][0]:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
 
-                # run particle filter (calculate likelihood, posterior and final probablity)
-                est_pose, est_var, w_slow, w_fast = particle_filter(True, particles, w_slow, w_fast)
+                # Compute particle weights
+                # XXX: You do this
 
-                # Draw detected objects
-                cam.draw_aruco_objects(colour)
+                # put positions and weights into homogenous numpy arrays for vectorized operations
+                positions, orientations, weights = extract_particle_data(particles)
+                orientations_orthogonal = np.column_stack(
+                    [orientations[:, 1], -orientations[:, 0]]
+                )  # 90 degrees rotated
+
+                for objID, (objDist, objAngle) in objectDict.items():
+                    if objID in landmarkIDs:
+                        # scale the weights for each observation (multiply by likelihood)
+                        weights *= measurement_model(
+                            objID,
+                            objDist,
+                            objAngle,
+                            positions,
+                            orientations,
+                            orientations_orthogonal,
+                        )
+
+                # normalise weights (compute the posterior)
+                weights += 1e-12  # avoid problems with zeroes
+                weights /= np.sum(weights)
+
+                # Resampling
+                # XXX: You do this
+
+                # resample if less than some threshold of the particles contribute meaningfully
+                #
+                # note:
+                #     weight_variance = np.sum(weight**2) / n - weight_mean**2
+                # 1/np.sum(weight**2) = 1 / (weight_mean**2 + weight_variance) <=>
+                #
+                # So in that sense, the following quantity is a measure of whether the mean is
+                # small, or the variance is really small:
+
+                num_effective_particles = 1 / np.sum(np.square(weights))
+                if num_effective_particles < resample_threshold:
+                    # select new particles
+                    particles = resample_particles(particles, weights)
+                else:
+                    # keep as is, and set new weights for visualization
+                    for i, p in enumerate(particles):
+                        p.setWeight(weights[i])
+
+                # plot other landmarks as non-crossable
+                otherLandmarks.clear()
+                for objID, (objDist, objAngle) in objectDict.items():
+                    if objID not in landmarkIDs:
+                        dir = np.array((np.cos(objAngle), np.sin(objAngle)))
+                        pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
+                        immediate_path_map.plot_centroid(
+                            np.array([pos]), np.array(marker_radius_meters)
+                        )
+                        print(pos)
+                        otherLandmarks.append((objID, pos * 100))
             else:
-                # reset particles
-                est_pose, est_var, w_slow, w_fast = particle_filter(False, particles, w_slow, w_fast)
+                # No observation - reset weights to uniform distribution
+                for p in particles:
+                    p.setWeight(1.0 / num_particles)
+
+            # The estimate of the robots current pose
+            est_pose, est_var = estimate_pose(particles) 
+
+            # inject new particles depending on the speed of weight change
+            w_slow, w_fast = inject_random_particles(
+                particles, est_pose.getWeight(), w_slow, w_fast
+            )
 
             if showGUI:
+                # Draw detected objects
+                cam.draw_aruco_objects(colour)
+
                 # Draw map
-                draw_world(est_pose, particles, world, path_coords)
+                draw_world(est_pose, particles, world, path_coords, otherLandmarks)
 
                 # Show frame
                 cv2.imshow(WIN_RF1, colour)  # type: ignore
