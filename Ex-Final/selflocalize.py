@@ -309,7 +309,7 @@ def forward_particles(instructions):  # This function doesn't do anything to the
     return velocity, angular_uncertainty_on_forward
 
 
-def generate_rotation_in_place(deg_per_rot):
+def generate_rotation_in_place(deg_per_rot, instructions):
     for _ in range(360 // deg_per_rot):
         instructions.append(["turn", (False, deg_per_rot)])
 
@@ -546,7 +546,8 @@ if __name__ == "__main__":
         searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
-        generate_rotation_in_place(deg_per_rot)
+        generate_rotation_in_place(deg_per_rot, instructions)
+        generate_rotation_in_place(deg_per_rot, instructions)
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
@@ -631,14 +632,10 @@ if __name__ == "__main__":
                 )
 
                 # Print statements for debugging reasons
-                print(
-                    f"I am currently {dist_from_target} meters from the target position"
-                )
+                print(f"I am currently {dist_from_target} meters from the target position")
                 print(f"Current goal is: {cur_goal}")
                 print(f"Current Target is: {target}")
-                print(
-                    f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]"
-                )
+                print(f"Current posistion is: [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                 print(f"My instructions are {instructions}")
                 print()
                 # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
@@ -671,7 +668,7 @@ if __name__ == "__main__":
                     arrived = False
 
                 # Make the robot end every instruction sequence by rotating around itself once.
-                generate_rotation_in_place(deg_per_rot)
+                generate_rotation_in_place(deg_per_rot, instructions)
 
             if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
@@ -704,9 +701,7 @@ if __name__ == "__main__":
 
                 # If the instruction is unknown print a message and do nothing
                 else:
-                    print(
-                        "Unknown instruction, instructions have to be either turn or forward"
-                    )
+                    print("Unknown instruction, instructions have to be either turn or forward")
 
                 # remove most recent instruction
                 del instructions[0]
@@ -722,9 +717,7 @@ if __name__ == "__main__":
                 p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
             # Add some noise
-            particle.add_uncertainty(
-                particles, velocity_uncertainty, angular_uncertainty
-            )
+            particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
 
             # Fetch next frame
             colour = cam.get_next_frame()
