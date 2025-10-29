@@ -9,9 +9,9 @@ import camera
 import particle
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = True  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
 def isRunningOnArlo():
@@ -261,12 +261,13 @@ def recalculate_path(
 
 
 def recalculate_path_on_failure(est_pose):
-    pos = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
-    lmark = []
+    pos = np.array([est_pose.getX(), est_pose.getY()]) #cm
+    lmark = []                                         #cm
     for l in landmarks.values():
+        #Equation for a circle
         if (l[0] - pos[0]) ** 2 + (
             l[1] - pos[1]
-        ) ** 2 <= landmark_radius_for_pathing**2:
+        ) ** 2 <= (landmark_radius_for_pathing*100)**2:
             lmark = l
     print(f"{lmark =}")
     # Check if robot is inside landmark
@@ -276,7 +277,7 @@ def recalculate_path_on_failure(est_pose):
         move_vec /= np.linalg.norm(move_vec)
 
         # Multiply that vector by radius
-        pos = move_vec * landmark_radius_for_pathing * 100
+        pos = move_vec * landmark_radius_for_pathing #cm
         print(f"{pos =}")
         instructions = recalculate_path(
             immediate_path_map,
