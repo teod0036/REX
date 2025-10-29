@@ -9,7 +9,7 @@ import camera
 import particle
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
@@ -766,10 +766,9 @@ if __name__ == "__main__":
                 # Compute particle weights
                 # XXX: You do this
 
-                # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions, orientations, weights = extract_particle_data(particles)
                 orientations_orthogonal = np.column_stack(
-                    [orientations[:, 1], -orientations[:, 0]]
+                    [-orientations[:, 1], orientations[:, 0]]
                 )  # 90 degrees rotated
 
                 for objID, (objDist, objAngle) in objectDict.items():
@@ -818,7 +817,6 @@ if __name__ == "__main__":
                         immediate_path_map.plot_centroid(
                             np.array([pos]), np.array(marker_radius_meters)
                         )
-                        print(pos)
                         otherLandmarks.append((objID, pos * 100))
             else:
                 # No observation - reset weights to uniform distribution
