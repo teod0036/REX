@@ -531,6 +531,8 @@ if __name__ == "__main__":
         distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
+        high_x_variance = 90
+
         # particle filter parameters
         resample_threshold = (
             num_particles / 2.0
@@ -808,14 +810,15 @@ if __name__ == "__main__":
 
                 # plot other landmarks as non-crossable
                 otherLandmarks.clear()
-                for objID, (objDist, objAngle) in objectDict.items():
-                    if objID not in landmarkIDs:
-                        dir = np.array((np.cos(objAngle), np.sin(objAngle)))
-                        pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
-                        immediate_path_map.plot_centroid(
-                            np.array([pos]), np.array(marker_radius_meters)
-                        )
-                        otherLandmarks.append((objID, pos * 100))
+                if est_var.getX() < high_x_variance:
+                    for objID, (objDist, objAngle) in objectDict.items():
+                        if objID not in landmarkIDs:
+                            dir = np.array((np.cos(objAngle), np.sin(objAngle)))
+                            pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
+                            immediate_path_map.plot_centroid(
+                                np.array([pos]), np.array(marker_radius_meters)
+                            )
+                            otherLandmarks.append((objID, pos * 100))
             else:
                 # No observation - reset weights to uniform distribution
                 for p in particles:
