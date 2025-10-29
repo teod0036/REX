@@ -226,7 +226,6 @@ def recalculate_path(
     robot_model,
     goal,
     est_pose,
-    instructions,
     path_coords,
     maxinstructions_per_execution,
 ):
@@ -260,6 +259,35 @@ def recalculate_path(
 
     return instructions
 
+
+def recalculate_path_on_failure(est_pose):
+    pos = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
+    lmark = []
+    for l in landmarks.values():
+        if (l[0] - pos[0]) ** 2 + (
+            l[1] - pos[1]
+        ) ** 2 <= landmark_radius_for_pathing**2:
+            lmark = l
+    print(f"{lmark =}")
+    # Check if robot is inside landmark
+    if len(lmark) > 0:
+        # Vector from landmark to robot
+        move_vec = pos - lmark
+        move_vec /= np.linalg.norm(move_vec)
+
+        # Multiply that vector by radius
+        pos = move_vec * landmark_radius_for_pathing * 100
+        print(f"{pos =}")
+        instructions = recalculate_path(
+            immediate_path_map,
+            robot_model,
+            target,
+            particle.Particle(pos[0], pos[1], 0, 0),
+            path_coords,
+            maxinstructions_per_execution
+        )
+        return instructions
+    return []
 
 def get_target(goal, est_pose, goal_is_landmark):
     """
@@ -588,38 +616,11 @@ if __name__ == "__main__":
                     robot_model,
                     target,
                     est_pose,
-                    instructions,
                     path_coords,
                     maxinstructions_per_execution,
                 )
                 if len(instructions) == 0:
-                    pos = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
-                    lmark = []
-                    for l in landmarks.values():
-                        if (l[0] - pos[0]) ** 2 + (
-                            l[1] - pos[1]
-                        ) ** 2 <= landmark_radius_for_pathing**2:
-                            lmark = l
-                    print(f"{lmark =}")
-                    # Check if robot is inside landmark
-                    if len(lmark) > 0:
-                        # Vector from landmark to robot
-                        move_vec = pos - lmark
-                        move_vec /= np.linalg.norm(move_vec)
-
-                        # Multiply that vector by radius
-                        pos = move_vec * landmark_radius_for_pathing * 100
-                        print(f"{pos =}")
-                        instructions = recalculate_path(
-                            immediate_path_map,
-                            robot_model,
-                            target,
-                            particle.Particle(pos[0], pos[1], 0, 0),
-                            instructions,
-                            path_coords,
-                            maxinstructions_per_execution,
-                        )
-                    pass
+                    instructions = recalculate_path_on_failure(est_pose)
 
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
