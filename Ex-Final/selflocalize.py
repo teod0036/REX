@@ -10,7 +10,7 @@ import particle
 
 # Flags
 onRobot = True  # Whether or not we are running on the Arlo robot
-showGUI = False  # Whether or not to open GUI windows
+showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 
@@ -498,7 +498,7 @@ if __name__ == "__main__":
         import plan_path
 
         # Initialize particles
-        num_particles = 1000
+        num_particles = 2000
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
@@ -755,28 +755,25 @@ if __name__ == "__main__":
                         if o not in searchinglandmarks and o in landmarkIDs:
                             searchinglandmarks.append(o)
 
-                # select closest detected objects
                 objectDict = {}
                 for i in range(len(objectIDs)):
                     # print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
 
+                    # XXX: Do something for each detected object - remember, the same ID may appear several times
                     if objectIDs[i] not in objectDict:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
                     elif dists[i] < objectDict[objectIDs[i]][0]:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
 
-                # Compute particle weights
-                # XXX: You do this
-
                 # put positions and weights into homogenous numpy arrays for vectorized operations
                 positions, orientations, weights = extract_particle_data(particles)
                 orientations_orthogonal = np.column_stack(
-                    [orientations[:, 1], -orientations[:, 0]]
+                    [-orientations[:, 1], orientations[:, 0]]
                 )  # 90 degrees rotated
 
+                # scale the weights for each observation (multiply by likelihood)
                 for objID, (objDist, objAngle) in objectDict.items():
                     if objID in landmarkIDs:
-                        # scale the weights for each observation (multiply by likelihood)
                         weights *= measurement_model(
                             objID,
                             objDist,
@@ -820,7 +817,6 @@ if __name__ == "__main__":
                         immediate_path_map.plot_centroid(
                             np.array([pos]), np.array(marker_radius_meters)
                         )
-                        print(pos)
                         otherLandmarks.append((objID, pos * 100))
             else:
                 # No observation - reset weights to uniform distribution
@@ -828,7 +824,7 @@ if __name__ == "__main__":
                     p.setWeight(1.0 / num_particles)
 
             # The estimate of the robots current pose
-            est_pose, est_var = estimate_pose(particles) 
+            est_pose, est_var = estimate_pose(particles)  
 
             # inject new particles depending on the speed of weight change
             w_slow, w_fast = inject_random_particles(
