@@ -71,10 +71,10 @@ def eprint(*args, **kwargs):
 
 
 def plot_marker(map, objDist, objAngle):
-    pos = np.array([0, robot_radius_meters]) + np.array(
-        [np.cos(objAngle), np.sin(objAngle)]
+    pos = np.array((0, robot_radius_meters)) + np.array(
+        (np.cos(objAngle), np.sin(objAngle))
     ) * (objDist + marker_radius_meters)
-    map.plot_centroid_w_radius_sq(pos, marker_radius_meters)
+    map.plot_centroid(np.array([pos]), marker_radius_meters)
 
 
 def jet(x):
