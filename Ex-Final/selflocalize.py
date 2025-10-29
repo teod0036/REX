@@ -381,8 +381,45 @@ def resample_particles(particles, weights):
     ]
 
 
-def inject_random_particles(particles, w_slow, w_fast):
-    w_avg = sum([p.getWeight() for p in particles]) / num_particles
+def estimate_pose(particles_list):
+    pos = np.array([(p.getX(), p.getY()) for p in particles_list])
+    orientation = np.array(
+        [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles_list]
+    )
+    weight = np.array([p.getWeight() for p in particles_list])
+
+    n = len(particles_list)
+    if n != 0:
+        pos_mean = np.sum(pos) / n
+        orientation_mean = np.sum(orientation) / n
+        weight_mean = np.sum(weight) / n
+
+        pos_var = np.sum(np.square(pos)) / n - pos_mean**2
+        orientation_var = np.sum(np.square(orientation)) / n - orientation_mean**2
+        weight_var = np.sum(np.square(weight)) / n - weight_mean**2
+    else:
+        pos_mean = np.array((0, 0), dtype=np.float32)
+        orientation_mean = np.array((1, 0), dtype=np.float32)
+        weight_mean = 1 / n
+
+        pos_var = np.array((0, 0), dtype=np.float32)
+        orientation_var = np.array((1, 0), dtype=np.float32)
+        weight_var = 0
+
+    return particle.Particle(
+        pos_mean[0],
+        pos_mean[1],
+        np.arctan2(orientation_mean[1], orientation_mean[0]),
+        weight_mean,
+    ), particle.Particle(
+        pos_var[0],
+        pos_var[1],
+        np.arctan2(orientation_var[1], orientation_var[0]),
+        weight_var,
+    )
+
+
+def inject_random_particles(particles, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
     p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow != 0.0 else 0.0
@@ -425,7 +462,7 @@ if __name__ == "__main__":
 
         particles = initialize_particles(num_particles)
 
-        est_pose = particle.estimate_pose(particles)  # Initial random estimate
+        est_pose, est_var = estimate_pose(particles)  # Initial random estimate
 
         # Driving parameters
         velocity = 0.0  # cm/instruction
@@ -738,12 +775,20 @@ if __name__ == "__main__":
                 # XXX: You do this
 
                 # resample if less than some threshold of the particles contribute meaningfully
+                #
+                # note:
+                #     weight_variance = np.sum(weight**2) / n - weight_mean**2
+                # 1/np.sum(weight**2) = 1 / (weight_mean**2 + weight_variance) <=>
+                #
+                # So in that sense, the following quantity is a measure of whether the mean is
+                # small, or the variance is really small:
+
                 num_effective_particles = 1 / np.sum(np.square(weights))
                 if num_effective_particles < resample_threshold:
-                    # set new particles, which have their weight adjusted as well for visualization
+                    # select new particles
                     particles = resample_particles(particles, weights)
                 else:
-                    # set weights for visualization
+                    # keep as is, and set new weights for visualization
                     for i, p in enumerate(particles):
                         p.setWeight(weights[i])
 
@@ -754,7 +799,7 @@ if __name__ == "__main__":
                 for p in particles:
                     p.setWeight(1.0 / num_particles)
 
-            est_pose = particle.estimate_pose(
+            est_pose, est_var = estimate_pose(
                 particles
             )  # The estimate of the robots current pose
 
@@ -769,7 +814,9 @@ if __name__ == "__main__":
                 cv2.imshow(WIN_World, world)  # type: ignore
 
             # inject new particles depending on the speed of weight change
-            w_slow, w_fast = inject_random_particles(particles, w_slow, w_fast)
+            w_slow, w_fast = inject_random_particles(
+                particles, est_pose.getWeight(), w_slow, w_fast
+            )
 
     finally:
         # Make sure to clean up even if an exception occurred
