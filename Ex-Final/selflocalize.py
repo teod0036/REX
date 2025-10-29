@@ -53,18 +53,18 @@ CBLACK = (0, 0, 0)
 
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
-landmarks = {
-    1: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
-    10: np.array((200.0, 0.0), dtype=np.float32),  # Coordinates for landmark 2
-}
+#landmarks = {
+#    1: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
+#    10: np.array((200.0, 0.0), dtype=np.float32),  # Coordinates for landmark 2
+#}
 
 #Landmarks for 4 landmark track
-#landmarks = {
-#    1: np.array((-50.0, -200.0), dtype=np.float32),  # Coordinates for landmark 1
-#    2: np.array((-50.0, 200.0), dtype=np.float32),  # Coordinates for landmark 2
-#    3: np.array((350.0, -200.0), dtype=np.float32),  # Coordinates for landmark 3
-#    4: np.array((350.0, 200.0), dtype=np.float32),  # Coordinates for landmark 4
-#}
+landmarks = {
+    1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
+    8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
+    4: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
+    5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+}
 
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
@@ -567,20 +567,20 @@ if __name__ == "__main__":
         # goal_is_landmark, goals = False, [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
 
         # goal for testing goals as a list
-        goal_is_landmark, goals = True, [
-            landmarks[landmarkIDs[0]] / 100,
-            landmarks[landmarkIDs[1]] / 100,
-        ]
-        print(f"Target point: {goals[0]}")
-
-        # goal list for rally
         #goal_is_landmark, goals = True, [
         #    landmarks[landmarkIDs[0]] / 100,
         #    landmarks[landmarkIDs[1]] / 100,
-        #    landmarks[landmarkIDs[2]] / 100,
-        #    landmarks[landmarkIDs[3]] / 100,
-        #    landmarks[landmarkIDs[0]] / 100,
         #]
+        #print(f"Target point: {goals[0]}")
+
+        # goal list for rally
+        goal_is_landmark, goals = True, [
+            landmarks[landmarkIDs[0]] / 100,
+            landmarks[landmarkIDs[1]] / 100,
+            landmarks[landmarkIDs[2]] / 100,
+            landmarks[landmarkIDs[3]] / 100,
+            landmarks[landmarkIDs[0]] / 100,
+        ]
 
         # Allocate space for world map
         world = np.zeros((500, 500, 3), dtype=np.uint8)
