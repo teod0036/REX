@@ -510,6 +510,7 @@ if __name__ == "__main__":
 
         # Make the robot start by rotating around itself once
         generate_rotation_in_place(deg_per_rot, instructions)
+        generate_rotation_in_place(deg_per_rot, instructions)
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
