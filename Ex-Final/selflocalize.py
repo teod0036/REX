@@ -498,7 +498,7 @@ if __name__ == "__main__":
         import plan_path
 
         # Initialize particles
-        num_particles = 2000
+        num_particles = 5000
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
@@ -530,6 +530,7 @@ if __name__ == "__main__":
         # More uncertainty parameters
         distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
+        high_x_variance, high_y_variance = 100, 100
 
         # particle filter parameters
         resample_threshold = (
@@ -646,7 +647,7 @@ if __name__ == "__main__":
                 if len(instructions) == 0:
                     instructions = recalculate_path_on_failure(est_pose)
                 
-                if est_var.getX() >= 100 and est_var.getY() >= 100: 
+                if est_var.getX() >= high_x_variance and est_var.getY() >= high_y_variance: 
                     instructions = instructions[:2]
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
@@ -810,14 +811,15 @@ if __name__ == "__main__":
 
                 # plot other landmarks as non-crossable
                 otherLandmarks.clear()
-                for objID, (objDist, objAngle) in objectDict.items():
-                    if objID not in landmarkIDs:
-                        dir = np.array((np.cos(objAngle), np.sin(objAngle)))
-                        pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
-                        immediate_path_map.plot_centroid(
-                            np.array([pos]), np.array(marker_radius_meters)
-                        )
-                        otherLandmarks.append((objID, pos * 100))
+                if est_var.getX() <= high_x_variance and est_var.getY() <= high_y_variance:
+                    for objID, (objDist, objAngle) in objectDict.items():
+                        if objID not in landmarkIDs:
+                            dir = np.array((np.cos(objAngle), np.sin(objAngle)))
+                            pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
+                            immediate_path_map.plot_centroid(
+                                np.array([pos]), np.array(marker_radius_meters)
+                            )
+                            otherLandmarks.append((objID, pos * 100))
             else:
                 # No observation - reset weights to uniform distribution
                 for p in particles:
