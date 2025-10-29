@@ -53,24 +53,24 @@ CBLACK = (0, 0, 0)
 
 # Landmarks.
 # The robot knows the position of 2 landmarks. Their coordinates are in the unit centimeters [cm].
-landmarks = {
-    1: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
-    10: np.array((200.0, 0.0), dtype=np.float32),  # Coordinates for landmark 2
-}
+#landmarks = {
+#    1: np.array((0.0, 0.0), dtype=np.float32),  # Coordinates for landmark 1
+#    10: np.array((200.0, 0.0), dtype=np.float32),  # Coordinates for landmark 2
+#}
 
 #Landmarks for 4 landmark track
-#landmarks = {
-#    1: np.array((-50.0, -200.0), dtype=np.float32),  # Coordinates for landmark 1
-#    2: np.array((-50.0, 200.0), dtype=np.float32),  # Coordinates for landmark 2
-#    3: np.array((350.0, -200.0), dtype=np.float32),  # Coordinates for landmark 3
-#    4: np.array((350.0, 200.0), dtype=np.float32),  # Coordinates for landmark 4
-#}
+landmarks = {
+    1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
+    8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
+    4: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
+    5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+}
 
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
-landmark_radius_for_pathing = 0.45  # in m
+landmark_radius_for_pathing = 0.40  # in m
 marker_radius_meters = 18 / 100  # in m
-robot_radius_meters = 22.5 / 100  # in m
+robot_radius_meters = 17.5 / 100  # in m
 
 
 def eprint(*args, **kwargs):
@@ -498,7 +498,7 @@ if __name__ == "__main__":
         import plan_path
 
         # Initialize particles
-        num_particles = 2000
+        num_particles = 5000
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
@@ -564,20 +564,20 @@ if __name__ == "__main__":
         # goal_is_landmark, goals = False, [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
 
         # goal for testing goals as a list
-        goal_is_landmark, goals = True, [
-            landmarks[landmarkIDs[0]] / 100,
-            landmarks[landmarkIDs[1]] / 100,
-        ]
-        print(f"Target point: {goals[0]}")
-
-        # goal list for rally
         #goal_is_landmark, goals = True, [
         #    landmarks[landmarkIDs[0]] / 100,
         #    landmarks[landmarkIDs[1]] / 100,
-        #    landmarks[landmarkIDs[2]] / 100,
-        #    landmarks[landmarkIDs[3]] / 100,
-        #    landmarks[landmarkIDs[0]] / 100,
         #]
+        #print(f"Target point: {goals[0]}")
+
+        # goal list for rally
+        goal_is_landmark, goals = True, [
+            landmarks[landmarkIDs[0]] / 100,
+            landmarks[landmarkIDs[1]] / 100,
+            landmarks[landmarkIDs[2]] / 100,
+            landmarks[landmarkIDs[3]] / 100,
+            landmarks[landmarkIDs[0]] / 100,
+        ]
 
         # Allocate space for world map
         world = np.zeros((500, 500, 3), dtype=np.uint8)
@@ -600,7 +600,7 @@ if __name__ == "__main__":
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
-        maxinstructions_per_execution = 8
+        maxinstructions_per_execution = 12
         if instruction_debug:
             maxinstructions_per_execution = None
 
@@ -644,7 +644,7 @@ if __name__ == "__main__":
                 if len(instructions) == 0:
                     instructions = recalculate_path_on_failure(est_pose)
                 
-                if est_var.getX() >= high_x_variance and est_var.getY() >= high_y_variance: 
+                if est_var.getX() >= (high_x_variance*3) and est_var.getY() >= (high_y_variance*3): 
                     instructions = instructions[:2]
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
