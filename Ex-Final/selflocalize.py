@@ -608,7 +608,7 @@ if __name__ == "__main__":
                         move_vec /= np.linalg.norm(move_vec)
 
                         # Multiply that vector by radius
-                        pos = move_vec * pos * 100
+                        pos = move_vec * landmark_radius_for_pathing * 100
                         print(f"{pos =}")
                         instructions = recalculate_path(
                             immediate_path_map,
