@@ -68,9 +68,9 @@ landmarks = {
 
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
-landmark_radius_for_pathing = 0.45  # in m
+landmark_radius_for_pathing = 0.40  # in m
 marker_radius_meters = 18 / 100  # in m
-robot_radius_meters = 22.5 / 100  # in m
+robot_radius_meters = 17.5 / 100  # in m
 
 
 def eprint(*args, **kwargs):
@@ -603,7 +603,7 @@ if __name__ == "__main__":
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
-        maxinstructions_per_execution = 8
+        maxinstructions_per_execution = 12
         if instruction_debug:
             maxinstructions_per_execution = None
 
