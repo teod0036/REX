@@ -71,10 +71,10 @@ def eprint(*args, **kwargs):
 
 
 def plot_marker(map, objDist, objAngle):
-    pos = np.array([0, robot_radius_meters]) + np.array(
-        [np.cos(objAngle), np.sin(objAngle)]
+    pos = np.array((0, robot_radius_meters)) + np.array(
+        (np.cos(objAngle), np.sin(objAngle))
     ) * (objDist + marker_radius_meters)
-    map.plot_centroid_w_radius_sq(pos, marker_radius_meters)
+    map.plot_centroid(np.array([pos]), marker_radius_meters)
 
 
 def jet(x):
@@ -390,12 +390,12 @@ def estimate_pose(particles_list):
 
     n = len(particles_list)
     if n != 0:
-        pos_mean = np.sum(pos) / n
-        orientation_mean = np.sum(orientation) / n
+        pos_mean = np.sum(pos, axis=0) / n
+        orientation_mean = np.sum(orientation, axis=0) / n
         weight_mean = np.sum(weight) / n
 
-        pos_var = np.sum(np.square(pos)) / n - pos_mean**2
-        orientation_var = np.sum(np.square(orientation)) / n - orientation_mean**2
+        pos_var = np.sum(np.square(pos), axis=0) / n - pos_mean**2
+        orientation_var = np.sum(np.square(orientation), axis=0) / n - orientation_mean**2
         weight_var = np.sum(np.square(weight)) / n - weight_mean**2
     else:
         pos_mean = np.array((0, 0), dtype=np.float32)
