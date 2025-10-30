@@ -283,16 +283,15 @@ def recalculate_path(
 
 def recalculate_path_on_failure(est_pose):
     pos = np.array([est_pose.getX(), est_pose.getY()]) #cm
-    lmark = []                                         #cm
+    lmark = None                                         #cm
     for l in landmarks.values():
         #Equation for a circle
-        if (l[0] - pos[0]) ** 2 + (
-            l[1] - pos[1]
-        ) ** 2 <= (landmark_radius_for_pathing*100)**2:
+        if (l[0] - pos[0]) ** 2 + (l[1] - pos[1]) ** 2 <= (landmark_radius_for_pathing*100)**2:
             lmark = l
+
     print(f"{lmark =}")
     # Check if robot is inside landmark
-    if len(lmark) > 0:
+    if lmark:
         # Vector from landmark to robot
         move_vec = pos - lmark
         move_vec /= np.linalg.norm(move_vec)
@@ -300,11 +299,12 @@ def recalculate_path_on_failure(est_pose):
         # Multiply that vector by radius
         pos = move_vec * landmark_radius_for_pathing #cm
         print(f"{pos =}")
+
         instructions = recalculate_path(
             immediate_path_map,
             robot_model,
             target,
-            particle.Particle(pos[0], pos[1], 0, 0),
+            particle.Particle(pos[0], pos[1], 0, 1 / num_particles),
             path_coords,
             maxinstructions_per_execution
         )
@@ -364,11 +364,11 @@ def generate_rotation_in_place(deg_per_rot, instructions):
         instructions.append(["turn", (False, deg_per_rot)])
 
 def move_particles(particles):
-    for p in particles:
+    for i, p in enumerate(particles):
         x_offset = np.cos(p.getTheta()) * velocity
         y_offset = np.sin(p.getTheta()) * velocity
 
-        p = particle.move_particle(p, x_offset, y_offset, angular_velocity)
+        particles[i] = particle.move_particle(p, x_offset, y_offset, angular_velocity)
 
     # Add some noise
     particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
@@ -380,9 +380,10 @@ def extract_particle_data(particles):
         dtype=np.float32,
     )
     weights = np.array([p.getWeight() for p in particles], dtype=np.float32)
+
     return positions, orientations, weights
 
-def measurement_model(
+def measurement_likelihood_model(
     objID, objDist, objAngle, positions, orientations, orientations_orthogonal
 ):
     # vector from particle to landmark
@@ -405,68 +406,64 @@ def measurement_model(
     )
     return distance_pdf * angle_pdf
 
-def resample_particles(particles, weights):
+def resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty):
     cumulative_sum = np.cumsum(weights)
     cumulative_sum[-1] = 1.0  # fix issues with zeroes
 
     # use uniform distribution once, and do systematic resampling
+    # (read: use a single random number to improve performance / lower variance)
     offset = np.random.rand()
     positions = (np.arange(len(particles)) + offset) / len(particles)
     indices = np.searchsorted(cumulative_sum, positions, side="right").astype(int)
 
-    return [
+    new_particles = [
         particle.Particle(
             particles[i].getX(),
             particles[i].getY(),
             particles[i].getTheta(),
-            float(weights[i]),
+            1 / len(particles),
         )
         for i in indices
     ]
 
+    # Add some noise
+    particle.add_uncertainty(new_particles, velocity_uncertainty, angular_uncertainty)
 
-def estimate_pose(particles_list):
-    pos = np.array([(p.getX(), p.getY()) for p in particles_list])
-    orientation = np.array(
-        [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles_list]
+    return new_particles
+
+
+def estimate_pose(particles):
+    pos = np.array([(p.getX(), p.getY()) for p in particles])
+    orientations = np.array(
+        [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles]
     )
-    weight = np.array([p.getWeight() for p in particles_list])
 
-    n = len(particles_list)
-    if n != 0:
-        pos_mean = np.sum(pos, axis=0) / n
-        orientation_mean = np.sum(orientation, axis=0) / n
-        weight_mean = np.sum(weight) / n
+    pos_mean = np.mean(pos, axis=0)
+    pos_var = np.var(pos, axis=0)
 
-        pos_var = np.sum(np.square(pos), axis=0) / n - pos_mean**2
-        orientation_var = np.sum(np.square(orientation), axis=0) / n - orientation_mean**2
-        weight_var = np.sum(np.square(weight)) / n - weight_mean**2
-    else:
-        pos_mean = np.array((0, 0), dtype=np.float32)
-        orientation_mean = np.array((1, 0), dtype=np.float32)
-        weight_mean = 1 / n
+    orientation_mean = np.mean(orientations, axis=0)
 
-        pos_var = np.array((0, 0), dtype=np.float32)
-        orientation_var = np.array((1, 0), dtype=np.float32)
-        weight_var = 0
-
-    return particle.Particle(
-        pos_mean[0],
-        pos_mean[1],
-        np.arctan2(orientation_mean[1], orientation_mean[0]),
-        weight_mean,
-    ), particle.Particle(
-        pos_var[0],
-        pos_var[1],
-        np.arctan2(orientation_var[1], orientation_var[0]),
-        weight_var,
+    return (
+        particle.Particle(
+            pos_mean[0],
+            pos_mean[1],
+            np.arctan2(orientation_mean[1], orientation_mean[0]),
+            1.0 / len(particles),
+        ),
+        particle.Particle(
+            pos_var[0],
+            pos_var[1],
+            1 - float(np.linalg.norm(orientation_mean)), # how much mean varies from forward unit vector
+            float(np.var([p.getWeight() for p in particles])),
+        ),
     )
 
 
 def inject_random_particles(particles, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
-    p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow != 0.0 else 0.0
+    p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
+    p_inject = min(p_inject, 0.1)  # clamp to at most 10%
 
     for i in range(num_particles):
         if np.random.rand() < p_inject:
@@ -476,6 +473,7 @@ def inject_random_particles(particles, w_avg, w_slow, w_fast):
                 np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
                 1.0 / num_particles,
             )
+
     return w_slow, w_fast
 
 
@@ -527,10 +525,14 @@ if __name__ == "__main__":
             angular_uncertainty_on_turn = 0
             angular_uncertainty = angular_uncertainty_on_turn
 
-        # More uncertainty parameters
+        # More uncertainty / standard deviation parameters
         distance_measurement_uncertainty = 5.0 * 3  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
-        high_x_variance, high_y_variance = 100, 100
+
+        low_distance_variance =  (10)**2 # 10 cm
+        high_distance_variance = (30)**2 # 30 cm
+        low_angular_variance = (np.deg2rad(10))**5 # 10 deg
+        high_angular_variance = (np.deg2rad(90))**5 # 90 deg
 
         # particle filter parameters
         alpha_slow = 0.001
@@ -592,6 +594,7 @@ if __name__ == "__main__":
 
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
+        # for debugging:
         issearching = True
         searchinglandmarks = []
 
@@ -644,8 +647,9 @@ if __name__ == "__main__":
                 if len(instructions) == 0:
                     instructions = recalculate_path_on_failure(est_pose)
                 
-                if est_var.getX() >= (high_x_variance*3) and est_var.getY() >= (high_y_variance*3): 
+                if est_var.getX() >= high_distance_variance or est_var.getY() >= high_distance_variance: 
                     instructions = instructions[:2]
+
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
                 # The distance is in meters.
@@ -731,9 +735,6 @@ if __name__ == "__main__":
                 # remove most recent instruction
                 del instructions[0]
 
-                # reset immediate map
-                immediate_path_map = deepcopy(static_path_map)
-
             # predict particles after movement (prior):
             move_particles(particles)
 
@@ -772,7 +773,7 @@ if __name__ == "__main__":
                 # scale the weights for each observation (multiply by likelihood)
                 for objID, (objDist, objAngle) in objectDict.items():
                     if objID in landmarkIDs:
-                        weights *= measurement_model(
+                        weights *= measurement_likelihood_model(
                             objID,
                             objDist,
                             objAngle,
@@ -782,18 +783,42 @@ if __name__ == "__main__":
                         )
 
                 # normalise weights (compute the posterior)
-                weights += 1e-12  # avoid problems with zeroes
-                weights /= np.sum(weights)
+                weights = np.maximum(weights, 1e-12)
+                sum_weights = np.sum(weights)
+                if weights <= 0:
+                    # fallback to uniform if weights are invalid
+                    weights = np.ones(num_particles, dtype=np.float64) / num_particles
+                else:
+                    weights /= sum_weights
+                w_avg = float(np.mean(weights))
+
+                # set particle weights
+                for i, p in enumerate(particles):
+                    p.setWeight(float(weights[i]))
+
+                effective_particles = 1.0 / np.sum(weights ** 2) # measure of variance in weights
+                print(f"particle_filter weights min/max/avg:" +
+                    f"{weights.min():.3e}/{weights.max():.3e}/{w_avg:.3e}, ESS={effective_particles:.1f}")
 
                 # Resampling
                 # XXX: You do this
 
-                # select new particles
-                particles = resample_particles(particles, weights)
+                # resample particles, if there are too few effective samples
+                if effective_particles < num_particles / 2:
+                    particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
 
-                # plot other landmarks as non-crossable
+                # The estimate of the robots current pose
+                est_pose, est_var = estimate_pose(particles)  
+
+                # inject new particles depending on the speed of weight change
+                w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
+
+                # plot other landmarks as non-crossable in immediate map if within reasonable variance
                 otherLandmarks.clear()
-                if est_var.getX() <= high_x_variance and est_var.getY() <= high_y_variance:
+                if (est_var.getX() <= low_distance_variance and
+                    est_var.getY() <= low_distance_variance and
+                    est_var.getTheta() <= low_angular_variance):
+
                     for objID, (objDist, objAngle) in objectDict.items():
                         if objID not in landmarkIDs:
                             dir = np.array((np.cos(objAngle), np.sin(objAngle)))
@@ -802,18 +827,25 @@ if __name__ == "__main__":
                                 np.array([pos]), np.array(marker_radius_meters)
                             )
                             otherLandmarks.append((objID, pos * 100))
+                else:
+                    immediate_path_map = deepcopy(static_path_map)
             else:
                 # No observation - reset weights to uniform distribution
                 for p in particles:
                     p.setWeight(1.0 / num_particles)
 
-            # The estimate of the robots current pose
-            est_pose, est_var = estimate_pose(particles)  
+                # inject new particles
+                w_avg = 1.0 / num_particles
+                w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
 
-            # inject new particles depending on the speed of weight change
-            w_slow, w_fast = inject_random_particles(
-                particles, est_pose.getWeight(), w_slow, w_fast
-            )
+                # The estimate of the robots current pose
+                est_pose, est_var = estimate_pose(particles)  
+
+                # reset immediate map if variance is no longer low enough
+                if not (est_var.getX() <= low_distance_variance and
+                        est_var.getY() <= low_distance_variance and
+                        est_var.getTheta() <= low_angular_variance):
+                    immediate_path_map = deepcopy(static_path_map)
 
             if showGUI:
                 # Draw detected objects
