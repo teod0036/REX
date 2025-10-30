@@ -480,22 +480,22 @@ def inject_random_particles(particles, w_avg, w_slow, w_fast):
 
     return w_slow, w_fast
 
-def updateGUIFunction():
-    if showGUI:
-        # Draw detected objects
-        cam.draw_aruco_objects(colour)
-
-        # Draw map
-        draw_world(est_pose, particles, world, path_coords, otherLandmarks)
-
-        # Show frame
-        cv2.imshow(WIN_RF1, colour)  # type: ignore
-
-        # Show world
-        cv2.imshow(WIN_World, world)  # type: ignore
-
 # Main program #
 if __name__ == "__main__":
+    def updateGUIFunction():
+        if showGUI:
+            # Draw detected objects
+            cam.draw_aruco_objects(colour)
+
+            # Draw map
+            draw_world(est_pose, particles, world, path_coords, otherLandmarks)
+
+            # Show frame
+            cv2.imshow(WIN_RF1, colour)  # type: ignore
+
+            # Show world
+            cv2.imshow(WIN_World, world)  # type: ignore
+
     cam = None
     try:
         if showGUI:
