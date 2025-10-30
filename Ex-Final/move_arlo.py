@@ -2,7 +2,7 @@ from time import perf_counter, sleep
 
 import robot
 
-is_low_on_battery = False
+is_low_on_battery = True
 
 arlo = robot.Robot()
 
