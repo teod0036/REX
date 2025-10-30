@@ -780,19 +780,14 @@ if __name__ == "__main__":
 
                 # normalise weights (compute the posterior)
                 weights = np.maximum(weights, 1e-12)
-                sum_weights = np.sum(weights)
-                if weights <= 0:
-                    # fallback to uniform if weights are invalid
-                    weights = np.ones(num_particles, dtype=np.float64) / num_particles
-                else:
-                    weights /= sum_weights
+                weights /= np.sum(weights) 
                 w_avg = float(np.mean(weights))
 
                 # set particle weights
                 for i, p in enumerate(particles):
                     p.setWeight(float(weights[i]))
 
-                effective_particles = 1.0 / np.sum(weights ** 2) # measure of variance in weights
+                effective_particles = 1.0 / np.sum(weights ** 2) # proxy measure of variance in weights
                 print(f"particle_filter weights min/max/avg:" +
                     f"{weights.min():.3e}/{weights.max():.3e}/{w_avg:.3e}, ESS={effective_particles:.1f}")
 
