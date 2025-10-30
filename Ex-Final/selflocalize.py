@@ -61,16 +61,14 @@ CBLACK = (0, 0, 0)
 #Landmarks for 4 landmark track
 landmarks = {
 # actual:
-    #1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
-    #8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
-    #4: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
-    #5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+    1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
+    8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
+    4: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
+    5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
 
 # debug:
-    1: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
-    8: np.array((-25.0,  75.0), dtype=np.float32),  # Coordinates for landmark 2
-    #4: np.array((175.0, -75.0), dtype=np.float32),  # Coordinates for landmark 3
-    #5: np.array((175.0,  75.0), dtype=np.float32),  # Coordinates for landmark 4
+    #1: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
+    #8: np.array((-25.0,  75.0), dtype=np.float32),  # Coordinates for landmark 2
 }
 
 landmarkIDs = list(landmarks.keys())
@@ -467,7 +465,7 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
     p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
-    
+
     for i in range(num_particles):
         if np.random.rand() < p_inject:
             # Sample around estimated pose
@@ -549,13 +547,13 @@ if __name__ == "__main__":
         high_angular_variance = (np.deg2rad(90))**2 # rad(90 deg)
 
         # particle filter parameters
-        alpha_slow = 0.002
+        alpha_slow = 0.001
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
 
-        # particle spread noise
+        # large particle spread noise (on collision / failing particles)
         pos_noise_std = 80.0              # 80 cm radius spread
-        theta_noise_std = np.deg2rad(45)  # 45° angular spread
+        theta_noise_std = np.deg2rad(45)  # 45 degrees angular spread
 
 
         # Initialize the robot (XXX: You do this)
@@ -595,9 +593,9 @@ if __name__ == "__main__":
         goal_is_landmark, goals = True, [
             landmarks[landmarkIDs[0]] / 100,
             landmarks[landmarkIDs[1]] / 100,
-            #landmarks[landmarkIDs[2]] / 100,
-            #landmarks[landmarkIDs[3]] / 100,
-            #landmarks[landmarkIDs[0]] / 100,
+            landmarks[landmarkIDs[2]] / 100,
+            landmarks[landmarkIDs[3]] / 100,
+            landmarks[landmarkIDs[0]] / 100,
         ]
 
         # Allocate space for world map
