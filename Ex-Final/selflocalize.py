@@ -785,6 +785,23 @@ if __name__ == "__main__":
                             orientations_orthogonal,
                         )
 
+                # plot other landmarks as non-crossable in immediate map if within reasonable variance
+                otherLandmarks.clear()
+                if (est_var.getX() <= low_distance_variance and
+                    est_var.getY() <= low_distance_variance and
+                    est_var.getTheta() <= low_angular_variance):
+
+                    for objID, (objDist, objAngle) in objectDict.items():
+                        if objID not in landmarkIDs:
+                            dir = np.array((np.cos(objAngle), np.sin(objAngle)))
+                            pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
+                            immediate_path_map.plot_centroid(
+                                np.array([pos]), np.array(marker_radius_meters)
+                            )
+                            otherLandmarks.append((objID, pos * 100))
+                else:
+                    immediate_path_map = deepcopy(static_path_map)
+
                 # normalise weights (compute the posterior)
                 weights = np.maximum(weights, 1e-12)
                 weights /= np.sum(weights) 
@@ -823,23 +840,6 @@ if __name__ == "__main__":
 
                 # inject new particles depending on the speed of weight change
                 w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
-
-                # plot other landmarks as non-crossable in immediate map if within reasonable variance
-                otherLandmarks.clear()
-                if (est_var.getX() <= low_distance_variance and
-                    est_var.getY() <= low_distance_variance and
-                    est_var.getTheta() <= low_angular_variance):
-
-                    for objID, (objDist, objAngle) in objectDict.items():
-                        if objID not in landmarkIDs:
-                            dir = np.array((np.cos(objAngle), np.sin(objAngle)))
-                            pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
-                            immediate_path_map.plot_centroid(
-                                np.array([pos]), np.array(marker_radius_meters)
-                            )
-                            otherLandmarks.append((objID, pos * 100))
-                else:
-                    immediate_path_map = deepcopy(static_path_map)
             else:
                 # No observation - reset weights to uniform distribution
                 for p in particles:
