@@ -433,28 +433,25 @@ def resample_particles(particles, weights, velocity_uncertainty, angular_uncerta
 
 
 def estimate_pose(particles):
-    pos = np.array([(p.getX(), p.getY()) for p in particles])
-    orientations = np.array(
-        [(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles]
-    )
+    pos = np.array([(p.getX(), p.getY()) for p in particles], dtype=np.float64)
+    pos_mean = pos.mean(axis=0)
+    pos_var = pos.var(axis=0)  # variance in cm^2
 
-    pos_mean = np.mean(pos, axis=0)
-    pos_var = np.var(pos, axis=0)
-
-    orientation_mean = np.mean(orientations, axis=0)
+    dirs = np.array([(np.cos(p.getTheta()), np.sin(p.getTheta())) for p in particles], dtype=np.float64)
+    dir_mean = dirs.mean(axis=0)
 
     return (
         particle.Particle(
             pos_mean[0],
             pos_mean[1],
-            np.arctan2(orientation_mean[1], orientation_mean[0]),
+            np.arctan2(dir_mean[1], dir_mean[0]),
             1.0 / len(particles),
         ),
         particle.Particle(
             pos_var[0],
             pos_var[1],
-            1 - float(np.linalg.norm(orientation_mean)), # how much mean varies from forward unit vector
-            float(np.var([p.getWeight() for p in particles])),
+            1 - float(np.linalg.norm(dir_mean)), # how much mean unit vector varies from forward unit vector
+            0,
         ),
     )
 
