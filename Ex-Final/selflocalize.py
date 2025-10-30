@@ -479,6 +479,16 @@ def inject_random_particles(particles, w_avg, w_slow, w_fast):
 
     return w_slow, w_fast
 
+def inject_random_particles_on_collision(particles, p_inject):
+    for i in range(num_particles):
+        if np.random.rand() < p_inject:
+            particles[i] = particle.Particle(
+                600.0 * np.random.ranf() - 100.0,
+                600.0 * np.random.ranf() - 250.0,
+                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
+                1.0 / num_particles,
+            )
+
 # Main program #
 if __name__ == "__main__":
     cam = None
@@ -628,6 +638,14 @@ if __name__ == "__main__":
                 velocity, angular_velocity = control_manually(
                     action, velocity, angular_velocity
                 )
+
+            front_dist = arlo.read_front_ping_sensor()
+            left_dist = arlo.read_left_ping_sensor()
+            right_dist = arlo.read_right_ping_sensor()
+            if ((front_dist < 200 and front_dist != -1) or
+                (left_dist < 100 and left_dist != -1) or
+                (right_dist < 100 and right_dist != -1)):
+                inject_random_particles_on_collision(particles, 0.1)
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
