@@ -695,9 +695,9 @@ if __name__ == "__main__":
                 print()
                 # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
                 # If the arrived falg is already true, the robot has arrived at it's target.
-                if np.round(dist_from_target, 2) <= (
-                    landmark_radius_for_pathing + 0.05
-                ):
+                if (est_var.getX() <= low_distance_variance and
+                    est_var.getY() <= low_distance_variance and
+                    np.round(dist_from_target, 2) <= landmark_radius_for_pathing + 0.05):
                     print("I am close to my target")
                     print()
                     if arrived:
