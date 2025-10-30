@@ -697,9 +697,10 @@ if __name__ == "__main__":
                     print("I have realized i am not close to my target")
                     print()
                     arrived = False
-                
-                # Make the robot end every instruction sequence by rotating around itself once.
-                generate_rotation_in_place(deg_per_rot, instructions)
+                    generate_rotation_in_place(deg_per_rot, instructions)
+                else:
+                    # Make the robot end every instruction sequence by rotating around itself once.
+                    generate_rotation_in_place(deg_per_rot, instructions)
 
             if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
