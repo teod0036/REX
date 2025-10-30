@@ -542,8 +542,8 @@ if __name__ == "__main__":
             angular_uncertainty_on_turn = 0
             angular_uncertainty = angular_uncertainty_on_turn
 
-        # More uncertainty / standard deviation parameters
-        distance_measurement_uncertainty = 5.0  # cm
+        # More uncertainty / standard deviation parameters. (3x so angle is more expressed)
+        distance_measurement_uncertainty = 5.0 * 3     # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
         low_distance_variance =  (10)**2 # 10 cm^2
@@ -553,7 +553,7 @@ if __name__ == "__main__":
         high_angular_variance = (np.deg2rad(90))**2 # rad(90 deg)
 
         # particle filter parameters
-        alpha_slow = 0.002
+        alpha_slow = 0.001
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
 
@@ -648,10 +648,10 @@ if __name__ == "__main__":
             front_dist = arlo.read_front_ping_sensor()
             left_dist = arlo.read_left_ping_sensor()
             right_dist = arlo.read_right_ping_sensor()
-            if ((front_dist < 100 and front_dist != -1) or
-                (left_dist < 50 and left_dist != -1) or
-                (right_dist < 50 and right_dist != -1)):
-                inject_random_particles_on_collision(particles, est_pose, 0.2)
+            if ((front_dist < 200 and front_dist != -1) or
+                (left_dist < 100 and left_dist != -1) or
+                (right_dist < 100 and right_dist != -1)):
+                inject_random_particles_on_collision(particles, est_pose, 0.1)
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
