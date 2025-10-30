@@ -13,7 +13,6 @@ import particle
 onRobot = True  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
 instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
-withPause = True # Whether to be able to pause instructions with `p`
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -482,24 +481,6 @@ def inject_random_particles(particles, w_avg, w_slow, w_fast):
 
 # Main program #
 if __name__ == "__main__":
-    colour = None
-    otherLandmarks = []
-
-    def updateGUIFunction():
-        if showGUI:
-            # Draw map
-            draw_world(est_pose, particles, world, path_coords, otherLandmarks)
-
-            # Show world
-            cv2.imshow(WIN_World, world)  # type: ignore
-
-            if colour is not None:
-                # Draw detected objects
-                cam.draw_aruco_objects(colour)
-
-                # Show frame
-                cv2.imshow(WIN_RF1, colour)  # type: ignore
-
     cam = None
     try:
         if showGUI:
@@ -634,15 +615,6 @@ if __name__ == "__main__":
         # used for drawing path
         path_coords = []
 
-        if withPause:
-            # initial pause
-            while True:
-                action = cv2.waitKey(10)
-                if action == ord("p"):
-                    break
-                updateGUIFunction()
-                time.sleep(0.1)
-
         while True:
             if instruction_debug:
                 time.sleep(0.2)
@@ -651,15 +623,6 @@ if __name__ == "__main__":
             action = cv2.waitKey(10)
             if action == ord("q"):  # Quit
                 break
-
-            if withPause and action == ord("p"):
-                # pause loop
-                while True:
-                    action = cv2.waitKey(10)
-                    if action == ord("p"):
-                        break
-                    updateGUIFunction()
-                    time.sleep(0.1)
 
             if not isRunningOnArlo():
                 velocity, angular_velocity = control_manually(
@@ -781,6 +744,7 @@ if __name__ == "__main__":
             colour = cam.get_next_frame()
 
             # Detect objects
+            otherLandmarks = []
             objectIDs, dists, angles = cam.detect_aruco_objects(colour)
             if (
                 not isinstance(objectIDs, type(None))
@@ -880,7 +844,18 @@ if __name__ == "__main__":
                         est_var.getTheta() <= low_angular_variance):
                     immediate_path_map = deepcopy(static_path_map)
 
-            updateGUIFunction()
+            if showGUI:
+                # Draw map
+                draw_world(est_pose, particles, world, path_coords, otherLandmarks)
+
+                # Show world
+                cv2.imshow(WIN_World, world)  # type: ignore
+
+                # Draw detected objects
+                cam.draw_aruco_objects(colour)
+
+                # Show frame
+                cv2.imshow(WIN_RF1, colour)  # type: ignore
 
     finally:
         # Make sure to clean up even if an exception occurred
