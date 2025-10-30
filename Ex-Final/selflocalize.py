@@ -651,7 +651,7 @@ if __name__ == "__main__":
             if ((front_dist < 200 and front_dist != -1) or
                 (left_dist < 100 and left_dist != -1) or
                 (right_dist < 100 and right_dist != -1)):
-                inject_random_particles_on_collision(particles, est_pose, 0.2)
+                inject_random_particles_on_collision(particles, est_pose, 0.1)
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
