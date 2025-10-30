@@ -299,7 +299,7 @@ def recalculate_path_on_failure(est_pose):
 
     print(f"{lmark =}")
     # Check if robot is inside landmark
-    if lmark:
+    if lmark is not None:
         # Vector from landmark to robot
         move_vec = pos - lmark
         move_vec /= np.linalg.norm(move_vec)
@@ -734,9 +734,9 @@ if __name__ == "__main__":
                     print("I have realized i am not close to my target")
                     print()
                     arrived = False
-
-                # Make the robot end every instruction sequence by rotating around itself once.
-                generate_rotation_in_place(deg_per_rot, instructions)
+                else:
+                    # Make the robot end every instruction sequence by rotating around itself once.
+                    generate_rotation_in_place(deg_per_rot, instructions)
 
             if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
