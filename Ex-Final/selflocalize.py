@@ -482,17 +482,17 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
 
 
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
+    pos_noise_std = 80.0              # 80 cm radius spread
+    theta_noise_std = np.deg2rad(45)  # 45° angular spread
+
     for i in range(num_particles):
         if np.random.rand() < p_inject:
-            # Inject near estimated pose with Gaussian noise
-            new_x = np.random.normal(est_pose.getX(), distance_measurement_uncertainty)
-            new_y = np.random.normal(est_pose.getY(), distance_measurement_uncertainty)
-            new_theta = np.mod(np.random.normal(est_pose.getTheta(), angle_measurement_uncertainty), 2 * np.pi)
+            # Sample around estimated pose
+            new_x = np.random.normal(est_pose.getX(), pos_noise_std)
+            new_y = np.random.normal(est_pose.getY(), pos_noise_std)
+            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_std), 2 * np.pi)
 
-            particles[i] = particle.Particle(
-                new_x, new_y, new_theta, 1.0 / num_particles
-            )
-
+            particles[i] = particle.Particle(new_x, new_y, new_theta, 1.0 / num_particles)
 
 # Main program #
 if __name__ == "__main__":
@@ -651,7 +651,7 @@ if __name__ == "__main__":
             if ((front_dist < 100 and front_dist != -1) or
                 (left_dist < 50 and left_dist != -1) or
                 (right_dist < 50 and right_dist != -1)):
-                inject_random_particles_on_collision(particles, est_pose, 0.3)
+                inject_random_particles_on_collision(particles, est_pose, 0.2)
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
