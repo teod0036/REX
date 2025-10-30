@@ -547,10 +547,11 @@ if __name__ == "__main__":
         distance_measurement_uncertainty = 5.0  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
-        low_distance_variance =  (10)**2 # 10 cm
-        high_distance_variance = (30)**2 # 30 cm
-        low_angular_variance = (np.deg2rad(10))**2 # 10 deg
-        high_angular_variance = (np.deg2rad(90))**2 # 90 deg
+        low_distance_variance =  (10)**2 # 10 cm^2
+        medium_distance_variance = (20)**2 # 20 cm^2
+        high_distance_variance = (30)**2 # 30 cm^2
+        low_angular_variance = (np.deg2rad(30))**2 # rad(10 deg)^2
+        high_angular_variance = (np.deg2rad(90))**2 # rad(90 deg)
 
         # particle filter parameters
         alpha_slow = 0.001
