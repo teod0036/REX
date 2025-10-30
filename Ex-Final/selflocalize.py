@@ -482,21 +482,18 @@ def inject_random_particles(particles, w_avg, w_slow, w_fast):
 
 # Main program #
 if __name__ == "__main__":
-    colour = None
     otherLandmarks = []
+
     def updateGUIFunction():
-        
         if showGUI:
-            if colour:
-                # Draw detected objects
-                cam.draw_aruco_objects(colour)
+            # Draw detected objects
+            cam.draw_aruco_objects(colour)
 
             # Draw map
             draw_world(est_pose, particles, world, path_coords, otherLandmarks)
 
-            if colour:
-                # Show frame
-                cv2.imshow(WIN_RF1, colour)  # type: ignore
+            # Show frame
+            cv2.imshow(WIN_RF1, colour)  # type: ignore
 
             # Show world
             cv2.imshow(WIN_World, world)  # type: ignore
@@ -610,6 +607,7 @@ if __name__ == "__main__":
         draw_world(est_pose, particles, world)
 
         cam = initialize_camera()
+        colour = cam.get_next_frame()
 
         # Initialize the instruction list
         instructions = []
