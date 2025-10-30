@@ -697,9 +697,9 @@ if __name__ == "__main__":
                     print("I have realized i am not close to my target")
                     print()
                     arrived = False
-                else:
-                    # Make the robot end every instruction sequence by rotating around itself once.
-                    generate_rotation_in_place(deg_per_rot, instructions)
+                
+                # Make the robot end every instruction sequence by rotating around itself once.
+                generate_rotation_in_place(deg_per_rot, instructions)
 
             if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
@@ -797,6 +797,19 @@ if __name__ == "__main__":
                 print(f"particle_filter weights min/max/avg:" +
                     f"{weights.min():.3e}/{weights.max():.3e}/{w_avg:.3e}, ESS={effective_particles:.1f}")
 
+                if showGUI:
+                    # Draw map
+                    draw_world(est_pose, particles, world, path_coords, otherLandmarks)
+
+                    # Show world
+                    cv2.imshow(WIN_World, world)  # type: ignore
+
+                    # Draw detected objects
+                    cam.draw_aruco_objects(colour)
+
+                    # Show frame
+                    cv2.imshow(WIN_RF1, colour)  # type: ignore
+
                 # Resampling
                 # XXX: You do this
 
@@ -844,18 +857,18 @@ if __name__ == "__main__":
                         est_var.getTheta() <= low_angular_variance):
                     immediate_path_map = deepcopy(static_path_map)
 
-            if showGUI:
-                # Draw map
-                draw_world(est_pose, particles, world, path_coords, otherLandmarks)
+                if showGUI:
+                    # Draw map
+                    draw_world(est_pose, particles, world, path_coords, otherLandmarks)
 
-                # Show world
-                cv2.imshow(WIN_World, world)  # type: ignore
+                    # Show world
+                    cv2.imshow(WIN_World, world)  # type: ignore
 
-                # Draw detected objects
-                cam.draw_aruco_objects(colour)
+                    # Draw detected objects
+                    cam.draw_aruco_objects(colour)
 
-                # Show frame
-                cv2.imshow(WIN_RF1, colour)  # type: ignore
+                    # Show frame
+                    cv2.imshow(WIN_RF1, colour)  # type: ignore
 
     finally:
         # Make sure to clean up even if an exception occurred
