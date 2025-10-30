@@ -60,10 +60,17 @@ CBLACK = (0, 0, 0)
 
 #Landmarks for 4 landmark track
 landmarks = {
-    1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
-    8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
-    4: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
-    5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+# actual:
+    #1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
+    #8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
+    #4: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
+    #5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+
+# debug:
+    1: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
+    8: np.array((-25.0,  75.0), dtype=np.float32),  # Coordinates for landmark 2
+    #4: np.array((175.0, -75.0), dtype=np.float32),  # Coordinates for landmark 3
+    #5: np.array((175.0,  75.0), dtype=np.float32),  # Coordinates for landmark 4
 }
 
 landmarkIDs = list(landmarks.keys())
@@ -569,12 +576,12 @@ if __name__ == "__main__":
         #print(f"Target point: {goals[0]}")
 
         # goal list for rally
-        goal_is_landmark, goals = True, [
+        #goal_is_landmark, goals = True, [
             landmarks[landmarkIDs[0]] / 100,
             landmarks[landmarkIDs[1]] / 100,
-            landmarks[landmarkIDs[2]] / 100,
-            landmarks[landmarkIDs[3]] / 100,
-            landmarks[landmarkIDs[0]] / 100,
+            #landmarks[landmarkIDs[2]] / 100,
+            #landmarks[landmarkIDs[3]] / 100,
+            #landmarks[landmarkIDs[0]] / 100,
         ]
 
         # Allocate space for world map
