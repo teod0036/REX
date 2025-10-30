@@ -463,31 +463,37 @@ def estimate_pose(particles):
     )
 
 
-def inject_random_particles(particles, w_avg, w_slow, w_fast):
+def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
     p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
 
     for i in range(num_particles):
         if np.random.rand() < p_inject:
+            # Inject near estimated pose with Gaussian noise
+            new_x = np.random.normal(est_pose.getX(), distance_measurement_uncertainty)
+            new_y = np.random.normal(est_pose.getY(), distance_measurement_uncertainty)
+            new_theta = np.mod(np.random.normal(est_pose.getTheta(), angle_measurement_uncertainty), 2 * np.pi)
+
             particles[i] = particle.Particle(
-                600.0 * np.random.ranf() - 100.0,
-                600.0 * np.random.ranf() - 250.0,
-                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
-                1.0 / num_particles,
+                new_x, new_y, new_theta, 1.0 / num_particles
             )
 
     return w_slow, w_fast
 
-def inject_random_particles_on_collision(particles, p_inject):
+
+def inject_random_particles_on_collision(particles, est_pose, p_inject):
     for i in range(num_particles):
         if np.random.rand() < p_inject:
+            # Inject near estimated pose with Gaussian noise
+            new_x = np.random.normal(est_pose.getX(), distance_measurement_uncertainty)
+            new_y = np.random.normal(est_pose.getY(), distance_measurement_uncertainty)
+            new_theta = np.mod(np.random.normal(est_pose.getTheta(), angle_measurement_uncertainty), 2 * np.pi)
+
             particles[i] = particle.Particle(
-                600.0 * np.random.ranf() - 100.0,
-                600.0 * np.random.ranf() - 250.0,
-                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
-                1.0 / num_particles,
+                new_x, new_y, new_theta, 1.0 / num_particles
             )
+
 
 # Main program #
 if __name__ == "__main__":
@@ -645,7 +651,7 @@ if __name__ == "__main__":
             if ((front_dist < 200 and front_dist != -1) or
                 (left_dist < 100 and left_dist != -1) or
                 (right_dist < 100 and right_dist != -1)):
-                inject_random_particles_on_collision(particles, 0.1)
+                inject_random_particles_on_collision(particles, est_pose, 0.1)
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
@@ -857,7 +863,7 @@ if __name__ == "__main__":
                 est_pose, est_var = estimate_pose(particles)  
 
                 # inject new particles depending on the speed of weight change
-                w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
+                w_slow, w_fast = inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast)
             else:
                 # No observation - reset weights to uniform distribution
                 for p in particles:
@@ -865,7 +871,7 @@ if __name__ == "__main__":
 
                 # inject new particles
                 w_avg = 1.0 / num_particles
-                w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
+                w_slow, w_fast = inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast)
 
                 # The estimate of the robots current pose
                 est_pose, est_var = estimate_pose(particles)  
