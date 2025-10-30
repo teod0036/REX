@@ -470,13 +470,12 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
 
     for i in range(num_particles):
         if np.random.rand() < p_inject:
-            # Inject near estimated pose with Gaussian noise
-            new_x = np.random.normal(est_pose.getX(), distance_measurement_uncertainty)
-            new_y = np.random.normal(est_pose.getY(), distance_measurement_uncertainty)
-            new_theta = np.mod(np.random.normal(est_pose.getTheta(), angle_measurement_uncertainty), 2 * np.pi)
-
+            # Inject random starting points.
             particles[i] = particle.Particle(
-                new_x, new_y, new_theta, 1.0 / num_particles
+                600.0 * np.random.ranf() - 100.0,
+                600.0 * np.random.ranf() - 250.0,
+                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
+                1.0 / num_particles,
             )
 
     return w_slow, w_fast
@@ -622,7 +621,7 @@ if __name__ == "__main__":
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
-        maxinstructions_per_execution = 6
+        maxinstructions_per_execution = 8
         if instruction_debug:
             maxinstructions_per_execution = None
 
