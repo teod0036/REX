@@ -467,24 +467,20 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
     p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
-
+    
     for i in range(num_particles):
         if np.random.rand() < p_inject:
-            # Inject random starting points.
-            particles[i] = particle.Particle(
-                600.0 * np.random.ranf() - 100.0,
-                600.0 * np.random.ranf() - 250.0,
-                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
-                1.0 / num_particles,
-            )
+            # Sample around estimated pose
+            new_x = np.random.normal(est_pose.getX(), pos_noise_std)
+            new_y = np.random.normal(est_pose.getY(), pos_noise_std)
+            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_std), 2 * np.pi)
+
+            particles[i] = particle.Particle(new_x, new_y, new_theta, 1.0 / num_particles)
 
     return w_slow, w_fast
 
 
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
-    pos_noise_std = 80.0              # 80 cm radius spread
-    theta_noise_std = np.deg2rad(45)  # 45° angular spread
-
     for i in range(num_particles):
         if np.random.rand() < p_inject:
             # Sample around estimated pose
@@ -556,6 +552,11 @@ if __name__ == "__main__":
         alpha_slow = 0.002
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
+
+        # particle spread noise
+        pos_noise_std = 80.0              # 80 cm radius spread
+        theta_noise_std = np.deg2rad(45)  # 45° angular spread
+
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -833,9 +834,9 @@ if __name__ == "__main__":
                 for i, p in enumerate(particles):
                     p.setWeight(float(weights[i]))
 
-                effective_particles = 1.0 / np.sum(weights ** 2) # proxy measure of variance in weights
-                print(f"particle_filter weights min/max/avg:" +
-                    f"{weights.min():.3e}/{weights.max():.3e}/{w_avg:.3e}, ESS={effective_particles:.1f}")
+                effective_particles = 1.0 / np.sum(weights ** 2) # measure of variance in weights
+                print(f"particle_filter weights min/max/avg/effective particles:" +
+                    f"{weights.min():.3e}/{weights.max():.3e}/{w_avg:.3e}a/{effective_particles:.1f}")
 
                 if showGUI:
                     # Draw map
