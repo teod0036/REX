@@ -550,7 +550,7 @@ if __name__ == "__main__":
         low_distance_variance =  (10)**2 # 10 cm^2
         medium_distance_variance = (20)**2 # 20 cm^2
         high_distance_variance = (30)**2 # 30 cm^2
-        low_angular_variance = (np.deg2rad(30))**2 # rad(10 deg)^2
+        low_angular_variance = (np.deg2rad(10))**2 # rad(10 deg)^2
         high_angular_variance = (np.deg2rad(90))**2 # rad(90 deg)
 
         # particle filter parameters
@@ -622,7 +622,7 @@ if __name__ == "__main__":
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
-        maxinstructions_per_execution = 12
+        maxinstructions_per_execution = 6
         if instruction_debug:
             maxinstructions_per_execution = None
 
@@ -696,8 +696,8 @@ if __name__ == "__main__":
                 print()
                 # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
                 # If the arrived falg is already true, the robot has arrived at it's target.
-                if (est_var.getX() <= low_distance_variance and
-                    est_var.getY() <= low_distance_variance and
+                if (est_var.getX() <= medium_distance_variance and
+                    est_var.getY() <= medium_distance_variance and
                     np.round(dist_from_target, 2) <= landmark_radius_for_pathing + 0.05):
                     print("I am close to my target")
                     print()
