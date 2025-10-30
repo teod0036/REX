@@ -463,7 +463,6 @@ def inject_random_particles(particles, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
     p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
-    p_inject = min(p_inject, 0.1)  # clamp to at most 10%
 
     for i in range(num_particles):
         if np.random.rand() < p_inject:
@@ -526,7 +525,7 @@ if __name__ == "__main__":
             angular_uncertainty = angular_uncertainty_on_turn
 
         # More uncertainty / standard deviation parameters
-        distance_measurement_uncertainty = 5.0 * 3  # cm
+        distance_measurement_uncertainty = 5.0  # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
         low_distance_variance =  (10)**2 # 10 cm
