@@ -65,7 +65,7 @@ def forward(distance):
         front_dist = arlo.read_front_ping_sensor()
         left_dist = arlo.read_left_ping_sensor()
         right_dist = arlo.read_right_ping_sensor()
-        if ((front_dist < 100 and front_dist != -1) or
+        if ((front_dist < 200 and front_dist != -1) or
             (left_dist < 100 and left_dist != -1) or
             (right_dist < 100 and right_dist != -1)):
             print(arlo.stop())
