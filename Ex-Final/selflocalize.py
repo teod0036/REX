@@ -67,8 +67,8 @@ landmarks = {
     #5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
 
 # debug:
-    1: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
-    3: np.array((-25.0,  45.0), dtype=np.float32),  # Coordinates for landmark 2
+    3: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
+    1: np.array((-25.0,  45.0), dtype=np.float32),  # Coordinates for landmark 2
 }
 
 landmarkIDs = list(landmarks.keys())
@@ -550,7 +550,7 @@ if __name__ == "__main__":
         high_angular_variance = (np.deg2rad(45))**2   # rad(45 deg)^2
 
         # particle filter parameters
-        alpha_slow = 0.002
+        alpha_slow = 0.001
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
 
