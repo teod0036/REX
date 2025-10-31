@@ -831,7 +831,7 @@ if __name__ == "__main__":
             # Resampling
             # XXX: You do this
 
-            # resample particles if variance is high
+            # resample particles
             if (
                 not isinstance(objectIDs, type(None))
                 and not isinstance(dists, type(None))
@@ -839,9 +839,9 @@ if __name__ == "__main__":
             ):
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
             
-            # spread particles if weight variance is high
+            # spread some particles if weight variance is high
             if 1 / np.sum(weights ** 2) < num_particles / 2:
-                inject_random_particles(particles, est_pose, 0.1)
+                inject_random_particles(particles, est_pose, 0.01)
 
             # The estimate of the robots current pose
             est_pose, est_var = estimate_pose(particles)  
