@@ -517,9 +517,9 @@ if __name__ == "__main__":
             angular_uncertainty_on_turn = 0
             angular_uncertainty = angular_uncertainty_on_turn
 
-        # More uncertainty / standard deviation parameters. (3x so angle is more expressed)
-        distance_measurement_uncertainty = 5.0 * 3     # cm
-        angle_measurement_uncertainty = np.deg2rad(5)  # radians
+        # More uncertainty / standard deviation parameters.
+        distance_measurement_uncertainty = 5.0 * 3        # cm
+        angle_measurement_uncertainty = np.deg2rad(5) * 3 # radians
 
         low_distance_variance =  (10)**2   # 10 cm^2
         medium_distance_variance = (20)**2 # 20 cm^2
