@@ -462,6 +462,22 @@ def estimate_pose(particles):
         ),
     )
 
+def inject_random_particles(particles, w_avg, w_slow, w_fast):
+    w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
+    w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
+    p_inject = min(0.1, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
+
+    for i in range(num_particles):
+        if np.random.rand() < p_inject:
+            # Sample completely random
+            particles[i] = particle.Particle(
+                600.0 * np.random.ranf() - 100.0,
+                600.0 * np.random.ranf() - 250.0,
+                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
+                1.0 / num_particles,
+            )
+
+    return w_slow, w_fast
 
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
     for i in range(num_particles):
@@ -536,6 +552,11 @@ if __name__ == "__main__":
         # particle spread (on collision)
         pos_noise_uncertainty_collision   = 60.0           # 60 cm radius spread
         theta_noise_uncertainty_collision = np.deg2rad(45) # 45 degrees angular spread
+
+        # kidnapping recover parameters
+        alpha_slow = 0.0001
+        alpha_fast = 0.1
+        w_slow = w_fast = 1 / num_particles
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -792,10 +813,12 @@ if __name__ == "__main__":
                             orientations_orthogonal,
                         )
                 weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
+                w_avg = float(np.mean(weights)) # take average of weights (before normalization)
                 weights /= np.sum(weights) # normalise weights (compute the posterior)
             else:
                 # No observation - reset to uniform weights
                 weights[:] = 1 / num_particles
+                w_avg = 1 / num_particles
 
             # set particle weights (before resampling for visualizaton)
             for i, p in enumerate(particles):
@@ -824,6 +847,9 @@ if __name__ == "__main__":
                 and not isinstance(angles, type(None))
             ):
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
+
+            # inject new particles depending on the speed of weight change
+            w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
 
             # The estimate of the robots current pose
             est_pose, est_var = estimate_pose(particles)  
