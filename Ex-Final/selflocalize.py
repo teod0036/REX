@@ -74,10 +74,10 @@ landmarks = {
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
 
-marker_radius_meters = 18 / 100  # in m
+marker_radius_meters = 15 / 100  # in m
 robot_radius_meters = 22 / 100  # in m
-marker_radius_for_pathing = 0.05 + 0.40  # in m
-marker_radius_for_checking = 0.10 + 0.40  # in m
+marker_radius_for_pathing = 0.40  # in m
+marker_radius_for_checking = 0.05 + 0.40  # in m
 
 
 def eprint(*args, **kwargs):
@@ -305,7 +305,7 @@ def recalculate_path_on_failure(est_pose):
         move_vec /= np.linalg.norm(move_vec)
 
         # Multiply that vector by radius
-        pos = move_vec * ((marker_radius_for_pathing + marker_radius_for_checking) / 2) #cm
+        pos = move_vec * marker_radius_for_pathing #cm
         print(f"{pos =}")
 
         instructions = recalculate_path(
@@ -471,12 +471,14 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
 
     for i in range(num_particles):
         if np.random.rand() < p_inject:
-            # Sample around estimated pose
-            new_x = np.random.normal(est_pose.getX(), pos_noise_uncertainty_fail)
-            new_y = np.random.normal(est_pose.getY(), pos_noise_uncertainty_fail)
-            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_uncertainty_fail), 2 * np.pi)
-
-            particles[i] = particle.Particle(new_x, new_y, new_theta, 1.0 / num_particles)
+            print("injecting completely random particles")
+            # Sample completely random
+            particles[i] = particle.Particle(
+                600.0 * np.random.ranf() - 100.0,
+                600.0 * np.random.ranf() - 250.0,
+                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
+                1.0 / num_particles,
+            )
 
     return w_slow, w_fast
 
@@ -484,6 +486,7 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
     for i in range(num_particles):
         if np.random.rand() < p_inject:
+            print("bumped! injecting particles around robot")
             # Sample around estimated pose
             new_x = np.random.normal(est_pose.getX(), pos_noise_uncertainty_collision)
             new_y = np.random.normal(est_pose.getY(), pos_noise_uncertainty_collision)
