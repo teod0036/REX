@@ -465,7 +465,7 @@ def estimate_pose(particles):
 def inject_random_particles(particles, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
-    p_inject = min(0.1, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
+    p_inject = min(0.005, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
 
     for i in range(num_particles):
         if np.random.rand() < p_inject:
@@ -554,7 +554,7 @@ if __name__ == "__main__":
         theta_noise_uncertainty_collision = np.deg2rad(45) # 45 degrees angular spread
 
         # kidnapping recover parameters
-        alpha_slow = 0.0001
+        alpha_slow = 0.001
         alpha_fast = 0.1
         w_slow = w_fast = 1 / num_particles
 
