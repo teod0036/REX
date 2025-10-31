@@ -68,7 +68,7 @@ landmarks = {
 
 # debug:
     1: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
-    3: np.array((-25.0,  75.0), dtype=np.float32),  # Coordinates for landmark 2
+    3: np.array((-25.0,  45.0), dtype=np.float32),  # Coordinates for landmark 2
 }
 
 landmarkIDs = list(landmarks.keys())
