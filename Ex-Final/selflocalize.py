@@ -63,8 +63,8 @@ landmarks = {
 # actual:
     3: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
     8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
-    1: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
-    6: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+    6: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
+    1: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
 
 # debug:
     # 3: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
@@ -462,7 +462,7 @@ def estimate_pose(particles):
 def inject_random_particles(particles, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
-    p_inject = min(0.05, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
+    p_inject = min(0.1, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
 
     for i in range(num_particles):
         if np.random.rand() < p_inject :
@@ -810,15 +810,12 @@ if __name__ == "__main__":
                             orientations_orthogonal,
                         )
                 weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
+                w_avg = float(np.mean(weights)) # take average of weights (before normalization)
+                weights /= np.sum(weights) # normalise weights (compute the posterior)
             else:
                 # No observation - reset to uniform weights
                 weights[:] = 1 / num_particles
-
-            # take average of weights (before normalization)
-            w_avg = float(np.mean(weights))
-
-            # normalise weights (compute the posterior)
-            weights /= np.sum(weights) 
+                w_avg = 1 / num_particles
 
             # set particle weights (before resampling for visualizaton)
             for i, p in enumerate(particles):
