@@ -469,9 +469,11 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
     p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
 
+    if p_inject <= 0.0:
+        print("injecting completely random particles")
+
     for i in range(num_particles):
         if np.random.rand() < p_inject:
-            print("injecting completely random particles")
             # Sample completely random
             particles[i] = particle.Particle(
                 600.0 * np.random.ranf() - 100.0,
@@ -484,9 +486,11 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
 
 
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
+    if p_inject <= 0.0:
+        print("bumped! injecting particles around robot")
+    
     for i in range(num_particles):
         if np.random.rand() < p_inject:
-            print("bumped! injecting particles around robot")
             # Sample around estimated pose
             new_x = np.random.normal(est_pose.getX(), pos_noise_uncertainty_collision)
             new_y = np.random.normal(est_pose.getY(), pos_noise_uncertainty_collision)
