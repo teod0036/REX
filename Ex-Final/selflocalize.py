@@ -807,9 +807,11 @@ if __name__ == "__main__":
                         )
                 weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
                 weights /= np.sum(weights) # normalise weights (compute the posterior)
+                effective_particles = 1 / np.sum(weights ** 2)
             else:
                 # No observation - reset to uniform weights
                 weights[:] = 1 / num_particles
+                effective_particles = num_particles
 
             # set particle weights (before resampling for visualizaton)
             for i, p in enumerate(particles):
@@ -840,7 +842,7 @@ if __name__ == "__main__":
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
             
             # spread some particles if weight variance is high
-            if 1 / np.sum(weights ** 2) < num_particles / 2:
+            if effective_particles < num_particles / 2:
                 inject_random_particles(particles, est_pose, 0.01)
 
             # The estimate of the robots current pose
