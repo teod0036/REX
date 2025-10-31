@@ -424,7 +424,7 @@ def resample_particles(particles, weights, velocity_uncertainty, angular_uncerta
     positions = (np.arange(len(particles)) + offset) / len(particles)
     indices = np.searchsorted(cumulative_sum, positions, side="right").astype(int)
 
-    new_particles = [
+    return [
         particle.Particle(
             particles[i].getX(),
             particles[i].getY(),
@@ -432,12 +432,7 @@ def resample_particles(particles, weights, velocity_uncertainty, angular_uncerta
             1 / len(particles),
         )
         for i in indices
-    ]
-
-    # Add some noise
-    particle.add_uncertainty(new_particles, velocity_uncertainty, angular_uncertainty)
-
-    return new_particles
+    ] 
 
 
 def estimate_pose(particles):
@@ -464,13 +459,13 @@ def estimate_pose(particles):
     )
 
 
-def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
+def inject_random_particles(particles, w_avg, w_slow, w_fast):
     w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
-    p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
+    p_inject = min(0.05, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
 
     for i in range(num_particles):
-        if np.random.rand() < p_inject:
+        if np.random.rand() < p_inject :
             # Sample completely random
             particles[i] = particle.Particle(
                 600.0 * np.random.ranf() - 100.0,
@@ -553,17 +548,13 @@ if __name__ == "__main__":
         high_angular_variance = (np.deg2rad(45))**2   # rad(45 deg)^2
 
         # particle filter parameters
-        alpha_slow = 0.0005
+        alpha_slow = 0.001
         alpha_fast = 0.1
-        w_slow = w_fast = est_pose.getWeight()
+        w_slow = w_fast = 1 / num_particles
 
-        # medium particle spread noise (on collision)
+        # particle spread (on collision)
         pos_noise_uncertainty_collision   = 60.0           # 60 cm radius spread
-        theta_noise_uncertainty_collision = np.deg2rad(30) # 30 degrees angular spread
-
-        # large particle spread noise (failing particles)
-        pos_noise_uncertainty_fail = 80.0              # 80 cm radius spread
-        theta_noise_uncertainty_fail = np.deg2rad(45)  # 45 degrees angular spread
+        theta_noise_uncertainty_collision = np.deg2rad(45) # 45 degrees angular spread
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -777,8 +768,16 @@ if __name__ == "__main__":
             # Fetch next frame
             colour = cam.get_next_frame()
 
+            # put positions and weights into homogenous numpy arrays for vectorized operations
+            positions, orientations, weights = extract_particle_data(particles)
+            orientations_orthogonal = np.column_stack(
+                [-orientations[:, 1], orientations[:, 0]]
+            )  # 90 degrees rotated
+
             # Detect objects
             otherLandmarks = []
+            objectDict = {}
+
             objectIDs, dists, angles = cam.detect_aruco_objects(colour)
             if (
                 not isinstance(objectIDs, type(None))
@@ -790,7 +789,6 @@ if __name__ == "__main__":
                 #        if o not in searchinglandmarks and o in landmarkIDs:
                 #            searchinglandmarks.append(o)
 
-                objectDict = {}
                 for i in range(len(objectIDs)):
                     # print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
 
@@ -799,12 +797,6 @@ if __name__ == "__main__":
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
                     elif dists[i] < objectDict[objectIDs[i]][0]:
                         objectDict[objectIDs[i]] = (dists[i], angles[i])
-
-                # put positions and weights into homogenous numpy arrays for vectorized operations
-                positions, orientations, weights = extract_particle_data(particles)
-                orientations_orthogonal = np.column_stack(
-                    [-orientations[:, 1], orientations[:, 0]]
-                )  # 90 degrees rotated
 
                 # scale the weights for each observation (multiply by likelihood)
                 for objID, (objDist, objAngle) in objectDict.items():
@@ -817,13 +809,15 @@ if __name__ == "__main__":
                             orientations,
                             orientations_orthogonal,
                         )
+                weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
 
-                # plot other landmarks as non-crossable in immediate map if within reasonable variance
+                # reset immediate map if high variance
                 if not (est_var.getX() <= low_distance_variance and
                     est_var.getY() <= low_distance_variance and
                     est_var.getTheta() <= low_angular_variance):
                     immediate_path_map = deepcopy(static_path_map)
 
+                # plot other landmarks as non-crossable in immediate map if within reasonable variance
                 otherLandmarks.clear()                
                 for objID, (objDist, objAngle) in objectDict.items():
                     if objID not in landmarkIDs:
@@ -833,73 +827,46 @@ if __name__ == "__main__":
                             np.array([pos]), np.array(marker_map_radius_meters)
                         )
                         otherLandmarks.append((objID, pos * 100))
-
-                # normalise weights (compute the posterior)
-                weights = np.maximum(weights, 1e-12)
-                weights /= np.sum(weights) 
-                w_avg = float(np.mean(weights))
-
-                # set particle weights
-                for i, p in enumerate(particles):
-                    p.setWeight(float(weights[i]))
-
-                if showGUI:
-                    # Draw map
-                    draw_world(est_pose, particles, world, path_coords, otherLandmarks)
-
-                    # Show world
-                    cv2.imshow(WIN_World, world)  # type: ignore
-
-                    # Draw detected objects
-                    cam.draw_aruco_objects(colour)
-
-                    # Show frame
-                    cv2.imshow(WIN_RF1, colour)  # type: ignore
-
-                # Resampling
-                # XXX: You do this
-
-                # resample particles, if there are too few effective samples
-                effective_particles = 1.0 / np.sum(weights ** 2) # measure of variance in weights
-                if effective_particles < num_particles / 2:
-                    particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
-
-                # The estimate of the robots current pose
-                est_pose, est_var = estimate_pose(particles)  
-
-                # inject new particles depending on the speed of weight change
-                w_slow, w_fast = inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast)
             else:
-                w_avg = float(np.mean([p.getWeight() for p in particles])) 
+                # No observation - make weights degrade a little
+                weights[:] = 1 / num_particles
 
-                # No observation - reset weights to uniform distribution
-                for p in particles:
-                    p.setWeight(1.0 / num_particles)
+            # take average of weights (before normalization)
+            w_avg = float(np.mean(weights))
 
-                # inject new particles
-                w_slow, w_fast = inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast)
+            # normalise weights (compute the posterior)
+            weights /= np.sum(weights) 
+            effective_particles = 1 / np.sum(weights ** 2) # measure of weight variance
 
-                # The estimate of the robots current pose
-                est_pose, est_var = estimate_pose(particles)  
+            # set particle weights (before resampling for visualizaton)
+            for i, p in enumerate(particles):
+                p.setWeight(float(weights[i]))
 
-                # reset immediate map if variance is no longer low enough
-                if not (est_var.getX() <= low_distance_variance and
-                        est_var.getY() <= low_distance_variance and
-                        est_var.getTheta() <= low_angular_variance):
-                    immediate_path_map = deepcopy(static_path_map)
+            if showGUI:
+                # Draw map
+                draw_world(est_pose, particles, world, path_coords, otherLandmarks)
 
-                if showGUI:
-                    # Draw map
-                    draw_world(est_pose, particles, world, path_coords, otherLandmarks)
+                # Show world
+                cv2.imshow(WIN_World, world)  # type: ignore
 
-                    # Show world
-                    cv2.imshow(WIN_World, world)  # type: ignore
+                # Draw detected objects
+                cam.draw_aruco_objects(colour)
 
-                    # Draw detected objects
-                    cam.draw_aruco_objects(colour)
+                # Show frame
+                cv2.imshow(WIN_RF1, colour)  # type: ignore
 
-                    # Show frame
-                    cv2.imshow(WIN_RF1, colour)  # type: ignore
+            # Resampling
+            # XXX: You do this
+
+            # resample particles
+            if effective_particles < num_particles / 2: # variance too high?
+                particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
+
+            # inject new particles depending on the speed of weight change
+            w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
+
+            # The estimate of the robots current pose
+            est_pose, est_var = estimate_pose(particles)  
 
     finally:
         # Make sure to clean up even if an exception occurred
