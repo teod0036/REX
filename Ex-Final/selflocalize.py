@@ -813,8 +813,11 @@ if __name__ == "__main__":
             # XXX: You do this
 
             # resample particles if variance is high
-            effective_particles = 1 / np.sum(weights ** 2) # measure of weight variance
-            if effective_particles < num_particles / 2:
+            if (
+                not isinstance(objectIDs, type(None))
+                and not isinstance(dists, type(None))
+                and not isinstance(angles, type(None))
+            ):
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
 
             # The estimate of the robots current pose
