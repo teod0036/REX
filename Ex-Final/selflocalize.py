@@ -73,9 +73,10 @@ landmarks = {
 
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
-landmark_radius_for_pathing = 0.40  # in m
-marker_radius_meters = 18 / 100  # in m
-robot_radius_meters = 17.5 / 100  # in m
+
+marker_radius_for_pathing = 0.40  # in m
+marker_radius_meters = 17.5 / 100  # in m
+robot_radius_meters = 22.5 / 100  # in m
 
 
 def eprint(*args, **kwargs):
@@ -142,7 +143,7 @@ def draw_world(est_pose, particles, world, path=None, otherLandmarks=[]):
     for i in range(len(landmarkIDs)):
         ID = landmarkIDs[i]
         lm = (int(landmarks[ID][0] + offsetX), int(ymax - (landmarks[ID][1] + offsetY)))
-        cv2.circle(world, lm, 5, landmark_colors[i], 2)
+        cv2.circle(world, lm, marker_map_radius_meters * 100, landmark_colors[i], 2)
         fontScale = 1
         thickness = 2
         lineType = 2
@@ -160,7 +161,7 @@ def draw_world(est_pose, particles, world, path=None, otherLandmarks=[]):
     # Draw other landmarks not defined
     for (ID, (x, y)) in otherLandmarks:
         lm = (int(x + offsetX), int(ymax - (y + offsetY)))
-        cv2.circle(world, lm, 5, (0, 0, 0), 2)
+        cv2.circle(world, lm, marker_map_radius_meters * 100, (0, 0, 0), 2)
         fontScale = 1
         thickness = 2
         lineType = 2
@@ -291,7 +292,7 @@ def recalculate_path_on_failure(est_pose):
     lmark = None                                         #cm
     for l in landmarks.values():
         #Equation for a circle
-        if (l[0] - pos[0]) ** 2 + (l[1] - pos[1]) ** 2 <= (landmark_radius_for_pathing*100)**2:
+        if (l[0] - pos[0]) ** 2 + (l[1] - pos[1]) ** 2 <= (marker_radius_for_pathing*100)**2:
             lmark = l
 
     print(f"{lmark =}")
@@ -302,7 +303,7 @@ def recalculate_path_on_failure(est_pose):
         move_vec /= np.linalg.norm(move_vec)
 
         # Multiply that vector by radius
-        pos = move_vec * landmark_radius_for_pathing #cm
+        pos = move_vec * marker_radius_for_pathing #cm
         print(f"{pos =}")
 
         instructions = recalculate_path(
@@ -326,7 +327,7 @@ def get_target(goal, est_pose, goal_is_landmark):
     dist = np.linalg.norm(goal - pos)
 
     if goal_is_landmark:
-        target = goal + ((pos - goal) / dist) * landmark_radius_for_pathing
+        target = goal + ((pos - goal) / dist) * marker_radius_for_pathing
         return target
     else:
         return goal
@@ -469,9 +470,9 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
     for i in range(num_particles):
         if np.random.rand() < p_inject:
             # Sample around estimated pose
-            new_x = np.random.normal(est_pose.getX(), pos_noise_std)
-            new_y = np.random.normal(est_pose.getY(), pos_noise_std)
-            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_std), 2 * np.pi)
+            new_x = np.random.normal(est_pose.getX(), pos_noise_uncertainty_fail)
+            new_y = np.random.normal(est_pose.getY(), pos_noise_uncertainty_fail)
+            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_uncertainty_fail), 2 * np.pi)
 
             particles[i] = particle.Particle(new_x, new_y, new_theta, 1.0 / num_particles)
 
@@ -482,9 +483,9 @@ def inject_random_particles_on_collision(particles, est_pose, p_inject):
     for i in range(num_particles):
         if np.random.rand() < p_inject:
             # Sample around estimated pose
-            new_x = np.random.normal(est_pose.getX(), pos_noise_std)
-            new_y = np.random.normal(est_pose.getY(), pos_noise_std)
-            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_std), 2 * np.pi)
+            new_x = np.random.normal(est_pose.getX(), pos_noise_uncertainty_collision)
+            new_y = np.random.normal(est_pose.getY(), pos_noise_uncertainty_collision)
+            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_uncertainty_collision), 2 * np.pi)
 
             particles[i] = particle.Particle(new_x, new_y, new_theta, 1.0 / num_particles)
 
@@ -540,21 +541,26 @@ if __name__ == "__main__":
         distance_measurement_uncertainty = 5.0 * 3     # cm
         angle_measurement_uncertainty = np.deg2rad(5)  # radians
 
-        low_distance_variance =  (10)**2 # 10 cm^2
+        low_distance_variance =  (10)**2   # 10 cm^2
         medium_distance_variance = (20)**2 # 20 cm^2
-        high_distance_variance = (30)**2 # 30 cm^2
-        low_angular_variance = (np.deg2rad(10))**2 # rad(10 deg)^2
-        high_angular_variance = (np.deg2rad(90))**2 # rad(90 deg)
+        high_distance_variance = (30)**2   # 30 cm^2
+
+        low_angular_variance = (np.deg2rad(15))**2    # rad(15 deg)^2
+        medium_angular_variance = (np.deg2rad(30))**2 # rad(30 deg)^2
+        high_angular_variance = (np.deg2rad(45))**2   # rad(45 deg)^2
 
         # particle filter parameters
-        alpha_slow = 0.001
+        alpha_slow = 0.002
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
 
-        # large particle spread noise (on collision / failing particles)
-        pos_noise_std = 80.0              # 80 cm radius spread
-        theta_noise_std = np.deg2rad(45)  # 45 degrees angular spread
+        # medium particle spread noise (on collision)
+        pos_noise_uncertainty_collision   = 60.0           # 60 cm radius spread
+        theta_noise_uncertainty_collision = np.deg2rad(30) # 30 degrees angular spread
 
+        # large particle spread noise (failing particles)
+        pos_noise_uncertainty_fail = 80.0              # 80 cm radius spread
+        theta_noise_uncertainty_fail = np.deg2rad(45)  # 45 degrees angular spread
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -571,8 +577,8 @@ if __name__ == "__main__":
         origins = []
         for origin in landmarks.values():
             origins.append((origin[0] / 100, origin[1] / 100))
-        radius = marker_radius_meters + robot_radius_meters
-        static_path_map.plot_centroid(np.array(origins), np.array(radius))
+        marker_map_radius_meters = marker_radius_meters + robot_radius_meters
+        static_path_map.plot_centroid(np.array(origins), np.array(marker_map_radius_meters))
         immediate_path_map = deepcopy(static_path_map)
 
         # Create robot model for pathfinding
@@ -696,7 +702,7 @@ if __name__ == "__main__":
                 # If the arrived falg is already true, the robot has arrived at it's target.
                 if (est_var.getX() <= medium_distance_variance and
                     est_var.getY() <= medium_distance_variance and
-                    np.round(dist_from_target, 2) <= landmark_radius_for_pathing + 0.05):
+                    np.round(dist_from_target, 2) <= marker_radius_for_pathing + 0.05):
                     print("I am close to my target")
                     print()
                     if arrived:
@@ -819,7 +825,7 @@ if __name__ == "__main__":
                         dir = np.array((np.cos(objAngle), np.sin(objAngle)))
                         pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
                         immediate_path_map.plot_centroid(
-                            np.array([pos]), np.array(marker_radius_meters)
+                            np.array([pos]), np.array(marker_map_radius_meters)
                         )
                         otherLandmarks.append((objID, pos * 100))
 
