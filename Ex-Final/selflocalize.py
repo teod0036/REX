@@ -810,25 +810,8 @@ if __name__ == "__main__":
                             orientations_orthogonal,
                         )
                 weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
-
-                # reset immediate map if high variance
-                if not (est_var.getX() <= low_distance_variance and
-                    est_var.getY() <= low_distance_variance and
-                    est_var.getTheta() <= low_angular_variance):
-                    immediate_path_map = deepcopy(static_path_map)
-
-                # plot other landmarks as non-crossable in immediate map if within reasonable variance
-                otherLandmarks.clear()                
-                for objID, (objDist, objAngle) in objectDict.items():
-                    if objID not in landmarkIDs:
-                        dir = np.array((np.cos(objAngle), np.sin(objAngle)))
-                        pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
-                        immediate_path_map.plot_centroid(
-                            np.array([pos]), np.array(marker_map_radius_meters)
-                        )
-                        otherLandmarks.append((objID, pos * 100))
             else:
-                # No observation - make weights degrade a little
+                # No observation - reset to uniform weights
                 weights[:] = 1 / num_particles
 
             # take average of weights (before normalization)
@@ -836,7 +819,6 @@ if __name__ == "__main__":
 
             # normalise weights (compute the posterior)
             weights /= np.sum(weights) 
-            effective_particles = 1 / np.sum(weights ** 2) # measure of weight variance
 
             # set particle weights (before resampling for visualizaton)
             for i, p in enumerate(particles):
@@ -858,8 +840,9 @@ if __name__ == "__main__":
             # Resampling
             # XXX: You do this
 
-            # resample particles
-            if effective_particles < num_particles / 2: # variance too high?
+            # resample particles if variance is high
+            effective_particles = 1 / np.sum(weights ** 2) # measure of weight variance
+            if effective_particles < num_particles / 2:
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
 
             # inject new particles depending on the speed of weight change
@@ -867,6 +850,23 @@ if __name__ == "__main__":
 
             # The estimate of the robots current pose
             est_pose, est_var = estimate_pose(particles)  
+
+            # reset immediate map if high variance
+            if not (est_var.getX() <= low_distance_variance and
+                est_var.getY() <= low_distance_variance and
+                est_var.getTheta() <= low_angular_variance):
+                immediate_path_map = deepcopy(static_path_map)
+
+            # plot other landmarks as non-crossable in immediate map if within reasonable variance
+            otherLandmarks.clear()                
+            for objID, (objDist, objAngle) in objectDict.items():
+                if objID not in landmarkIDs:
+                    dir = np.array((np.cos(objAngle), np.sin(objAngle)))
+                    pos = np.array((0, robot_radius_meters)) + dir * (objDist / 100 + marker_radius_meters)
+                    immediate_path_map.plot_centroid(
+                        np.array([pos]), np.array(marker_map_radius_meters)
+                    )
+                    otherLandmarks.append((objID, pos * 100))
 
     finally:
         # Make sure to clean up even if an exception occurred
