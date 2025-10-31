@@ -424,7 +424,7 @@ def resample_particles(particles, weights, velocity_uncertainty, angular_uncerta
     positions = (np.arange(len(particles)) + offset) / len(particles)
     indices = np.searchsorted(cumulative_sum, positions, side="right").astype(int)
 
-    return [
+    new_particles = [
         particle.Particle(
             particles[i].getX(),
             particles[i].getY(),
@@ -432,7 +432,11 @@ def resample_particles(particles, weights, velocity_uncertainty, angular_uncerta
             1 / len(particles),
         )
         for i in indices
-    ] 
+    ]
+    # Add some noise
+    particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
+    
+    return new_particles
 
 
 def estimate_pose(particles):
@@ -518,8 +522,8 @@ if __name__ == "__main__":
             angular_uncertainty = angular_uncertainty_on_turn
 
         # More uncertainty / standard deviation parameters.
-        distance_measurement_uncertainty = 5.0 * 3        # cm
-        angle_measurement_uncertainty = np.deg2rad(5) * 3 # radians
+        distance_measurement_uncertainty = 5.0 * 3    # cm
+        angle_measurement_uncertainty = np.deg2rad(5) # radians
 
         low_distance_variance =  (10)**2   # 10 cm^2
         medium_distance_variance = (20)**2 # 20 cm^2
