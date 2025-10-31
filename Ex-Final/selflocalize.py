@@ -435,7 +435,7 @@ def resample_particles(particles, weights, velocity_uncertainty, angular_uncerta
     ]
     # Add some noise
     particle.add_uncertainty(particles, velocity_uncertainty, angular_uncertainty)
-    
+
     return new_particles
 
 
@@ -601,7 +601,7 @@ if __name__ == "__main__":
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
-        maxinstructions_per_execution = 8
+        maxinstructions_per_execution = 4
         if instruction_debug:
             maxinstructions_per_execution = None
 
