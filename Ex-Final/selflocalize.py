@@ -305,7 +305,7 @@ def recalculate_path_on_failure(est_pose):
         move_vec /= np.linalg.norm(move_vec)
 
         # Multiply that vector by radius
-        pos = move_vec * marker_radius_for_pathing #cm
+        pos = move_vec * ((marker_radius_for_pathing + marker_radius_for_checking) / 2) #cm
         print(f"{pos =}")
 
         instructions = recalculate_path(
