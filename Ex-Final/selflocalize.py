@@ -462,22 +462,16 @@ def estimate_pose(particles):
         ),
     )
 
-def inject_random_particles(particles, w_avg, w_slow, w_fast):
-    w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
-    w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
-    p_inject = min(0.005, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
-
+def inject_random_particles(particles, est_pose, p_inject):
     for i in range(num_particles):
         if np.random.rand() < p_inject:
-            # Sample completely random
-            particles[i] = particle.Particle(
-                600.0 * np.random.ranf() - 100.0,
-                600.0 * np.random.ranf() - 250.0,
-                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
-                1.0 / num_particles,
-            )
+            # Sample around estimated pose
+            new_x = np.random.normal(est_pose.getX(), pos_noise_uncertainty_collision)
+            new_y = np.random.normal(est_pose.getY(), pos_noise_uncertainty_collision)
+            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_uncertainty_collision), 2 * np.pi)
 
-    return w_slow, w_fast
+            particles[i] = particle.Particle(new_x, new_y, new_theta, 1.0 / num_particles)
+
 
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
     for i in range(num_particles):
@@ -553,10 +547,9 @@ if __name__ == "__main__":
         pos_noise_uncertainty_collision   = 60.0           # 60 cm radius spread
         theta_noise_uncertainty_collision = np.deg2rad(45) # 45 degrees angular spread
 
-        # kidnapping recover parameters
-        alpha_slow = 0.00001
-        alpha_fast = 0.1
-        w_slow = w_fast = 1 / num_particles
+        # particle spread (in general)
+        pos_noise_uncertainty_collision   = 80.0           # 60 cm radius spread
+        theta_noise_uncertainty_collision = np.deg2rad(90) # 45 degrees angular spread
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -614,8 +607,8 @@ if __name__ == "__main__":
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
         # for debugging:
-        issearching = True
-        searchinglandmarks = []
+        #issearching = True
+        #searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
         generate_rotation_in_place(deg_per_rot, instructions)
@@ -627,7 +620,7 @@ if __name__ == "__main__":
             maxinstructions_per_execution = None
 
         # Initialize flag designating that the robot believes it has arrived
-        arrived = False
+        # arrived = False
 
         # used for drawing path
         path_coords = []
@@ -698,42 +691,45 @@ if __name__ == "__main__":
                 print()
                 # If the robot center is closer than 40 cm to it's target set the arrived flag to true.
                 # If the arrived falg is already true, the robot has arrived at it's target.
-                if (np.round(dist_from_target, 2) <= marker_radius_for_checking):
-                    print("I am close to my target")
+                if (est_var.getX() <= medium_distance_variance and
+                    est_var.getY() <= medium_distance_variance and
+                    np.round(dist_from_target, 2) <= marker_radius_for_checking):
+                    #print("I am close to my target")
+                    #print()
+                    #if arrived:
+                    print("I have arrived")
+                    print(f"The target is at {cur_goal}")
+                    print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                     print()
-                    if arrived:
-                        print("I have arrived")
-                        print(f"The target is at {cur_goal}")
-                        print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
-                        print()
                     if len(goals) == 1:
                         break
                     else:
                         del goals[0]
-                        arrived = False
+                        #arrived = False
                     # Clear the instruction list to allow the robot to survey it's surroundings again
                     # to make sure it is in the right place without driving away
-                    instructions = []
-                    arrived = True
+                    #instructions = []
+                    #arrived = True
 
                 # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
                 # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
-                elif arrived:
-                    print("I have realized i am not close to my target")
-                    print()
-                    arrived = False
-                
-                # Make the robot end every instruction sequence by rotating around itself once.
-                generate_rotation_in_place(deg_per_rot, instructions)
+                #elif arrived:
+                    #print("I have realized i am not close to my target")
+                    #print()
+                    #arrived = False
+                    #generate_rotation_in_place(deg_per_rot, instructions)
+                else:
+                    # Make the robot end every instruction sequence by rotating around itself once.
+                    generate_rotation_in_place(deg_per_rot, instructions)
 
-            if issearching and len(searchinglandmarks) >= 2:
-                issearching = False
-                instructions = []
-                print("Spotted two landmarks, should be localized now.")
+            #if issearching and len(searchinglandmarks) >= 2:
+            #    issearching = False
+            #    instructions = []
+            #    print("Spotted two landmarks, should be localized now.")
 
-            if len(instructions) == 360 // deg_per_rot:
-                issearching = True
-                searchinglandmarks = []
+            #if len(instructions) == 360 // deg_per_rot:
+            #    issearching = True
+            #    searchinglandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -784,10 +780,10 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
-                if issearching:
-                    for o in objectIDs:
-                        if o not in searchinglandmarks and o in landmarkIDs:
-                            searchinglandmarks.append(o)
+                #if issearching:
+                #    for o in objectIDs:
+                #        if o not in searchinglandmarks and o in landmarkIDs:
+                #            searchinglandmarks.append(o)
 
                 for i in range(len(objectIDs)):
                     # print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
@@ -810,12 +806,10 @@ if __name__ == "__main__":
                             orientations_orthogonal,
                         )
                 weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
-                w_avg = float(np.mean(weights)) # take average of weights (before normalization)
                 weights /= np.sum(weights) # normalise weights (compute the posterior)
             else:
                 # No observation - reset to uniform weights
                 weights[:] = 1 / num_particles
-                w_avg = 1 / num_particles
 
             # set particle weights (before resampling for visualizaton)
             for i, p in enumerate(particles):
@@ -844,9 +838,10 @@ if __name__ == "__main__":
                 and not isinstance(angles, type(None))
             ):
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
-
-            # inject new particles depending on the speed of weight change
-            w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
+            
+            # spread particles if weight variance is high
+            if 1 / np.sum(weights ** 2) < num_particles / 2:
+                inject_random_particles(particles, est_pose, 0.1)
 
             # The estimate of the robots current pose
             est_pose, est_var = estimate_pose(particles)  
@@ -856,7 +851,7 @@ if __name__ == "__main__":
                 est_var.getY() <= low_distance_variance and
                 est_var.getTheta() <= low_angular_variance):
                 immediate_path_map = deepcopy(static_path_map)
-
+            
             # plot other landmarks as non-crossable in immediate map if within reasonable variance
             otherLandmarks.clear()                
             for objID, (objDist, objAngle) in objectDict.items():
