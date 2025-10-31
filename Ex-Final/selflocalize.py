@@ -61,23 +61,23 @@ CBLACK = (0, 0, 0)
 #Landmarks for 4 landmark track
 landmarks = {
 # actual:
-    #1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
-    #8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
-    #4: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
-    #5: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+    3: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
+    8: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
+    1: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+    6: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
 
 # debug:
-    3: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
-    1: np.array((-25.0,  75.0), dtype=np.float32),  # Coordinates for landmark 2
+    # 3: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
+    # 1: np.array((-25.0,  75.0), dtype=np.float32),  # Coordinates for landmark 2
 }
 
 landmarkIDs = list(landmarks.keys())
 landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing the landmarks
 
-marker_radius_meters = 15 / 100  # in m
+marker_radius_meters = 16 / 100  # in m
 robot_radius_meters = 22 / 100  # in m
-marker_radius_for_pathing = 0.40  # in m
-marker_radius_for_checking = 0.05 + 0.40  # in m
+marker_radius_for_pathing = 0.05 + 0.40  # in m
+marker_radius_for_checking = 0.10 + 0.40  # in m
 
 
 def eprint(*args, **kwargs):
@@ -469,9 +469,6 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
     w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
     p_inject = max(0.0, 1.0 - w_fast / w_slow) if w_slow > 0 else 0.0
 
-    if p_inject <= 0.0:
-        print("injecting completely random particles")
-
     for i in range(num_particles):
         if np.random.rand() < p_inject:
             # Sample completely random
@@ -486,9 +483,6 @@ def inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast):
 
 
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
-    if p_inject <= 0.0:
-        print("bumped! injecting particles around robot")
-    
     for i in range(num_particles):
         if np.random.rand() < p_inject:
             # Sample around estimated pose
@@ -559,7 +553,7 @@ if __name__ == "__main__":
         high_angular_variance = (np.deg2rad(45))**2   # rad(45 deg)^2
 
         # particle filter parameters
-        alpha_slow = 0.001
+        alpha_slow = 0.0005
         alpha_fast = 0.1
         w_slow = w_fast = est_pose.getWeight()
 
@@ -608,9 +602,9 @@ if __name__ == "__main__":
         goal_is_landmark, goals = True, [
             landmarks[landmarkIDs[0]] / 100,
             landmarks[landmarkIDs[1]] / 100,
-            #landmarks[landmarkIDs[2]] / 100,
-            #landmarks[landmarkIDs[3]] / 100,
-            #landmarks[landmarkIDs[0]] / 100,
+            landmarks[landmarkIDs[2]] / 100,
+            landmarks[landmarkIDs[3]] / 100,
+            landmarks[landmarkIDs[0]] / 100,
         ]
 
         # Allocate space for world map
@@ -829,6 +823,7 @@ if __name__ == "__main__":
                     est_var.getY() <= low_distance_variance and
                     est_var.getTheta() <= low_angular_variance):
                     immediate_path_map = deepcopy(static_path_map)
+
                 otherLandmarks.clear()                
                 for objID, (objDist, objAngle) in objectDict.items():
                     if objID not in landmarkIDs:
@@ -848,10 +843,6 @@ if __name__ == "__main__":
                 for i, p in enumerate(particles):
                     p.setWeight(float(weights[i]))
 
-                effective_particles = 1.0 / np.sum(weights ** 2) # measure of variance in weights
-                print(f"particle_filter weights min/max/avg/effective particles:" +
-                    f"{weights.min():.3e}/{weights.max():.3e}/{w_avg:.3e}a/{effective_particles:.1f}")
-
                 if showGUI:
                     # Draw map
                     draw_world(est_pose, particles, world, path_coords, otherLandmarks)
@@ -869,6 +860,7 @@ if __name__ == "__main__":
                 # XXX: You do this
 
                 # resample particles, if there are too few effective samples
+                effective_particles = 1.0 / np.sum(weights ** 2) # measure of variance in weights
                 if effective_particles < num_particles / 2:
                     particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
 
@@ -878,12 +870,13 @@ if __name__ == "__main__":
                 # inject new particles depending on the speed of weight change
                 w_slow, w_fast = inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast)
             else:
+                w_avg = float(np.mean([p.getWeight() for p in particles])) 
+
                 # No observation - reset weights to uniform distribution
                 for p in particles:
                     p.setWeight(1.0 / num_particles)
 
                 # inject new particles
-                w_avg = 1.0 / num_particles
                 w_slow, w_fast = inject_random_particles(particles, est_pose, w_avg, w_slow, w_fast)
 
                 # The estimate of the robots current pose
