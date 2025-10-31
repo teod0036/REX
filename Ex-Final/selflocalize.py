@@ -10,9 +10,9 @@ import camera
 import particle
 
 # Flags
-onRobot = True  # Whether or not we are running on the Arlo robot
+onRobot = False  # Whether or not we are running on the Arlo robot
 showGUI = True  # Whether or not to open GUI windows
-instruction_debug = False  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
+instruction_debug = True  # Whether you want to debug the isntrcution execution code, even if you don't have an arlo
 
 def isRunningOnArlo():
     """Return True if we are running on Arlo, otherwise False.
@@ -143,7 +143,7 @@ def draw_world(est_pose, particles, world, path=None, otherLandmarks=[]):
     for i in range(len(landmarkIDs)):
         ID = landmarkIDs[i]
         lm = (int(landmarks[ID][0] + offsetX), int(ymax - (landmarks[ID][1] + offsetY)))
-        cv2.circle(world, lm, marker_map_radius_meters * 100, landmark_colors[i], 2)
+        cv2.circle(world, lm, int(marker_map_radius_meters * 100), landmark_colors[i], 2)
         fontScale = 1
         thickness = 2
         lineType = 2
@@ -161,7 +161,7 @@ def draw_world(est_pose, particles, world, path=None, otherLandmarks=[]):
     # Draw other landmarks not defined
     for (ID, (x, y)) in otherLandmarks:
         lm = (int(x + offsetX), int(ymax - (y + offsetY)))
-        cv2.circle(world, lm, marker_map_radius_meters * 100, (0, 0, 0), 2)
+        cv2.circle(world, lm, int(marker_map_radius_meters * 100), (0, 0, 0), 2)
         fontScale = 1
         thickness = 2
         lineType = 2
@@ -649,14 +649,15 @@ if __name__ == "__main__":
                 velocity, angular_velocity = control_manually(
                     action, velocity, angular_velocity
                 )
+            else:
+                front_dist = arlo.read_front_ping_sensor()  # type:ignore
+                left_dist = arlo.read_left_ping_sensor()  # type:ignore
+                right_dist = arlo.read_right_ping_sensor()  # type:ignore
 
-            front_dist = arlo.read_front_ping_sensor()
-            left_dist = arlo.read_left_ping_sensor()
-            right_dist = arlo.read_right_ping_sensor()
-            if ((front_dist < 200 and front_dist != -1) or
-                (left_dist < 100 and left_dist != -1) or
-                (right_dist < 100 and right_dist != -1)):
-                inject_random_particles_on_collision(particles, est_pose, 0.1)
+                if ((front_dist < 100 and front_dist != -1) or
+                    (left_dist < 100 and left_dist != -1) or
+                    (right_dist < 100 and right_dist != -1)):
+                    inject_random_particles_on_collision(particles, est_pose, 0.1)
 
             # Use motor controls to update particles
             # XXX: Make the robot drive
