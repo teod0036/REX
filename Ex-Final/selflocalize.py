@@ -459,24 +459,6 @@ def estimate_pose(particles):
     )
 
 
-def inject_random_particles(particles, w_avg, w_slow, w_fast):
-    w_slow = w_slow * (1 - alpha_slow) + w_avg * alpha_slow
-    w_fast = w_fast * (1 - alpha_fast) + w_avg * alpha_fast
-    p_inject = min(0.1, max(0.0, 1.0 - w_fast / w_slow)) if w_slow > 0 else 0.0
-
-    for i in range(num_particles):
-        if np.random.rand() < p_inject :
-            # Sample completely random
-            particles[i] = particle.Particle(
-                600.0 * np.random.ranf() - 100.0,
-                600.0 * np.random.ranf() - 250.0,
-                np.mod(2.0 * np.pi * np.random.ranf(), 2.0 * np.pi),
-                1.0 / num_particles,
-            )
-
-    return w_slow, w_fast
-
-
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
     for i in range(num_particles):
         if np.random.rand() < p_inject:
@@ -546,11 +528,6 @@ if __name__ == "__main__":
         low_angular_variance = (np.deg2rad(15))**2    # rad(15 deg)^2
         medium_angular_variance = (np.deg2rad(30))**2 # rad(30 deg)^2
         high_angular_variance = (np.deg2rad(45))**2   # rad(45 deg)^2
-
-        # particle filter parameters
-        alpha_slow = 0.001
-        alpha_fast = 0.1
-        w_slow = w_fast = 1 / num_particles
 
         # particle spread (on collision)
         pos_noise_uncertainty_collision   = 60.0           # 60 cm radius spread
@@ -810,12 +787,10 @@ if __name__ == "__main__":
                             orientations_orthogonal,
                         )
                 weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
-                w_avg = float(np.mean(weights)) # take average of weights (before normalization)
                 weights /= np.sum(weights) # normalise weights (compute the posterior)
             else:
                 # No observation - reset to uniform weights
                 weights[:] = 1 / num_particles
-                w_avg = 1 / num_particles
 
             # set particle weights (before resampling for visualizaton)
             for i, p in enumerate(particles):
@@ -841,9 +816,6 @@ if __name__ == "__main__":
             effective_particles = 1 / np.sum(weights ** 2) # measure of weight variance
             if effective_particles < num_particles / 2:
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
-
-            # inject new particles depending on the speed of weight change
-            w_slow, w_fast = inject_random_particles(particles, w_avg, w_slow, w_fast)
 
             # The estimate of the robots current pose
             est_pose, est_var = estimate_pose(particles)  
