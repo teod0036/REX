@@ -488,7 +488,7 @@ if __name__ == "__main__":
         import plan_path
 
         # Initialize particles
-        num_particles = 1000
+        num_particles = 2000
 
         if instruction_debug:
             # smaller amount of particles to test pathfinding and the effect of instructions
