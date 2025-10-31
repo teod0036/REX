@@ -621,6 +621,7 @@ if __name__ == "__main__":
                     action, velocity, angular_velocity
                 )
             else:
+                time.sleep(0.1)
                 front_dist = arlo.read_front_ping_sensor()  # type:ignore
                 left_dist = arlo.read_left_ping_sensor()  # type:ignore
                 right_dist = arlo.read_right_ping_sensor()  # type:ignore
