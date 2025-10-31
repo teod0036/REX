@@ -77,7 +77,7 @@ landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing th
 marker_radius_meters = 16 / 100  # in m
 robot_radius_meters = 22 / 100  # in m
 marker_radius_for_pathing = 0.05 + 0.40  # in m
-marker_radius_for_checking = 0.15 + 0.40  # in m
+marker_radius_for_checking = 0.20 + 0.40  # in m
 
 
 def eprint(*args, **kwargs):
@@ -462,17 +462,6 @@ def estimate_pose(particles):
         ),
     )
 
-def inject_random_particles(particles, est_pose, p_inject):
-    for i in range(num_particles):
-        if np.random.rand() < p_inject:
-            # Sample around estimated pose
-            new_x = np.random.normal(est_pose.getX(), pos_noise_uncertainty_collision)
-            new_y = np.random.normal(est_pose.getY(), pos_noise_uncertainty_collision)
-            new_theta = np.mod(np.random.normal(est_pose.getTheta(), theta_noise_uncertainty_collision), 2 * np.pi)
-
-            particles[i] = particle.Particle(new_x, new_y, new_theta, 1.0 / num_particles)
-
-
 def inject_random_particles_on_collision(particles, est_pose, p_inject):
     for i in range(num_particles):
         if np.random.rand() < p_inject:
@@ -544,12 +533,8 @@ if __name__ == "__main__":
         high_angular_variance = (np.deg2rad(45))**2   # rad(45 deg)^2
 
         # particle spread (on collision)
-        pos_noise_uncertainty_collision   = 60.0           # 60 cm radius spread
-        theta_noise_uncertainty_collision = np.deg2rad(45) # 45 degrees angular spread
-
-        # particle spread (in general)
-        pos_noise_uncertainty_collision   = 80.0           # 60 cm radius spread
-        theta_noise_uncertainty_collision = np.deg2rad(90) # 45 degrees angular spread
+        pos_noise_uncertainty_collision   = 100.0          # 100 cm radius spread
+        theta_noise_uncertainty_collision = np.deg2rad(90) # 90 degrees angular spread
 
         # Initialize the robot (XXX: You do this)
         if isRunningOnArlo():
@@ -615,7 +600,7 @@ if __name__ == "__main__":
 
         # The maximum amount of instructions the robot executs before surveying its surroundings.
         # This value should always be a multiple of 2, set value to None to remove cap
-        maxinstructions_per_execution = 4
+        maxinstructions_per_execution = 6
         if instruction_debug:
             maxinstructions_per_execution = None
 
@@ -639,12 +624,13 @@ if __name__ == "__main__":
                     action, velocity, angular_velocity
                 )
             else:
+                # on collision -> spread 10% of particles
                 time.sleep(0.1)
                 front_dist = arlo.read_front_ping_sensor()  # type:ignore
                 left_dist = arlo.read_left_ping_sensor()  # type:ignore
                 right_dist = arlo.read_right_ping_sensor()  # type:ignore
 
-                if ((front_dist < 100 and front_dist != -1) or
+                if ((front_dist < 200 and front_dist != -1) or
                     (left_dist < 100 and left_dist != -1) or
                     (right_dist < 100 and right_dist != -1)):
                     inject_random_particles_on_collision(particles, est_pose, 0.1)
@@ -697,7 +683,7 @@ if __name__ == "__main__":
                     #print("I am close to my target")
                     #print()
                     #if arrived:
-                    print("I have arrived")
+                    #print("I have arrived")
                     print(f"The target is at {cur_goal}")
                     print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                     print()
@@ -807,11 +793,9 @@ if __name__ == "__main__":
                         )
                 weights = np.maximum(weights, 1e-12) # to avoid issues with zeroes
                 weights /= np.sum(weights) # normalise weights (compute the posterior)
-                effective_particles = 1 / np.sum(weights ** 2)
             else:
                 # No observation - reset to uniform weights
                 weights[:] = 1 / num_particles
-                effective_particles = num_particles
 
             # set particle weights (before resampling for visualizaton)
             for i, p in enumerate(particles):
@@ -833,28 +817,25 @@ if __name__ == "__main__":
             # Resampling
             # XXX: You do this
 
-            # resample particles
+            # resample particle if any observation was made (if any weight peaks)
             if (
                 not isinstance(objectIDs, type(None))
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
+                and any(objectIDs[i] in objectDict for i in range(len(objectIDs)))
             ):
                 particles = resample_particles(particles, weights, velocity_uncertainty, angular_uncertainty)
             
-            # spread some particles if weight variance is high
-            if effective_particles < num_particles / 2:
-                inject_random_particles(particles, est_pose, 0.01)
-
             # The estimate of the robots current pose
             est_pose, est_var = estimate_pose(particles)  
 
-            # reset immediate map if high variance
+            # reset immediate map if not low variance
             if not (est_var.getX() <= low_distance_variance and
                 est_var.getY() <= low_distance_variance and
                 est_var.getTheta() <= low_angular_variance):
                 immediate_path_map = deepcopy(static_path_map)
             
-            # plot other landmarks as non-crossable in immediate map if within reasonable variance
+            # plot other landmarks as non-visitable in immediate map
             otherLandmarks.clear()                
             for objID, (objDist, objAngle) in objectDict.items():
                 if objID not in landmarkIDs:
