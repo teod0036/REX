@@ -76,8 +76,8 @@ landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing th
 
 marker_radius_meters = 16 / 100  # in m
 robot_radius_meters = 22 / 100  # in m
-marker_radius_for_pathing = 0.10 + 0.40  # in m
-marker_radius_for_checking = 0.30 + 0.40  # in m
+marker_radius_for_pathing = 0.05 + 0.40  # in m
+marker_radius_for_checking = 0.35 + 0.40  # in m
 
 
 def eprint(*args, **kwargs):
