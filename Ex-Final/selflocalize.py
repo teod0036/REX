@@ -554,7 +554,7 @@ if __name__ == "__main__":
         theta_noise_uncertainty_collision = np.deg2rad(45) # 45 degrees angular spread
 
         # kidnapping recover parameters
-        alpha_slow = 0.001
+        alpha_slow = 0.00001
         alpha_fast = 0.1
         w_slow = w_fast = 1 / num_particles
 
