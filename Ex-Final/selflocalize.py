@@ -61,10 +61,10 @@ CBLACK = (0, 0, 0)
 #Landmarks for 4 landmark track
 landmarks = {
 # actual:
-    3: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
-    8: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
-    6: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
-    1: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
+    1: np.array((-50.0, -150.0), dtype=np.float32),  # Coordinates for landmark 1
+    2: np.array((-50.0, 150.0), dtype=np.float32),  # Coordinates for landmark 2
+    3: np.array((350.0, -150.0), dtype=np.float32),  # Coordinates for landmark 3
+    4: np.array((350.0, 150.0), dtype=np.float32),  # Coordinates for landmark 4
 
 # debug:
     # 3: np.array((-25.0, -75.0), dtype=np.float32),  # Coordinates for landmark 1
