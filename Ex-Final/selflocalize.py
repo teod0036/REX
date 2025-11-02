@@ -596,9 +596,6 @@ if __name__ == "__main__":
         if instruction_debug:
             maxinstructions_per_execution = None
 
-        # Initialize flag designating that the robot believes it has arrived
-        # arrived = False
-
         # used for drawing path
         path_coords = []
 
@@ -681,10 +678,6 @@ if __name__ == "__main__":
                 if (est_var.getX() <= medium_distance_variance and
                     est_var.getY() <= medium_distance_variance and
                     np.round(dist_from_target, 2) <= marker_radius_for_checking):
-                    #print("I am close to my target")
-                    #print()
-                    #if arrived:
-                    #print("I have arrived")
                     print(f"The target is at {cur_goal}")
                     print(f"I am at [{est_pose.getX()/100}, {est_pose.getY()/100}]")
                     print()
@@ -692,19 +685,6 @@ if __name__ == "__main__":
                         break
                     else:
                         del goals[0]
-                        #arrived = False
-                    # Clear the instruction list to allow the robot to survey it's surroundings again
-                    # to make sure it is in the right place without driving away
-                    #instructions = []
-                    #arrived = True
-
-                # If the arrived flag was set to true but the robot no longer fulfills the condition flip it to false
-                # This usually happens when the robot recalculates it's position and realizes it is actually somewhere else
-                #elif arrived:
-                    #print("I have realized i am not close to my target")
-                    #print()
-                    #arrived = False
-                    #generate_rotation_in_place(deg_per_rot, instructions)
                 else:
                     # Make the robot end every instruction sequence by rotating around itself once.
                     generate_rotation_in_place(deg_per_rot, instructions)
