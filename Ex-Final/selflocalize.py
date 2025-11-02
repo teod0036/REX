@@ -647,12 +647,14 @@ if __name__ == "__main__":
                 if len(instructions) == 0:
                     instructions = recalculate_path_on_failure(est_pose)
                 
+                #If robot is really unsure of where it is make it so that it only drives and turns once
                 if (est_var.getX() >= high_distance_variance or
                     est_var.getY() >= high_distance_variance or
                     est_var.getTheta() >= high_angular_variance): 
                     instructions = instructions[:2]
 
-                if (est_var.getX() >= medium_distance_variance or
+                #If robot is unsure of where it is make it so that it only drives and turns twice
+                elif (est_var.getX() >= medium_distance_variance or
                     est_var.getY() >= medium_distance_variance or
                     est_var.getTheta() >= medium_angular_variance): 
                     instructions = instructions[:4]
