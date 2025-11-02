@@ -606,7 +606,7 @@ if __name__ == "__main__":
             if instruction_debug:
                 time.sleep(0.2)
 
-            # Move the robot according to user input (only for testing)
+            # Stop program if Q-key is pressed
             action = cv2.waitKey(10)
             if action == ord("q"):  # Quit
                 break
