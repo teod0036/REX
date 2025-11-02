@@ -584,7 +584,11 @@ if __name__ == "__main__":
 
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
+
+        #Flag for whether or not robot is currently surveying it's surroundings
         issearching = True
+
+        #List for keeping track of landmarks that have been spotting during current survey
         searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
@@ -689,11 +693,13 @@ if __name__ == "__main__":
                     # Make the robot end every instruction sequence by rotating around itself once.
                     generate_rotation_in_place(deg_per_rot, instructions)
 
+            #Make robot stop rotating after spotting two landmarks
             if issearching and len(searchinglandmarks) >= 2:
                 issearching = False
                 instructions = []
                 print("Spotted two landmarks, should be localized now.")
 
+            #Make robot start checking whether it should stop rotating once spotting two landmarks
             if len(instructions) == 360 // deg_per_rot:
                 issearching = True
                 searchinglandmarks = []
@@ -747,6 +753,7 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
+                #Keep track of which landmarks and how many have been spotted
                 if issearching:
                     for o in objectIDs:
                         if o not in searchinglandmarks and o in landmarkIDs:
