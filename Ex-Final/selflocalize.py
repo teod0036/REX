@@ -77,7 +77,7 @@ landmark_colors = [CRED, CGREEN, CBLUE, CMAGENTA]  # Colors used when drawing th
 marker_radius_meters = 16 / 100  # in m
 robot_radius_meters = 22 / 100  # in m
 marker_radius_for_pathing = 0.05 + 0.40  # in m
-marker_radius_for_checking = 0.20 + 0.40  # in m
+marker_radius_for_checking = 0.10 + 0.40  # in m
 
 
 def eprint(*args, **kwargs):
@@ -655,8 +655,15 @@ if __name__ == "__main__":
                 if len(instructions) == 0:
                     instructions = recalculate_path_on_failure(est_pose)
                 
-                if est_var.getX() >= high_distance_variance or est_var.getY() >= high_distance_variance: 
+                if (est_var.getX() >= high_distance_variance or
+                    est_var.getY() >= high_distance_variance or
+                    est_var.getTheta() >= high_angular_variance): 
                     instructions = instructions[:2]
+
+                if (est_var.getX() >= medium_distance_variance or
+                    est_var.getY() >= medium_distance_variance or
+                    est_var.getTheta() >= medium_angular_variance): 
+                    instructions = instructions[:4]
 
                 # Calculate how far the robot is from it's goal.
                 # This value is used to check whether the robot has arrived or not.
