@@ -653,11 +653,9 @@ if __name__ == "__main__":
                     est_var.getY() >= high_distance_variance or
                     est_var.getTheta() >= high_angular_variance): 
                     instructions = instructions[:2]
-
-                #If robot is unsure of where it is make it so that it only drives and turns twice
                 elif (est_var.getX() >= medium_distance_variance or
-                    est_var.getY() >= medium_distance_variance or
-                    est_var.getTheta() >= medium_angular_variance): 
+                      est_var.getY() >= medium_distance_variance or
+                      est_var.getTheta() >= medium_angular_variance): 
                     instructions = instructions[:4]
 
                 # Calculate how far the robot is from it's goal.
