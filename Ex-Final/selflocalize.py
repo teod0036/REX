@@ -617,7 +617,7 @@ if __name__ == "__main__":
                 )
             else:
                 # on collision -> spread 10% of particles
-                time.sleep(0.1)
+                #time.sleep(0.1)
                 front_dist = arlo.read_front_ping_sensor()  # type:ignore
                 left_dist = arlo.read_left_ping_sensor()  # type:ignore
                 right_dist = arlo.read_right_ping_sensor()  # type:ignore
