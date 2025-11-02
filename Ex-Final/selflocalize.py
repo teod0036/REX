@@ -265,7 +265,7 @@ def recalculate_path(
     pos_meter = np.array([est_pose.getX() / 100, est_pose.getY() / 100])
 
     # Get the robots direction and orthogonal directions as vectors since they are needed to calculate
-    # the robot instructions to for following the path outputted by the RRT algorithm
+    # the robot instructions for following the path outputted by the RRT algorithm
     current_dir = np.array([np.cos(est_pose.getTheta()), np.sin(est_pose.getTheta())])
     current_dir_orthogonal = np.column_stack([-current_dir[1], current_dir[0]])
 
@@ -291,6 +291,7 @@ def recalculate_path(
 def recalculate_path_on_failure(est_pose):
     pos = np.array([est_pose.getX(), est_pose.getY()]) #cm
     lmark = None                                       #cm
+    # Check if robot is inside any of the predefined landmarks
     for l in landmarks.values():
         #Equation for a circle
         if (l[0] - pos[0]) ** 2 + (l[1] - pos[1]) ** 2 <= (marker_map_radius_meters*100)**2:
@@ -298,7 +299,7 @@ def recalculate_path_on_failure(est_pose):
             break
 
     print(f"{lmark =}")
-    # Check if robot is inside (any) landmark
+    #If robot is inside any of the predefined landmarks
     if lmark is not None:
         # Vector from landmark to robot
         move_vec = pos - lmark
@@ -308,6 +309,7 @@ def recalculate_path_on_failure(est_pose):
         pos = move_vec * marker_radius_for_pathing #cm
         print(f"{pos =}")
 
+        #Recalculate the robot path with origin point at nearest point to the robot outside of the landmark it is inside
         instructions = recalculate_path(
             immediate_path_map,
             robot_model,
