@@ -584,9 +584,8 @@ if __name__ == "__main__":
 
         # value to control how many degrees the robot rotates at a time when surveying its surroundings
         deg_per_rot = 30
-        # for debugging:
-        #issearching = True
-        #searchinglandmarks = []
+        issearching = True
+        searchinglandmarks = []
 
         # Make the robot start by rotating around itself once
         generate_rotation_in_place(deg_per_rot, instructions)
@@ -708,14 +707,14 @@ if __name__ == "__main__":
                     # Make the robot end every instruction sequence by rotating around itself once.
                     generate_rotation_in_place(deg_per_rot, instructions)
 
-            #if issearching and len(searchinglandmarks) >= 2:
-            #    issearching = False
-            #    instructions = []
-            #    print("Spotted two landmarks, should be localized now.")
+            if issearching and len(searchinglandmarks) >= 2:
+                issearching = False
+                instructions = []
+                print("Spotted two landmarks, should be localized now.")
 
-            #if len(instructions) == 360 // deg_per_rot:
-            #    issearching = True
-            #    searchinglandmarks = []
+            if len(instructions) == 360 // deg_per_rot:
+                issearching = True
+                searchinglandmarks = []
 
             # This code block moves the robot and
             # updates the velocity and angular velocity used when updating the particles
@@ -766,10 +765,10 @@ if __name__ == "__main__":
                 and not isinstance(dists, type(None))
                 and not isinstance(angles, type(None))
             ):
-                #if issearching:
-                #    for o in objectIDs:
-                #        if o not in searchinglandmarks and o in landmarkIDs:
-                #            searchinglandmarks.append(o)
+                if issearching:
+                    for o in objectIDs:
+                        if o not in searchinglandmarks and o in landmarkIDs:
+                            searchinglandmarks.append(o)
 
                 for i in range(len(objectIDs)):
                     # print(f"{ objectIDs[i] = }, { dists[i] = }, { angles[i] = }")
