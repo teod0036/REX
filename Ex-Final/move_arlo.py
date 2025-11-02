@@ -78,8 +78,8 @@ def forward(distance):
             sleep(0.1)
             return distance_driven
     
-    print(arlo.stop())
     sleep(0.1)
+    print(arlo.stop())
 
     return 0
 
