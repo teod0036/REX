@@ -373,7 +373,7 @@ def generate_rotation_in_place(deg_per_rot, instructions):
     for _ in range(360 // deg_per_rot):
         instructions.append(["turn", (False, deg_per_rot)])
 
-def move_particles(particles):
+def move_particles(particles, angular_velocity, velocity_uncertainty, angular_uncertainty):
     for i, p in enumerate(particles):
         x_offset = np.cos(p.getTheta()) * velocity
         y_offset = np.sin(p.getTheta()) * velocity
@@ -754,7 +754,7 @@ if __name__ == "__main__":
                 del instructions[0]
 
             # predict particles after movement (prior):
-            move_particles(particles)
+            move_particles(particles, angular_velocity, velocity_uncertainty, angular_uncertainty)
 
             # Fetch next frame
             colour = cam.get_next_frame()
