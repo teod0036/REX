@@ -562,15 +562,6 @@ if __name__ == "__main__":
         robot_model = robot_models.PointMassModel(ctrl_range=[-path_res, path_res])
 
         # Where the robot wants to go, position in meters
-        # goal_is_landmark, goals = False, [(landmarks[landmarkIDs[0]] + landmarks[landmarkIDs[1]]) / 2 / 100.0]
-
-        # goal for testing goals as a list
-        #goal_is_landmark, goals = True, [
-        #    landmarks[landmarkIDs[0]] / 100,
-        #    landmarks[landmarkIDs[1]] / 100,
-        #]
-        #print(f"Target point: {goals[0]}")
-
         # goal list for rally
         goal_is_landmark, goals = True, [
             landmarks[landmarkIDs[0]] / 100,
