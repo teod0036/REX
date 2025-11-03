@@ -11,7 +11,7 @@ def turn(params):
     # Speed constants
     leftSpeed = 64
     rightSpeed = 64
-    rightSpeedmodifier = 1
+    rightSpeedmodifier = 0
 
     turnsleep = 0.347
     out_of_battery = 0.347
