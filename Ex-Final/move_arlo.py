@@ -88,4 +88,4 @@ def forward(distance):
 
 
 if __name__ == "__main__":
-    print(f"distance driven: {forward(0.5)}")
+    print(f"distance driven: {turn((False, 90))}")
