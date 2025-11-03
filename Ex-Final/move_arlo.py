@@ -36,7 +36,7 @@ def forward(distance):
     # Time constants
     # note: tuning for 0.5 meters, so distance is scaled by 2
 
-    c = 1.25 + 0.0125
+    c = 1.15 + 0.0125
     go_sleep = c * distance * 2
     out_of_battery = 1.15
     if is_low_on_battery:
